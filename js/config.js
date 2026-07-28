@@ -152,7 +152,11 @@
     };
 
     Arquimago.getMageImage = function () {
-        return '<img src="assets/illustrations/bfa5928a-10a0-4051-82cc-afc7765cc438.png" alt="Arquimago" class="mage-avatar-img">';
+        var src = "assets/illustrations/bfa5928a-10a0-4051-82cc-afc7765cc438.png";
+        if (Arquimago.state && Arquimago.state.customAvatar) {
+            src = Arquimago.state.customAvatar;
+        }
+        return '<img src="' + src + '" alt="Arquimago" class="mage-avatar-img">';
     };
 
     global.Arquimago = Arquimago;

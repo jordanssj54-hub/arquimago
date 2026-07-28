@@ -20,7 +20,11 @@
 
         var html = '<div class="profile-page">';
         html += '<div class="profile-banner">';
+        html += '<div class="profile-avatar-wrap">';
         html += '<div class="profile-avatar">' + Arquimago.getMageImage() + '</div>';
+        html += '<button class="avatar-edit-btn" id="avatarUploadBtn">Alterar foto</button>';
+        html += '<input type="file" id="avatarFileInput" accept="image/*" hidden>';
+        html += '</div>';
         html += '<div class="profile-banner-info">';
         html += '<h2>' + state.name + '</h2>';
         html += '<span class="profile-title">' + state.title + '</span>';
@@ -78,7 +82,40 @@
 
         html += '</div></div>';
         container.innerHTML = html;
+
+        bindAvatarUpload();
     };
+
+    function bindAvatarUpload() {
+        var btn = document.getElementById("avatarUploadBtn");
+        var input = document.getElementById("avatarFileInput");
+        if (!btn || !input) return;
+
+        btn.addEventListener("click", function () {
+            input.click();
+        });
+
+        input.addEventListener("change", function () {
+            var file = input.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                Arquimago.state.customAvatar = e.target.result;
+                try {
+                    Arquimago.saveState(Arquimago.state);
+                } catch (err) {
+                    if (err.name === "QuotaExceededError") {
+                        alert("Imagem muito grande. Tente uma com resolução menor.");
+                    }
+                }
+                var img = document.querySelector(".profile-avatar .mage-avatar-img");
+                if (img) img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            input.value = "";
+        });
+    }
 
     function statRow(label, value) {
         return '<div class="profile-stat"><span>' + label + '</span><strong>' + value + '</strong></div>';

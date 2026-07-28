@@ -34,7 +34,7 @@ function buildMarkup() {
     </div>`;
 }
 
-function createGame(container, globalState) {
+function createGame(container, globalState, opts) {
     const Arq = window.Arquimago;
     const hState = globalState.history || {
         currentRoom: "forest_clearing",
@@ -596,6 +596,20 @@ function createGame(container, globalState) {
         lastTime = performance.now();
         initRoom();
         animFrame = requestAnimationFrame(gameLoop);
+
+        if (opts && opts.triggerInitialDialogue) {
+            const firstNpc = roomNpcs[0];
+            if (firstNpc && firstNpc.dialogue) {
+                setTimeout(function () {
+                    dialogue.start(firstNpc.dialogue, function () {
+                        quests.activate(firstNpc.questId);
+                        showToast("Nova missão: " + (quests.getAll().find(q => q.id === firstNpc.questId)?.name || ""), "#44ccff");
+                        updateQuestBar();
+                    });
+                    audio.playDialogue();
+                }, 700);
+            }
+        }
     }
 
     function stop() {
@@ -621,8 +635,26 @@ function initHistoryModule() {
     const globalState = window.Arquimago?.state;
     if (!globalState) return;
 
-    gameInstance = createGame(container, globalState);
-    gameInstance.start();
+    const showIntro = !globalState.historyIntroSeen;
+
+    function startGame(triggerDialogue) {
+        gameInstance = createGame(container, globalState, {
+            triggerInitialDialogue: triggerDialogue
+        });
+        gameInstance.start();
+    }
+
+    if (showIntro) {
+        Arquimago.createHistoryIntro(function () {
+            globalState.historyIntroSeen = true;
+            try {
+                if (Arquimago.saveState) Arquimago.saveState(globalState);
+            } catch (e) {}
+            startGame(true);
+        });
+    } else {
+        startGame(false);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

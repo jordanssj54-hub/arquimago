@@ -25,7 +25,36 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    mix-blend-mode: multiply;
+}
+
+.profile-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-avatar-wrap:hover .avatar-edit-btn {
+    opacity: 1;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: rgba(3, 3, 8, 0.6);
+    border: 2px solid var(--border-gold);
+    color: var(--gold-light);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    font-family: var(--font-body);
+    font-weight: 500;
+    backdrop-filter: blur(4px);
 }
 
 .profile-banner-info h2 {
