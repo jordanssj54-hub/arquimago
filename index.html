@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquimago • O Recomeço</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/intro.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/map.css">
+<link rel="stylesheet" href="css/missions.css">
+<link rel="stylesheet" href="css/grimoire.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/history.css">
+<link rel="stylesheet" href="css/overlays.css">
+</head>
+<body class="theme-black">
+
+<div id="intro-root"></div>
+<div id="levelup-overlay" hidden></div>
+<div id="notification-layer"></div>
+<div id="fx-layer"></div>
+<div id="particles-layer"></div>
+
+<div id="settings-modal" class="modal" hidden>
+<div class="modal-backdrop" data-close-modal></div>
+<div class="modal-panel">
+<h3>Configurações</h3>
+<div class="settings-group">
+<label class="toggle-row">
+<span>Sons</span>
+<input type="checkbox" id="soundToggle" checked>
+<span class="toggle-slider"></span>
+</label>
+<button class="btn-secondary compact" id="audioToggleButton" type="button">🔊 Som</button>
+</div>
+<div class="settings-group">
+<h4>Temas</h4>
+<div class="theme-switcher">
+<button class="theme-chip" type="button" data-theme-option="current">Atual</button>
+<button class="theme-chip" type="button" data-theme-option="light">Claro</button>
+<button class="theme-chip" type="button" data-theme-option="dark">Escuro</button>
+<button class="theme-chip" type="button" data-theme-option="fantasy">Fantasia</button>
+</div>
+</div>
+<button class="btn-secondary" data-close-modal>Fechar</button>
+</div>
+</div>
+
+<div id="game" hidden>
+<header class="topbar">
+<div class="logo-area">
+<h1>ARQUIMAGO</h1>
+<span>O RECOMEÇO</span>
+</div>
+<button id="settingsButton" class="icon-button" aria-label="Configurações">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+</button>
+</header>
+
+<nav class="main-tabs">
+<button class="tab active" data-screen="home">Home</button>
+<button class="tab" data-screen="history">História</button>
+<button class="tab" data-screen="map">Mapa</button>
+<button class="tab" data-screen="missions">Missões</button>
+<button class="tab" data-screen="grimoire">Grimório</button>
+<button class="tab" data-screen="profile">Perfil</button>
+</nav>
+
+<main class="main-content">
+<section id="home" class="screen active"></section>
+<section id="history" class="screen"></section>
+<section id="map" class="screen"></section>
+<section id="missions" class="screen"></section>
+<section id="grimoire" class="screen"></section>
+<section id="profile" class="screen"></section>
+</main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/xp.js"></script>
+<script src="js/missions.js"></script>
+<script src="js/map.js"></script>
+<script src="js/grimoire.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/narrative.js"></script>
+<script src="js/engine/cinematic.js"></script>
+<script src="js/intro.js"></script>
+<script type="module" src="js/history.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
