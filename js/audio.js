@@ -203,5 +203,29 @@
         });
     };
 
+    Arquimago.playUnlock = function () {
+        if (!canPlay()) return;
+        var ac = getCtx();
+        if (!ac) return;
+        audioUnlock();
+        var t = ac.currentTime;
+        var g = out(0.13);
+        if (!g) return;
+        var notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+        notes.forEach(function (f, i) {
+            var osc = ac.createOscillator();
+            var gn = ac.createGain();
+            osc.type = i === notes.length - 1 ? "sine" : "triangle";
+            osc.frequency.value = f;
+            gn.gain.setValueAtTime(0.001, t + i * 0.07);
+            gn.gain.exponentialRampToValueAtTime(0.26, t + i * 0.07 + 0.02);
+            gn.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.3);
+            osc.connect(gn);
+            gn.connect(g);
+            osc.start(t + i * 0.07);
+            osc.stop(t + i * 0.07 + 0.35);
+        });
+    };
+
     global.Arquimago = Arquimago;
 })(typeof window !== "undefined" ? window : this);

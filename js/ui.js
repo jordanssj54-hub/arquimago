@@ -3,6 +3,24 @@
 
     var Arquimago = global.Arquimago || {};
 
+    var XP_TRACK_FRACTION = 0.645;
+
+    function xpFillWidth(pct) {
+        return (pct * XP_TRACK_FRACTION) + "%";
+    }
+
+    Arquimago.updateXP = function (current, max) {
+        if (!max) return;
+        var pct = Math.max(0, Math.min(100, (current / max) * 100));
+        var w = xpFillWidth(pct);
+        document.querySelectorAll(".xp-bar .xp-fill").forEach(function (fill) {
+            fill.style.width = w;
+        });
+        document.querySelectorAll(".xp-bar .xp-text").forEach(function (text) {
+            text.innerText = current + " / " + max + " XP";
+        });
+    };
+
     Arquimago.getMageSVG = function () {
         return '<svg viewBox="0 0 200 200" class="mage-svg"><defs><radialGradient id="mg" cx="50%" cy="40%"><stop offset="0%" stop-color="#2a3550"/><stop offset="100%" stop-color="#0a0c14"/></radialGradient></defs><rect width="200" height="200" fill="url(#mg)"/><circle cx="100" cy="70" r="30" fill="#1a1a2e" stroke="#c9a84c" stroke-width="1.5"/><path d="M55 180 Q100 120 145 180" fill="#12121f" stroke="#c9a84c" stroke-width="1"/><path d="M70 100 L50 60 L80 90 Z" fill="#1e2a45" stroke="#4a7fd4" stroke-width="0.8"/><path d="M130 100 L150 60 L120 90 Z" fill="#1e2a45" stroke="#4a7fd4" stroke-width="0.8"/><circle cx="92" cy="68" r="3" fill="#4a7fd4"/><circle cx="108" cy="68" r="3" fill="#4a7fd4"/><path d="M85 80 Q100 88 115 80" fill="none" stroke="#c9a84c" stroke-width="1" opacity="0.6"/></svg>';
     };
@@ -24,34 +42,44 @@
             '<div class="home-page">' +
             '<div class="hero-panel">' +
             '<div class="hero-bg"></div><div class="hero-glow"></div><div class="hero-runes"></div>' +
-            '<div class="hero-art"><div class="hero-art__overlay"></div><img src="assets/illustrations/journey-valley.png" alt="Paisagem mística"></div>' +
-            '<div class="hero-inner">' +
+             '<div class="hero-inner">' +
             '<div class="mage-card">' +
-            '<div class="mage-card__avatar">' + Arquimago.getMageImage() + '</div>' +
+            '<div class="mage-card__avatar">' + Arquimago.getPlayerAvatar() + '</div>' +
             '<div class="mage-card__info">' +
-            '<h2>' + state.name + '</h2>' +
+            '<h2 data-player-name>' + Arquimago.getDisplayName() + '</h2>' +
             '<span class="mage-card__title">' + state.title + '</span>' +
             '<p class="mage-card__quote">A culpa destruiu quem você era. Agora ela alimenta quem você escolheu se tornar.</p>' +
             '<div class="xp-card">' +
             '<div class="level-row"><span>Nível</span><strong id="playerLevel">' + state.level + '</strong></div>' +
-            '<div class="xp-bar"><div id="xpFill" style="width:' + (animateXp ? 0 : xpPct) + '%"></div></div>' +
-            '<div id="xpText">' + state.xp + ' / ' + xpNeed + ' XP</div>' +
+            '<div class="xp-bar">' +
+            '<div class="xp-fill" id="xpFill" style="width:' + (animateXp ? 0 : xpFillWidth(xpPct)) + '"></div>' +
+            '<img class="xp-frame" src="assets/frames/xp_frame.png" alt="XP Frame">' +
+            '<div class="xp-text" id="xpText">' + state.xp + ' / ' + xpNeed + ' XP</div>' +
+            '</div>' +
             '</div></div></div>' +
-            '<div class="chapter-brief">' +
+             '<div class="chapter-brief"><div class="chapter-brief__art"><img src="assets/illustrations/entrada-da-masmorra.png" alt=""></div>' +
             '<span class="hero-badge"><strong>RPG</strong> • O Recomeço</span>' +
             '<span class="section-label">Capítulo Atual</span>' +
             '<h3>' + chapter.name + '</h3>' +
             '<p>' + chapter.desc + '</p>' +
             '<div class="hero-meta"><span>Próximo avanço</span><strong>Nível ' + (state.level + 1) + '</strong></div>' +
             '</div></div>' +
-            '<div class="character-panel">' +
-            '<div class="character-portrait">' + Arquimago.getMageImage() + '</div>' +
-            '<div class="character-sheet">' +
-            '<div class="character-sheet__header">' +
-            '<div><span class="character-chip">Classe</span><h3>Arquimago</h3></div>' +
-            '<div class="character-badge">' + state.level + ' • Nível</div>' +
-            '</div>' +
-            '<div class="character-stats">' +
+             '<div class="character-panel">' +
+             '<div class="character-portrait">' + Arquimago.getPlayerAvatar() + '</div>' +
+             '<div class="character-sheet">' +
+             '<div class="character-sheet__header">' +
+             '<div><span class="character-chip">Classe</span><h3>' + Arquimago.getCharacterClass() + '</h3></div>' +
+             '<div class="character-badge">' + state.level + ' • Nível</div>' +
+             '</div>' +
+             '<div class="character-signature"><p>Domina os elementos e molda a realidade.</p>' +
+             '<div class="elemental-row" aria-label="Afinidades elementais">' +
+             '<span class="elemental elemental-fire" title="Fogo"><i>✦</i></span>' +
+             '<span class="elemental elemental-void" title="Éter"><i>◒</i></span>' +
+             '<span class="elemental elemental-arcane" title="Arcano"><i>✧</i></span>' +
+             '<span class="elemental elemental-nature" title="Natureza"><i>♧</i></span>' +
+             '<span class="elemental elemental-flame" title="Chama"><i>⌁</i></span>' +
+             '</div></div>' +
+             '<div class="character-stats">' +
             '<div class="stat-pill"><span>XP</span><strong>' + state.xp + '/' + xpNeed + '</strong></div>' +
             '<div class="stat-pill"><span>Mana</span><strong>' + Math.max(45, 80 + state.level * 2) + '</strong></div>' +
             '<div class="stat-pill"><span>Energia</span><strong>' + Math.max(60, 70 + state.level) + '</strong></div>' +
@@ -78,7 +106,10 @@
             '<div class="panel-header"><h3>Missão Principal</h3></div>' +
             '<div class="mission-highlight' + (mainDone ? " completed" : "") + '">' +
             '<span class="mission-type">MISSÃO PRINCIPAL</span>' +
+            '<div class="mission-highlight__title">' +
+            '<span class="mission-icon" aria-hidden="true">' + Arquimago.getMissionIcon(nextMission) + '</span>' +
             '<h2 id="nextMissionTitle">' + nextMission.name + '</h2>' +
+            '</div>' +
             '<p id="nextMissionDescription">' + nextMission.desc + '</p>' +
             '<div class="mission-footer">' +
             '<span class="reward">+' + nextMission.xp + ' XP</span>' +
@@ -108,12 +139,19 @@
                     var fill = document.getElementById("xpFill");
                     if (fill) {
                         fill.classList.add("xp-animate");
-                        fill.style.width = xpPct + "%";
+                        fill.style.width = xpFillWidth(xpPct);
                         setTimeout(function () { fill.classList.remove("xp-animate"); }, 900);
                     }
                 });
             });
         }
+
+        document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) {
+            fill.style.width = xpFillWidth(xpPct);
+        });
+        document.querySelectorAll(".xp-bar--top .xp-text").forEach(function (text) {
+            text.innerText = state.xp + " / " + xpNeed + " XP";
+        });
 
         var btn = document.getElementById("startMissionButton");
         if (btn && !mainDone) {
@@ -145,6 +183,13 @@
         }
         html += '</div>';
         el.innerHTML = html;
+    };
+
+    Arquimago.updatePlayerName = function () {
+        var name = Arquimago.getDisplayName();
+        document.querySelectorAll("[data-player-name]").forEach(function (el) {
+            el.textContent = name;
+        });
     };
 
     Arquimago.refreshAll = function (animateXp) {

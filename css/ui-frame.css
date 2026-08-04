@@ -1,0 +1,114 @@
+/* =========================================================================
+   Shared UI Frame — Main Frame & Card Frame
+   Single source of truth for the reusable layout assets.
+   - main_frame.png    -> container principal (App)
+   - card_frame_lg.png -> componente padrão de card (informação dentro da Main Frame)
+   - modal_frame.png   -> reservado para modais
+   Carregado por ÚLTIMO para padronizar a UI sem editar os estilos de tela.
+   ========================================================================= */
+
+/* --------------------------------------------------------------------------
+   Card Frame (componente reutilizável) — .card-frame
+   ------------------------------------------------
+   A moldura usa 9-slice real sobre o PNG original:
+     border-image-slice: 211 165 232 167   (valores EXATOS do asset, fixos)
+   A espessura exibida é FIXA (border-width constante) para TODOS os cards.
+   Assim, cantos e ornamentos nunca deformam: apenas as barras horizontais e
+   verticais se estendem e a área útil cresce junto com o card.
+   Interior do asset é transparente (sem `fill`).
+   ------------------------------------------------------------------------- */
+
+.card-frame {
+    border-radius: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-width: 28px 22px 31px 22px;
+    border-image-source: url("../assets/frames/card_frame_lg.png");
+    border-image-slice: 211 165 232 167;
+    border-image-width: 28px 22px 31px 22px;
+    border-image-repeat: stretch;
+    background-color: rgba(10, 10, 15, 0.55);
+    padding: 22px;
+}
+
+/* --------------------------------------------------------------------------
+   Cards padrão da interface.
+   A mesma moldura (mesmos border-image-slice / border-width) em todos.
+   Cards pequenos, médios e grandes diferenciam-se apenas pelo PADDING
+   (área útil), nunca pela espessura da moldura.
+   ------------------------------------------------------------------------- */
+
+.status-card,
+.stat-card,
+.statistics-card,
+.objective-card,
+.event-card,
+.xp-card,
+.mission-highlight,
+.mission-item,
+.reward-card,
+.grimoire-card,
+.achievement,
+.spell-card,
+.mage-card,
+.chapter-card,
+.item-card {
+    border-radius: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-width: 28px 22px 31px 22px;
+    border-image-source: url("../assets/frames/card_frame_lg.png");
+    border-image-slice: 211 165 232 167;
+    border-image-width: 28px 22px 31px 22px;
+    border-image-repeat: stretch;
+}
+
+/* Paddings distintos por tamanho de card (mesma moldura, área útil variável) */
+.status-card,
+.stat-card,
+.statistics-card,
+.achievement {
+    padding: 12px;
+}
+
+.objective-card,
+.event-card,
+.xp-card,
+.spell-card {
+    padding: 18px;
+}
+
+.mission-highlight,
+.mission-item,
+.reward-card,
+.grimoire-card,
+.mage-card,
+.chapter-card,
+.item-card {
+    padding: 22px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsivo — apenas reduz o padding em telas pequenas.
+   A espessura da moldura permanece idêntica.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .status-card,
+    .stat-card,
+    .statistics-card,
+    .achievement { padding: 10px; }
+
+    .objective-card,
+    .event-card,
+    .xp-card,
+    .spell-card { padding: 14px; }
+
+    .mission-highlight,
+    .mission-item,
+    .reward-card,
+    .grimoire-card,
+    .mage-card,
+    .chapter-card,
+    .item-card { padding: 16px; }
+}

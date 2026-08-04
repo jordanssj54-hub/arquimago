@@ -1,0 +1,140 @@
+/* ==========================================
+   UI EFFECTS
+   Camada global de efeitos visuais reutilizáveis.
+   Carregado por último (após ui-frame.css).
+   Não altera layout, dimensões, escala ou posição.
+   ========================================== */
+
+:root {
+    /* Intensidade global dos efeitos (0 desliga, 1 normal) */
+    --fx-intensity: 1;
+
+    /* Paleta de brilho (reusa tokens da base) */
+    --fx-gold: var(--gold);
+    --fx-gold-soft: rgba(201, 168, 76, calc(0.14 * var(--fx-intensity)));
+    --fx-gold-mid: rgba(201, 168, 76, calc(0.28 * var(--fx-intensity)));
+    --fx-gold-strong: rgba(201, 168, 76, calc(0.45 * var(--fx-intensity)));
+
+    /* Glow dourado reutilizável */
+    --fx-glow-soft: 0 0 12px var(--fx-gold-soft);
+    --fx-glow: 0 0 22px var(--fx-gold-mid), 0 0 44px var(--fx-gold-soft);
+    --fx-glow-strong: 0 0 14px var(--fx-gold-mid), 0 0 34px var(--fx-gold-strong), 0 0 64px var(--fx-gold-mid);
+
+    /* Sombras externas */
+    --fx-shadow-soft: 0 6px 18px rgba(0, 0, 0, calc(0.28 * var(--fx-intensity)));
+    --fx-shadow: 0 12px 34px rgba(0, 0, 0, calc(0.38 * var(--fx-intensity)));
+    --fx-shadow-deep: 0 20px 52px rgba(0, 0, 0, calc(0.5 * var(--fx-intensity)));
+
+    /* Sombras internas */
+    --fx-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --fx-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 26px var(--fx-gold-soft);
+
+    /* Transições padronizadas (reusa a curva da base) */
+    --fx-ease: var(--ease);
+    --fx-transition: box-shadow 0.3s var(--fx-ease), border-color 0.3s var(--fx-ease);
+    --fx-transition-fast: box-shadow 0.18s ease, border-color 0.18s ease;
+
+    /* ══ Atmosfera Global (Etapa 3) ══
+       Intensidades da atmosfera de fundo — ajuste em um único ponto.
+       Plano 1 → background base (body)
+       Plano 2 → luz ambiente (#game::before)
+       Plano 3 → separador de profundidade (#game::after) */
+    --fx-bg-center: 50% 44%;               /* foco da luz atrás da área principal */
+    --fx-bg-light: 0.9;                    /* peso do centro claro (bg-card) vs bordas */
+    --fx-bg-vignette: 0.15;                /* escurecimento das bordas (~15%) */
+    --fx-bg-depth: 0.05;                   /* opacidade do gradiente de profundidade */
+    --fx-bg-noise: 0.02;                   /* textura sutil (máx 2%) */
+    --fx-bg-ambient: 0.05;                 /* opacidade da luz ambiente (3–6%) */
+    --fx-bg-blur: 120px;                   /* blur alto da luz ambiente (sem bordas) */
+
+    /* Cores derivadas exclusivamente dos tokens da base (nenhuma cor nova) */
+    --fx-bg-grad-center: color-mix(in srgb, var(--bg-card) calc(var(--fx-bg-light) * 100%), var(--bg-deep));
+    --fx-bg-grad-mid: var(--bg-app);
+    --fx-bg-grad-edge: var(--bg-deep);
+    --fx-bg-ambient-color: rgba(201, 168, 76, var(--fx-bg-ambient));
+    --fx-bg-vignette-color: rgba(0, 0, 0, var(--fx-bg-vignette));
+    --fx-bg-depth-color: rgba(0, 0, 0, var(--fx-bg-depth));
+    --fx-bg-noise-color: rgba(255, 255, 255, var(--fx-bg-noise));
+
+    /* Plano 1 — background composto (textura + radial central + linear vertical) */
+    --fx-bg-texture:
+        repeating-linear-gradient(135deg, var(--fx-bg-noise-color) 0 1px, transparent 1px 6px),
+        repeating-linear-gradient(45deg, var(--fx-bg-noise-color) 0 1px, transparent 1px 6px);
+    --fx-bg-backdrop:
+        var(--fx-bg-texture),
+        radial-gradient(ellipse at var(--fx-bg-center), var(--fx-bg-grad-center) 0%, var(--fx-bg-grad-mid) 42%, var(--fx-bg-grad-edge) 100%),
+        linear-gradient(180deg, var(--fx-bg-grad-mid) 0%, var(--fx-bg-grad-edge) 100%);
+}
+
+/* ── Sistema de glow dourado ── */
+.fx-glow {
+    box-shadow: var(--fx-glow-soft), var(--fx-inset);
+}
+
+.fx-glow--strong {
+    box-shadow: var(--fx-glow-strong), var(--fx-inset-strong);
+}
+
+/* ── Sistema de sombras externas/internas ── */
+.fx-shadow {
+    box-shadow: var(--fx-shadow-soft), var(--fx-inset);
+}
+
+.fx-shadow--deep {
+    box-shadow: var(--fx-shadow-deep), var(--fx-inset-strong);
+}
+
+/* ── Hover premium ──
+   Apenas intensifica glow e sombra.
+   Sem alterar escala, posição ou layout. */
+.fx-hover-premium {
+    transition: var(--fx-transition);
+}
+
+.fx-hover-premium:hover,
+.fx-hover-premium:focus-visible {
+    box-shadow: var(--fx-shadow), var(--fx-glow-strong), var(--fx-inset-strong);
+}
+
+/* ── Hover premium dos cards da página Missões ── */
+.missions-list .mission-item {
+    transition: var(--fx-transition);
+    box-shadow: var(--fx-glow-soft), var(--fx-inset);
+}
+
+.missions-list .mission-item:hover,
+.missions-list .mission-item:focus-within {
+    box-shadow: var(--fx-shadow), var(--fx-glow-strong), var(--fx-inset-strong);
+}
+
+/* ══ Atmosfera Global — Camadas de profundidade ══
+   Usa os pseudo-elementos livres do container global #game.
+   z-index negativo mantém ambas as camadas atrás da interface.
+   Plano 1 → background base (body)
+   Plano 2 → luz ambiente (#game::before)
+   Plano 3 → separador de profundidade (#game::after)
+   Plano 4 → interface */
+
+/* Camada 2 — luz ambiente dourada, atrás da área principal da interface */
+#game::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at var(--fx-bg-center), var(--fx-bg-ambient-color) 0%, transparent 60%);
+    filter: blur(var(--fx-bg-blur));
+}
+
+/* Camada 3 — separador de profundidade: vinheta suave + gradiente de apoio */
+#game::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at var(--fx-bg-center), transparent 70%, var(--fx-bg-vignette-color) 100%),
+        linear-gradient(180deg, transparent 62%, var(--fx-bg-depth-color) 100%);
+    mix-blend-mode: soft-light;
+}

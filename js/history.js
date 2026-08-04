@@ -1,14 +1,12 @@
-import { TILE, getRoom, ROOMS } from "./engine/world.js";
+import { TILE, ROOMS, PHASES, getRoom, getPhaseForRoom } from "./engine/world.js";
 import { createInputController } from "./engine/input.js";
 import { createCamera } from "./engine/camera.js";
 import { createParticleSystem } from "./engine/particles.js";
 import { createRenderer } from "./engine/renderer.js";
-import { createPlayer, updatePlayer, playerAttack, playerCastMagic, getAttackHitbox, getMagicHitbox, damagePlayer, healPlayer, restoreMana, addXP, drawPlayer } from "./engine/player.js";
-import { createEnemy, updateEnemy, hitEnemy, getEnemyAttack, drawEnemy } from "./engine/enemy.js";
+import { createPlayer, updatePlayer, drawPlayer } from "./engine/player.js";
 import { createDialogueSystem } from "./engine/dialogue.js";
 import { createAudioManager } from "./engine/audio.js";
 import { getNearbyEntity, interactWith, checkDoorExits } from "./engine/entities.js";
-import { createQuestSystem } from "./engine/quest.js";
 
 const GAME_W = 480;
 const GAME_H = 320;
@@ -20,12 +18,15 @@ function buildMarkup() {
     <div class="history-page">
         <div class="history-shell">
             <div class="history-header">
-                <h2>Aventura do Arquimago</h2>
-                <span class="history-pill" id="hChapter"></span>
+                <h2>Jornada do Arquimago</h2>
+                <div class="header-badges">
+                    <span class="history-pill" id="hPhase"></span>
+                    <span class="history-chapter-num" id="hChapterNum"></span>
+                </div>
             </div>
-            <div class="history-panel" id="hPanel"></div>
             <div class="history-canvas-wrap">
                 <canvas id="historyCanvas"></canvas>
+                <div class="history-dialogue" id="history-dialogue"></div>
                 <div class="history-mobile-controls" id="historyMobileControls"></div>
             </div>
             <div class="history-quest-bar" id="hQuestBar"></div>
@@ -37,14 +38,12 @@ function buildMarkup() {
 function createGame(container, globalState, opts) {
     const Arq = window.Arquimago;
     const hState = globalState.history || {
-        currentRoom: "forest_clearing",
-        playerStartX: 7, playerStartY: 5,
+        currentRoom: "floresta_arcana",
+        currentPhase: 1,
+        playerStartX: 10, playerStartY: 12,
         memoryFragments: [],
-        completedQuests: [],
-        npcStates: {},
+        chaptersCompleted: [],
         objectStates: {},
-        leverStates: {},
-        bossDefeated: false,
     };
     globalState.history = hState;
     window._historyState = hState;
@@ -53,8 +52,9 @@ function createGame(container, globalState, opts) {
 
     const canvas = document.getElementById("historyCanvas");
     const mobileEl = document.getElementById("historyMobileControls");
-    const panelEl = document.getElementById("hPanel");
-    const chapterEl = document.getElementById("hChapter");
+    const dialogueEl = document.getElementById("history-dialogue");
+    const phaseEl = document.getElementById("hPhase");
+    const chapterNumEl = document.getElementById("hChapterNum");
     const questBarEl = document.getElementById("hQuestBar");
     const toastEl = document.getElementById("hToast");
 
@@ -62,16 +62,23 @@ function createGame(container, globalState, opts) {
     const renderer = createRenderer(canvas, GAME_W, GAME_H);
     const camera = createCamera(GAME_W, GAME_H);
     const particles = createParticleSystem();
-    const dialogue = createDialogueSystem();
+    const dialogue = createDialogueSystem(dialogueEl);
     const audio = createAudioManager();
-    const quests = createQuestSystem();
 
-    quests.init(hState.completedQuests, hState.completedQuests);
-
-    let currentRoomKey = hState.currentRoom || "forest_clearing";
+    const VALID_ROOMS = new Set(Object.keys(ROOMS));
+    if (!VALID_ROOMS.has(hState.currentRoom)) {
+        hState.currentRoom = "floresta_arcana";
+        hState.currentPhase = 1;
+        hState.playerStartX = 10;
+        hState.playerStartY = 12;
+    }
+    let currentRoomKey = hState.currentRoom;
     let currentRoom = getRoom(currentRoomKey);
-    let player = createPlayer(hState.playerStartX || 7, hState.playerStartY || 5);
-    let enemies = [];
+    if (!currentRoom) {
+        currentRoomKey = "floresta_arcana";
+        currentRoom = getRoom(currentRoomKey);
+    }
+    let player = createPlayer(10, 12);
     let roomObjects = [];
     let roomNpcs = [];
 
@@ -87,13 +94,21 @@ function createGame(container, globalState, opts) {
     let ambientTimer = 0;
     let gameStarted = false;
 
+    const PHASE_ORDER = ["floresta_arcana", "ruinas_antigas", "entrada_masmorra"];
+
     function initRoom() {
         currentRoom = getRoom(currentRoomKey);
         if (!currentRoom) return;
 
         hState.currentRoom = currentRoomKey;
 
-        enemies = (currentRoom.enemies || []).map(e => createEnemy(e));
+        if (currentRoom.phase) {
+            const phaseIdx = PHASE_ORDER.indexOf(currentRoom.phase);
+            if (phaseIdx >= 0) {
+                hState.currentPhase = phaseIdx + 1;
+                globalState.chapter = phaseIdx + 1;
+            }
+        }
 
         roomObjects = (currentRoom.objects || []).map(o => ({ ...o }));
         roomNpcs = currentRoom.npcs || [];
@@ -102,54 +117,31 @@ function createGame(container, globalState, opts) {
             const saved = hState.objectStates[o.id];
             if (saved) {
                 if (o.type === "chest") o.opened = saved.opened || false;
-                if (o.type === "lever") o.activated = saved.activated || false;
-                if (o.type === "door") o.locked = saved.locked !== undefined ? saved.locked : o.locked;
                 if (o.type === "potion") o.collected = saved.collected || false;
-                if (o.type === "torch") o.lit = saved.lit !== undefined ? saved.lit : o.lit;
+                if (o.type === "plant") o.collected = saved.collected || false;
             }
         });
 
-        roomObjects.forEach(o => {
-            if (o.type === "lever" && o.activated && o.activated) {
-                hState.leverStates[o.id] = true;
-            }
-        });
-
-        checkDoorLocks();
-
-        const px = (hState.playerStartX || 7) * TILE + TILE / 2;
-        const py = (hState.playerStartY || 5) * TILE + TILE / 2;
+        const px = (hState.playerStartX || 10) * TILE + TILE / 2;
+        const py = (hState.playerStartY || 12) * TILE + TILE / 2;
         player.x = px;
         player.y = py;
 
         camera.snapTo(px, py, currentRoom.width * TILE, currentRoom.height * TILE);
 
-        updatePanel();
+        updateHeader();
         updateQuestBar();
-    }
-
-    function checkDoorLocks() {
-        roomObjects.forEach(o => {
-            if (o.type === "door" && o.requires) {
-                const reqs = Array.isArray(o.requires) ? o.requires : [o.requires];
-                o.locked = !reqs.every(reqId => hState.leverStates[reqId]);
-            }
-        });
     }
 
     function saveObjectStates() {
         roomObjects.forEach(o => {
-            if (o.type === "chest" || o.type === "lever" || o.type === "door" || o.type === "potion" || o.type === "torch") {
+            if (o.type === "chest" || o.type === "potion" || o.type === "plant") {
                 hState.objectStates[o.id] = {
                     opened: o.opened,
-                    activated: o.activated,
-                    locked: o.locked,
                     collected: o.collected,
-                    lit: o.lit,
                 };
             }
         });
-        hState.completedQuests = quests.getCompletedIds();
         saveState();
     }
 
@@ -166,13 +158,6 @@ function createGame(container, globalState, opts) {
         toastEl.classList.add("visible");
         clearTimeout(toastEl._timer);
         toastEl._timer = setTimeout(() => toastEl.classList.remove("visible"), 2500);
-    }
-
-    function showMessage(text, speaker) {
-        const lines = [];
-        if (speaker) lines.push({ speaker, text });
-        else lines.push({ speaker: "", text });
-        dialogue.start(lines);
     }
 
     function showNotification(text) {
@@ -195,11 +180,7 @@ function createGame(container, globalState, opts) {
     }
 
     function handleInteraction() {
-        if (dialogue.isActive()) {
-            dialogue.advance();
-            audio.playDialogue();
-            return;
-        }
+        if (dialogue.isActive()) return;
 
         const entity = getNearbyEntity(player.x, player.y, { npcs: roomNpcs, objects: roomObjects }, 44);
         if (!entity) return;
@@ -210,11 +191,7 @@ function createGame(container, globalState, opts) {
         switch (result.type) {
             case "dialogue":
                 dialogue.start(result.entity.dialogue, () => {
-                    if (result.entity.questGiver && result.entity.questId) {
-                        quests.activate(result.entity.questId);
-                        showToast("Nova missão: " + (quests.getAll().find(q => q.id === result.entity.questId)?.name || ""), "#44ccff");
-                        updateQuestBar();
-                    }
+                    checkPhaseAdvancement();
                 });
                 audio.playDialogue();
                 break;
@@ -223,38 +200,28 @@ function createGame(container, globalState, opts) {
                 particles.emitMagic(player.x, player.y, result.entity.color || "#7b68ee");
                 audio.playPickup();
                 showNotification(result.message);
-                const notifications = quests.check(hState, hState.leverStates);
-                notifications.forEach(n => {
-                    if (n.type === "quest_complete") {
-                        showToast("Missão completa: " + n.quest.name, "#44cc44");
-                        if (n.quest.reward) addXP(player, n.quest.reward.xp);
-                    }
-                });
-                updatePanel();
+                updateHeader();
                 updateQuestBar();
-                checkVictory();
+                checkPhaseAdvancement();
                 break;
 
             case "chest":
                 particles.emitBurst(player.x, player.y, "#c9a84c", 15);
                 audio.playChest();
-                if (result.contains === "key") {
-                    showNotification("Chave obtida!");
-                } else if (result.contains === "mana_shard") {
-                    restoreMana(player, 25);
-                    showNotification("+25 MP!");
-                } else if (result.contains === "memory_fragment") {
+                if (result.contains === "memory_fragment") {
                     if (!hState.memoryFragments.includes(result.entity.id)) {
                         hState.memoryFragments.push(result.entity.id);
                     }
                     showNotification("Fragmento de memória encontrado!");
-                } else if (result.contains === "spell_boost") {
-                    player.maxMana += 10;
-                    player.mana = player.maxMana;
+                } else if (result.contains === "mana_shard") {
                     showNotification("Capacidade de mana aumentada!");
+                } else {
+                    showNotification("Baú aberto!");
                 }
                 saveObjectStates();
-                updatePanel();
+                updateHeader();
+                updateQuestBar();
+                checkPhaseAdvancement();
                 break;
 
             case "potion":
@@ -262,187 +229,133 @@ function createGame(container, globalState, opts) {
                 audio.playPickup();
                 showNotification(result.message);
                 saveObjectStates();
-                updatePanel();
                 break;
 
             case "book":
                 dialogue.start([
                     { speaker: result.title || "Livro", text: result.text }
                 ]);
-                addXP(player, 5);
                 audio.playDialogue();
-                updatePanel();
-                break;
-
-            case "lever":
-                audio.playDoor();
-                hState.leverStates[result.entity.id] = result.activated;
-                checkDoorLocks();
-                particles.emitBurst(result.entity.x * TILE + TILE / 2, result.entity.y * TILE + TILE / 2, result.activated ? "#44cc44" : "#cc4444", 12);
-                showNotification(result.activated ? "Mecanismo ativado!" : "Mecanismo desativado!");
-                saveObjectStates();
-                quests.check(hState, hState.leverStates);
-                updateQuestBar();
                 break;
 
             case "monument":
                 dialogue.start([
-                    { speaker: "Monumento", text: "Uma inscrição antiga brilha sob seu toque..." },
-                    { speaker: "Monumento", text: "\"O Arquimago um dia governou estas terras.\"" },
-                    { speaker: "Monumento", text: "\"Seus fragmentos de memória foram espalhados pelas trevas.\"" },
+                    { speaker: "Monumento Antigo", text: "Uma inscrição antiga pulsa com luz própria..." },
+                    { speaker: "Monumento Antigo", text: "\"O caçador que busca o poder encontrará apenas o vazio.\"" },
+                    { speaker: "Monumento Antigo", text: "\"A verdadeira força nasce da aceitação da própria fragilidade.\"" },
                 ]);
                 audio.playPickup();
                 break;
 
+            case "altar":
+                dialogue.start([
+                    { speaker: "Altar Ancestral", text: "O altar vibra com energia residual..." },
+                    { speaker: "Altar Ancestral", text: "\"Aqui os primeiros arquimagos ofereceram suas almas em troca de conhecimento.\"" },
+                    { speaker: "Altar Ancestral", text: "\"O preço da sabedoria é sempre a inocência.\"" },
+                ]);
+                audio.playPickup();
+                break;
+
+            case "ancient_stone":
+                dialogue.start([
+                    { speaker: "Pedra Antiga", text: "Uma inscrição quase ilegível está gravada na pedra..." },
+                    { speaker: "Pedra Antiga", text: "\"O sistema observa. O sistema registra. O sistema julga.\"" },
+                    { speaker: "Pedra Antiga", text: "\"Ninguém escapa do julgamento. Nem mesmo o criador.\"" },
+                ]);
+                audio.playPickup();
+                break;
+
+            case "plant":
+                particles.emitBurst(player.x, player.y, "#44aa44", 8);
+                audio.playPickup();
+                showNotification(result.message);
+                saveObjectStates();
+                break;
+
+            case "portal":
+                dialogue.start([
+                    { speaker: "Portal", text: "O portal pulsa com energia ancestral." },
+                    { speaker: "Portal", text: "Atravessá-lo significa avançar para a próxima etapa de sua jornada." },
+                ], () => {
+                    checkPhaseAdvancement();
+                });
+                audio.playMagic();
+                break;
+
+            case "lever":
+                audio.playDoor();
+                particles.emitBurst(result.entity.x * TILE + TILE / 2, result.entity.y * TILE + TILE / 2, result.activated ? "#44cc44" : "#cc4444", 12);
+                showNotification(result.activated ? "Mecanismo ativado!" : "Mecanismo desativado!");
+                saveObjectStates();
+                break;
+
+            case "rest":
+                showNotification(result.message, "#44cc44");
+                break;
+
             case "already_interacted":
-                showMessage(result.message);
+                showNotification(result.message);
                 break;
         }
     }
 
-    function handleCombat(dt) {
-        const jp = input.consumeJustPressed();
-
-        if (jp.action) {
-            handleInteraction();
-        }
-
-        if (jp.magic) {
-            if (playerCastMagic(player)) {
-                audio.playMagic();
-                const hitbox = getMagicHitbox(player);
-                particles.emitMagic(hitbox.x, hitbox.y, "#7b68ee");
-                enemies.forEach(e => {
-                    if (!e.alive) return;
-                    const dx = e.x - hitbox.x;
-                    const dy = e.y - hitbox.y;
-                    if (Math.sqrt(dx * dx + dy * dy) < hitbox.r + e.size) {
-                        const killed = hitEnemy(e, 25, 0.3);
-                        particles.emitBurst(e.x, e.y, e.color, 8);
-                        if (killed) onEnemyDefeated(e);
-                    }
-                });
-                camera.shake(3, 0.15);
-            }
-        }
-
-        if (input.state.action && player.attackCooldown <= 0 && !dialogue.isActive()) {
-            if (playerAttack(player)) {
-                audio.playAttack();
-                const hitbox = getAttackHitbox(player);
-                enemies.forEach(e => {
-                    if (!e.alive) return;
-                    const dx = e.x - hitbox.x;
-                    const dy = e.y - hitbox.y;
-                    if (Math.sqrt(dx * dx + dy * dy) < hitbox.r + e.size) {
-                        const killed = hitEnemy(e, 12, 0.15);
-                        particles.emitBurst(e.x, e.y, "#ffaa44", 6);
-                        camera.shake(2, 0.1);
-                        if (killed) onEnemyDefeated(e);
-                    }
-                });
-            }
-        }
-
-        enemies.forEach(e => {
-            const result = updateEnemy(e, player.x, player.y, dt, currentRoom);
-            if (result !== false && typeof result === "number") {
-                if (damagePlayer(player, result)) {
-                    audio.playHit();
-                    camera.shake(4, 0.2);
-                    particles.emitBurst(player.x, player.y, "#ff4444", 8);
-                    if (!player.alive) {
-                        setTimeout(() => {
-                            player.alive = true;
-                            player.hp = player.maxHp;
-                            player.mana = player.maxMana;
-                            showToast("Você foi restaurado!", "#44cc44");
-                        }, 1000);
-                    }
-                }
-            }
-        });
-
-        if (player.mana < player.maxMana) {
-            player.mana = Math.min(player.maxMana, player.mana + 0.5 * dt);
-        }
-    }
-
-    function onEnemyDefeated(e) {
-        audio.playEnemyDefeated();
-        particles.emitBurst(e.x, e.y, "#c9a84c", 20);
-        addXP(player, e.xp);
-        showToast("+" + e.xp + " XP", "#c9a84c");
-
-        if (e.isBoss) {
-            hState.bossDefeated = true;
-            showToast("Guardião das Sombras derrotado!", "#ff44ff");
-            camera.shake(6, 0.4);
-            setTimeout(() => {
-                dialogue.start([
-                    { speaker: "", text: "As sombras se dissipam..." },
-                    { speaker: "", text: "O poder do Arquimago começa a fluir novamente." },
-                    { speaker: "", text: "Sua jornada está completa. A era das trevas chegou ao fim." },
-                ]);
-                audio.playVictory();
-            }, 1000);
-        }
-
-        const notifications = quests.check(hState, hState.leverStates);
-        notifications.forEach(n => {
-            if (n.type === "quest_complete") {
-                showToast("Missão completa: " + n.quest.name, "#44cc44");
-            }
-        });
-        updatePanel();
-        updateQuestBar();
-        updateEnemySpawn();
-    }
-
-    function updateEnemySpawn() {
-        const alive = enemies.filter(e => e.alive);
-        if (alive.length === 0 && currentRoom.enemies && currentRoom.enemies.length > 0) {
-            setTimeout(() => {
-                enemies = currentRoom.enemies.map(e => createEnemy(e));
-                enemies.forEach(e => {
-                    e.x = e.x + (Math.random() - 0.5) * 60;
-                    e.y = e.y + (Math.random() - 0.5) * 60;
-                });
-            }, 3000);
-        }
-    }
-
-    function checkVictory() {
-        if (hState.memoryFragments.length >= 8) {
-            showToast("Todos os fragmentos coletados!", "#ffcc00");
-        }
-    }
-
-    function updatePanel() {
-        if (!panelEl) return;
+    function checkPhaseAdvancement() {
         const fragCount = hState.memoryFragments.length;
-        panelEl.innerHTML = `
-            <div class="history-stat"><span>Progresso</span><strong>${Math.round(fragCount / 8 * 100)}%</strong></div>
-            <div class="history-stat"><span>Fragmentos</span><strong>${fragCount}/8</strong></div>
-            <div class="history-stat"><span>Nível</span><strong>${player.level}</strong></div>
-            <div class="history-stat"><span>Missões</span><strong>${quests.getCompleted().length}</strong></div>
-        `;
+        const currentPhase = hState.currentPhase || 1;
+
+        if (currentPhase === 1 && fragCount >= 2 && !hState.chaptersCompleted.includes(1)) {
+            hState.chaptersCompleted.push(1);
+            showToast("Floresta Arcana concluída! Ruínas Antigas desbloqueadas.", "#44cc44");
+            saveState();
+        }
+        if (currentPhase === 2 && fragCount >= 4 && !hState.chaptersCompleted.includes(2)) {
+            hState.chaptersCompleted.push(2);
+            showToast("Ruínas Antigas concluídas! Entrada da Masmorra desbloqueada.", "#44cc44");
+            saveState();
+        }
+        if (currentPhase === 3 && fragCount >= 6 && !hState.chaptersCompleted.includes(3)) {
+            hState.chaptersCompleted.push(3);
+            showToast("Jornada completa! Você é o Arquimago.", "#ffcc00");
+            saveState();
+        }
+    }
+
+    function updateHeader() {
+        if (!phaseEl) return;
+        const phase = getPhaseForRoom(currentRoomKey);
+        if (phaseEl && phase) {
+            phaseEl.textContent = phase.name;
+        }
+        if (chapterNumEl) {
+            chapterNumEl.textContent = "CAP. " + (hState.currentPhase || 1);
+        }
     }
 
     function updateQuestBar() {
         if (!questBarEl) return;
-        const active = quests.getActive();
-        if (active.length === 0) {
-            questBarEl.innerHTML = '<span class="history-quest-empty">Nenhuma missão ativa</span>';
-        } else {
-            questBarEl.innerHTML = active.slice(0, 2).map(q =>
-                `<div class="history-quest-item">\u2605 ${q.name}: ${q.desc}</div>`
-            ).join("");
-        }
+        const fragCount = hState.memoryFragments.length;
+        const phase = hState.currentPhase || 1;
+        const phaseName = getPhaseForRoom(currentRoomKey)?.name || "Desconhecido";
+        questBarEl.innerHTML = `
+            <div class="history-quest-item">&#9733; ${phaseName} — Fragmentos: ${fragCount}</div>
+            <div class="history-quest-empty">Explore o mundo para encontrar fragmentos de memória</div>
+        `;
+    }
+
+    function getInputDirection() {
+        const i = input.state;
+        const dx = i.ax || 0;
+        const dy = i.ay || 0;
+        return {
+            left: dx < -0.3,
+            right: dx > 0.3,
+            up: dy < -0.3,
+            down: dy > 0.3,
+        };
     }
 
     function update(dt) {
-        if (!gameStarted) return;
+        if (!gameStarted || !currentRoom) return;
 
         if (transitionDir !== 0) {
             if (transitionDir === 1) {
@@ -463,14 +376,19 @@ function createGame(container, globalState, opts) {
             return;
         }
 
-        updatePlayer(player, input.state, dt, currentRoom, () => {
+        const jp = input.consumeJustPressed();
+        if (jp.special || jp.action) {
+            handleInteraction();
+        }
+
+        const dir = getInputDirection();
+        updatePlayer(player, dir, dt, currentRoom, () => {
             audio.playStep();
         });
 
         camera.follow(player.x, player.y, currentRoom.width * TILE, currentRoom.height * TILE);
         camera.update(dt);
 
-        handleCombat(dt);
         particles.update(dt);
 
         ambientTimer += dt;
@@ -490,11 +408,6 @@ function createGame(container, globalState, opts) {
             hState.playerStartY = exitResult.ty;
             transitionToRoom(exitResult.exit.target, exitResult.tx, exitResult.ty);
         }
-        if (exitResult && exitResult.blocked) {
-            if (!pendingMessage) {
-                showNotification(exitResult.message);
-            }
-        }
 
         if (messageTimer > 0) {
             messageTimer -= dt;
@@ -503,7 +416,12 @@ function createGame(container, globalState, opts) {
     }
 
     function render(time) {
-        renderer.clear(currentRoom.bg || "#050508");
+        if (!currentRoom) {
+            renderer.clear(null, time);
+            return;
+        }
+
+        renderer.clear(currentRoom, time);
 
         const camX = camera.getX();
         const camY = camera.getY();
@@ -511,23 +429,11 @@ function createGame(container, globalState, opts) {
         renderer.drawRoom(currentRoom, camX, camY, time);
 
         roomObjects.forEach(obj => {
-            if (obj.type === "door" && obj.locked) {
-                renderer.drawObject(renderer.ctx, obj, camX, camY, time);
-            }
-        });
-
-        roomObjects.forEach(obj => {
-            if (obj.type !== "door") {
-                renderer.drawObject(renderer.ctx, obj, camX, camY, time);
-            }
+            renderer.drawObject(renderer.ctx, obj, camX, camY, time);
         });
 
         roomNpcs.forEach(npc => {
             renderer.drawNPC(renderer.ctx, npc, camX, camY, time);
-        });
-
-        enemies.forEach(e => {
-            drawEnemy(renderer.ctx, e, camX, camY, time);
         });
 
         drawPlayer(renderer.ctx, player, camX, camY, time);
@@ -539,21 +445,28 @@ function createGame(container, globalState, opts) {
                 const sx = obj.x * TILE + TILE / 2 - camX;
                 const sy = obj.y * TILE + TILE / 2 - camY;
                 const flicker = Math.sin(time * 10 + obj.x * 5) * 3;
-                const gradient = renderer.ctx.createRadialGradient(sx, sy - 6, 0, sx, sy - 6, 50 + flicker);
-                gradient.addColorStop(0, "rgba(255, 160, 40, 0.15)");
-                gradient.addColorStop(1, "rgba(255, 100, 20, 0)");
-                renderer.ctx.fillStyle = gradient;
-                renderer.ctx.beginPath();
-                renderer.ctx.arc(sx, sy - 6, 50 + flicker, 0, Math.PI * 2);
-                renderer.ctx.fill();
+                try {
+                    const gradient = renderer.ctx.createRadialGradient(sx, sy - 6, 0, sx, sy - 6, 50 + flicker);
+                    gradient.addColorStop(0, "rgba(255, 160, 40, 0.15)");
+                    gradient.addColorStop(1, "rgba(255, 100, 20, 0)");
+                    renderer.ctx.fillStyle = gradient;
+                    renderer.ctx.beginPath();
+                    renderer.ctx.arc(sx, sy - 6, 50 + flicker, 0, Math.PI * 2);
+                    renderer.ctx.fill();
+                } catch (e) {}
             }
         });
 
-        dialogue.draw(renderer.ctx, GAME_W, GAME_H);
+        renderer.drawHUD(renderer.ctx, player, {
+            currentRoom: currentRoomKey,
+            roomName: currentRoom.name,
+            memoryFragments: hState.memoryFragments,
+            chapter: hState.currentPhase,
+            chaptersCompleted: hState.chaptersCompleted,
+            level: hState.currentPhase || 1,
+        }, GAME_W);
 
-        renderer.drawHUD(renderer.ctx, player, { currentRoom: currentRoomKey, roomName: currentRoom.name, memoryFragments: hState.memoryFragments }, GAME_W);
-
-        renderer.drawMinimap(renderer.ctx, ROOMS, currentRoomKey, player.x, player.y, GAME_W);
+        renderer.drawMinimap(renderer.ctx, PHASES, currentRoom.phase, GAME_W);
 
         if (pendingMessage && messageTimer > 0) {
             const alpha = Math.min(1, messageTimer);
@@ -571,21 +484,18 @@ function createGame(container, globalState, opts) {
         }
 
         renderer.drawTransition(renderer.ctx, transitionAlpha, GAME_W, GAME_H);
-
-        const chapter = Arq.getChapterForLevel ? Arq.getChapterForLevel(globalState.level || 1) : null;
-        if (chapterEl && chapter) {
-            chapterEl.textContent = chapter.name;
-        }
     }
 
     function gameLoop(timestamp) {
         if (!running) return;
-        const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
-        lastTime = timestamp;
-
-        update(dt);
-        render(timestamp / 1000);
-
+        try {
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+            lastTime = timestamp;
+            update(dt);
+            render(timestamp / 1000);
+        } catch (e) {
+            console.error("[History] Game loop error:", e);
+        }
         animFrame = requestAnimationFrame(gameLoop);
     }
 
@@ -600,16 +510,14 @@ function createGame(container, globalState, opts) {
         if (opts && opts.triggerInitialDialogue) {
             const firstNpc = roomNpcs[0];
             if (firstNpc && firstNpc.dialogue) {
-                setTimeout(function () {
-                    dialogue.start(firstNpc.dialogue, function () {
-                        quests.activate(firstNpc.questId);
-                        showToast("Nova missão: " + (quests.getAll().find(q => q.id === firstNpc.questId)?.name || ""), "#44ccff");
-                        updateQuestBar();
-                    });
+                setTimeout(() => {
+                    dialogue.start(firstNpc.dialogue);
                     audio.playDialogue();
                 }, 700);
             }
         }
+
+        showToast("WASD: Mover  E: Interagir", "#888");
     }
 
     function stop() {
@@ -645,7 +553,7 @@ function initHistoryModule() {
     }
 
     if (showIntro) {
-        Arquimago.createHistoryIntro(function () {
+        Arquimago.createHistoryIntro(() => {
             globalState.historyIntroSeen = true;
             try {
                 if (Arquimago.saveState) Arquimago.saveState(globalState);

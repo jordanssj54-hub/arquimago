@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+    <radialGradient id="f-core" cx="0.5" cy="0.6" r="0.6">
+      <stop offset="0" stop-color="#4ade80" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#4ade80" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="f-glow"><feGaussianBlur stdDeviation="4"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#031008"/>
+  <rect width="1920" height="1080" fill="url(#f-core)"/>
+<g fill="#06210f" opacity="0.85">
+      <path d="M120 220 L60 364 L180 364 Z"/>
+      <path d="M87 364 L72 424 L168 424 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M350 280 L268 476.79999999999995 L432 476.79999999999995 Z"/>
+      <path d="M304.9 476.79999999999995 L284.4 558.8 L415.6 558.8 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M580 340 L476 589.6 L684 589.6 Z"/>
+      <path d="M522.8 589.6 L496.8 693.5999999999999 L663.2 693.5999999999999 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M810 220 L684 522.4 L936 522.4 Z"/>
+      <path d="M740.7 522.4 L709.2 648.4 L910.8 648.4 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M1040 280 L980 424 L1100 424 Z"/>
+      <path d="M1007 424 L992 484 L1088 484 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M1270 340 L1188 536.8 L1352 536.8 Z"/>
+      <path d="M1224.9 536.8 L1204.4 618.8 L1335.6 618.8 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M1500 220 L1396 469.6 L1604 469.6 Z"/>
+      <path d="M1442.8 469.6 L1416.8 573.5999999999999 L1583.2 573.5999999999999 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M1730 280 L1604 582.4 L1856 582.4 Z"/>
+      <path d="M1660.7 582.4 L1629.2 708.4 L1830.8 708.4 Z"/>
+    </g>
+<g fill="#06210f" opacity="0.85">
+      <path d="M1960 340 L1900 484 L2020 484 Z"/>
+      <path d="M1927 484 L1912 544 L2008 544 Z"/>
+    </g>
+<ellipse cx="960" cy="1010" rx="1100" ry="140" fill="#04170b" opacity="0.95"/>
+<g fill="#4ade80" filter="url(#f-glow)">
+<path d="M0 140 L9 144 L0 148 L-9 144 Z" transform="rotate(0 0 140)" opacity="0.7"/>
+<path d="M89 291 L98 295 L89 299 L80 295 Z" transform="rotate(47 89 291)" opacity="0.7"/>
+<path d="M178 442 L187 446 L178 450 L169 446 Z" transform="rotate(94 178 442)" opacity="0.7"/>
+<path d="M267 593 L276 597 L267 601 L258 597 Z" transform="rotate(141 267 593)" opacity="0.7"/>
+<path d="M356 744 L365 748 L356 752 L347 748 Z" transform="rotate(188 356 744)" opacity="0.7"/>
+<path d="M445 895 L454 899 L445 903 L436 899 Z" transform="rotate(235 445 895)" opacity="0.7"/>
+<path d="M534 246 L543 250 L534 254 L525 250 Z" transform="rotate(282 534 246)" opacity="0.7"/>
+<path d="M623 397 L632 401 L623 405 L614 401 Z" transform="rotate(329 623 397)" opacity="0.7"/>
+<path d="M712 548 L721 552 L712 556 L703 552 Z" transform="rotate(376 712 548)" opacity="0.7"/>
+<path d="M801 699 L810 703 L801 707 L792 703 Z" transform="rotate(423 801 699)" opacity="0.7"/>
+<path d="M890 850 L899 854 L890 858 L881 854 Z" transform="rotate(470 890 850)" opacity="0.7"/>
+<path d="M979 201 L988 205 L979 209 L970 205 Z" transform="rotate(517 979 201)" opacity="0.7"/>
+<path d="M1068 352 L1077 356 L1068 360 L1059 356 Z" transform="rotate(564 1068 352)" opacity="0.7"/>
+<path d="M1157 503 L1166 507 L1157 511 L1148 507 Z" transform="rotate(611 1157 503)" opacity="0.7"/>
+<path d="M1246 654 L1255 658 L1246 662 L1237 658 Z" transform="rotate(658 1246 654)" opacity="0.7"/>
+<path d="M1335 805 L1344 809 L1335 813 L1326 809 Z" transform="rotate(705 1335 805)" opacity="0.7"/>
+<path d="M1424 156 L1433 160 L1424 164 L1415 160 Z" transform="rotate(752 1424 156)" opacity="0.7"/>
+<path d="M1513 307 L1522 311 L1513 315 L1504 311 Z" transform="rotate(799 1513 307)" opacity="0.7"/>
+<path d="M1602 458 L1611 462 L1602 466 L1593 462 Z" transform="rotate(846 1602 458)" opacity="0.7"/>
+<path d="M1691 609 L1700 613 L1691 617 L1682 613 Z" transform="rotate(893 1691 609)" opacity="0.7"/>
+<path d="M1780 760 L1789 764 L1780 768 L1771 764 Z" transform="rotate(940 1780 760)" opacity="0.7"/>
+<path d="M1869 911 L1878 915 L1869 919 L1860 915 Z" transform="rotate(987 1869 911)" opacity="0.7"/>
+</g>
+    <circle cx="0" cy="0" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="127" cy="173" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="254" cy="346" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="381" cy="519" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="508" cy="692" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="635" cy="865" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="762" cy="138" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="889" cy="311" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="1016" cy="484" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="1143" cy="657" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="1270" cy="830" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="1397" cy="103" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="1524" cy="276" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="1651" cy="449" r="1.4" fill="#86efac" opacity="0.7"/>
+    <circle cx="1778" cy="622" r="1.4" fill="#4ade80" opacity="0.7"/>
+    <circle cx="5" cy="795" r="1.4" fill="#86efac" opacity="0.7"/></svg>

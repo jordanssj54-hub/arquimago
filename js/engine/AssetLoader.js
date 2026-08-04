@@ -7,7 +7,13 @@
 import { assetProcessor } from "./AssetProcessor.js";
 
 const DEFAULT_TILESET_PATH = "assets/tiles/forest_ground_tileset.png";
-const DEFAULT_SPRITESHEET_PATH = "assets/characters/arquimago_sheet.png";
+
+const DIRECTION_FILES = {
+    down:  "assets/characters/arquimago_down.png",
+    left:  "assets/characters/arquimago_left.png",
+    right: "assets/characters/arquimago_right.png",
+    up:    "assets/characters/arquimago_up.png",
+};
 
 const GRASS_COLOR = "#1a3a1a";
 
@@ -27,7 +33,7 @@ function generateStaticGrassCanvas(tw, th) {
 
 export function createAssetLoader() {
     let tilesetMeta = null;
-    let spritesheetMeta = null;
+    let spriteMetas = {};
     let grassCanvas = null;
     let loaded = false;
     let loading = false;
@@ -38,21 +44,6 @@ export function createAssetLoader() {
         return 32;
     }
 
-    function getSpriteFrameSize() {
-        if (spritesheetMeta && spritesheetMeta.ready) {
-            return { w: spritesheetMeta.frameW, h: spritesheetMeta.frameH };
-        }
-        return { w: 64, h: 64 };
-    }
-
-    function getSpriteCols() {
-        return spritesheetMeta ? spritesheetMeta.cols : 4;
-    }
-
-    function getSpriteRows() {
-        return spritesheetMeta ? spritesheetMeta.rows : 4;
-    }
-
     function getTilesetCols() {
         return tilesetMeta ? tilesetMeta.cols : 48;
     }
@@ -61,16 +52,12 @@ export function createAssetLoader() {
         return tilesetMeta ? tilesetMeta.rows : 32;
     }
 
-    function isTilesetReady() {
-        return tilesetMeta !== null && tilesetMeta.ready;
-    }
-
-    function isSpritesheetReady() {
-        return spritesheetMeta !== null && spritesheetMeta.ready;
-    }
-
     function isReady() {
         return loaded;
+    }
+
+    function isTilesetReady() {
+        return loaded && tilesetMeta && tilesetMeta.ready;
     }
 
     function getTileCanvas(tileId) {
@@ -89,15 +76,13 @@ export function createAssetLoader() {
         return grassCanvas;
     }
 
-    function getSpriteFrame(direction, frameIndex) {
-        if (!spritesheetMeta || !spritesheetMeta.ready) {
-            return null;
-        }
-        return assetProcessor.getSpriteFrame(spritesheetMeta, direction, frameIndex);
+    function getSpriteImage(direction) {
+        const meta = spriteMetas[direction];
+        return meta ? meta.img : null;
     }
 
-    function getSpriteImage() {
-        return spritesheetMeta ? spritesheetMeta.img : null;
+    function getSpriteMeta(direction) {
+        return spriteMetas[direction] || null;
     }
 
     function getTilesetImage() {
@@ -108,11 +93,7 @@ export function createAssetLoader() {
         return tilesetMeta;
     }
 
-    function getSpritesheetMeta() {
-        return spritesheetMeta;
-    }
-
-    async function load(tilesetPath, spritesheetPath) {
+    async function load(tilesetPath) {
         if (loaded) return true;
         if (loading) return readyPromise;
 
@@ -120,7 +101,6 @@ export function createAssetLoader() {
 
         readyPromise = (async () => {
             const tPath = tilesetPath || DEFAULT_TILESET_PATH;
-            const sPath = spritesheetPath || DEFAULT_SPRITESHEET_PATH;
 
             try {
                 tilesetMeta = await assetProcessor.processTileset(tPath);
@@ -128,14 +108,24 @@ export function createAssetLoader() {
                 tilesetMeta = null;
             }
 
-            try {
-                spritesheetMeta = await assetProcessor.processSpritesheet(sPath);
-            } catch (e) {
-                spritesheetMeta = null;
-            }
+            const dirs = ["down", "left", "right", "up"];
+            const results = await Promise.allSettled(
+                dirs.map(dir => assetProcessor.processDirectionSprite(DIRECTION_FILES[dir]))
+            );
+            dirs.forEach((dir, i) => {
+                const r = results[i];
+                if (r.status === "fulfilled" && r.value) {
+                    spriteMetas[dir] = r.value;
+                } else {
+                    console.warn("[AssetLoader] Failed to load sprite:", DIRECTION_FILES[dir]);
+                    spriteMetas[dir] = null;
+                }
+            });
 
             loaded = true;
             loading = false;
+            const loadedCount = dirs.filter(d => spriteMetas[d]).length;
+            console.log("[AssetLoader] Sprites loaded:", loadedCount, "/ 4");
             return true;
         })();
 
@@ -145,7 +135,7 @@ export function createAssetLoader() {
     function destroy() {
         assetProcessor.clearProcessed();
         tilesetMeta = null;
-        spritesheetMeta = null;
+        spriteMetas = {};
         grassCanvas = null;
         loaded = false;
         loading = false;
@@ -157,18 +147,13 @@ export function createAssetLoader() {
         destroy,
         isReady,
         isTilesetReady,
-        isSpritesheetReady,
         getTileCanvas,
         getGrassFallback,
-        getSpriteFrame,
         getSpriteImage,
+        getSpriteMeta,
         getTilesetImage,
         getTilesetMeta,
-        getSpritesheetMeta,
         getTileSize,
-        getSpriteFrameSize,
-        getSpriteCols,
-        getSpriteRows,
         getTilesetCols,
         getTilesetRows,
     };

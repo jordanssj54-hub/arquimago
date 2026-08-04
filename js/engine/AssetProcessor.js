@@ -237,6 +237,49 @@ export function createAssetProcessor() {
         return meta;
     }
 
+    async function processDirectionSprite(src) {
+        try {
+            const img = await loadImage(src);
+            const meta = new AssetMetadata(img, "spritesheet");
+
+            const w = meta.width;
+            const h = meta.height;
+
+            let frameW = 32;
+            let frameH = 32;
+            let cols = Math.floor(w / frameW);
+            let rows = Math.floor(h / frameH);
+
+            if (w < 32 || h < 32) {
+                frameW = w;
+                frameH = h;
+                cols = 1;
+                rows = 1;
+            }
+
+            if (cols === 0) cols = 1;
+            if (rows === 0) rows = 1;
+
+            meta.frameW = frameW;
+            meta.frameH = frameH;
+            meta.cols = cols;
+            meta.rows = rows;
+            meta.totalFrames = cols * meta.rows;
+            meta.ready = true;
+
+            const perfect = (w % 32 === 0 && h % 32 === 0);
+            console.log("[AssetProcessor] Direction sprite:", w + "x" + h,
+                "→ frame:", frameW + "x" + frameH,
+                ", grid:", cols + "x" + rows,
+                ", total:", meta.totalFrames,
+                perfect ? "(perfect fit)" : "(edge frames clipped)");
+
+            return meta;
+        } catch (e) {
+            return null;
+        }
+    }
+
     function buildTilesetIndex(meta, tileIdToPos) {
         if (!meta || !meta.ready) return;
         meta.tiles.clear();
@@ -294,6 +337,7 @@ export function createAssetProcessor() {
     return {
         processTileset,
         processSpritesheet,
+        processDirectionSprite,
         buildTilesetIndex,
         getTileCanvas,
         getGrassFallback,

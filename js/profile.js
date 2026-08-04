@@ -21,17 +21,31 @@
         var html = '<div class="profile-page">';
         html += '<div class="profile-banner">';
         html += '<div class="profile-avatar-wrap">';
-        html += '<div class="profile-avatar">' + Arquimago.getMageImage() + '</div>';
+        html += '<div class="profile-avatar">' + Arquimago.getPlayerAvatar() + '</div>';
         html += '<button class="avatar-edit-btn" id="avatarUploadBtn">Alterar foto</button>';
         html += '<input type="file" id="avatarFileInput" accept="image/*" hidden>';
         html += '</div>';
         html += '<div class="profile-banner-info">';
-        html += '<h2>' + state.name + '</h2>';
+        html += '<h2 data-player-name>' + Arquimago.getDisplayName() + '</h2>';
         html += '<span class="profile-title">' + state.title + '</span>';
         html += '<p>"O homem que caiu não existe mais. O Arquimago nasceu do recomeço."</p>';
         html += '</div></div>';
 
         html += '<div class="profile-grid">';
+
+        html += '<div class="panel"><div class="panel-header"><h3>Personagem</h3></div>';
+        html += '<div class="profile-edit">';
+        html += '<div class="profile-edit__row">';
+        html += '<label for="playerClassText">Classe</label>';
+        html += '<strong class="profile-edit__class" id="playerClassText">' + Arquimago.getCharacterClass() + '</strong>';
+        html += '</div>';
+        html += '<div class="profile-edit__row">';
+        html += '<label for="playerNameInput">Nome do Personagem</label>';
+        html += '<input type="text" id="playerNameInput" maxlength="30" autocomplete="off" spellcheck="false" value="' + escapeHtmlName(Arquimago.getCharacterName()) + '" placeholder="' + Arquimago.getCharacterClass() + '">';
+        html += '<p class="profile-edit__hint">Sem nome definido, apenas a classe é exibida.</p>';
+        html += '</div>';
+        html += '<button type="button" class="btn-primary compact" id="savePlayerName">Salvar</button>';
+        html += '</div></div>';
 
         html += '<div class="panel"><div class="panel-header"><h3>Progressão</h3></div>';
         html += '<div class="profile-stats">';
@@ -84,7 +98,44 @@
         container.innerHTML = html;
 
         bindAvatarUpload();
+        bindPlayerName();
     };
+
+    function escapeHtmlName(str) {
+        return String(str == null ? "" : str)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    function bindPlayerName() {
+        var input = document.getElementById("playerNameInput");
+        var btn = document.getElementById("savePlayerName");
+        if (!input || !btn) return;
+
+        function save() {
+            var name = String(input.value || "").trim();
+            Arquimago.state.name = name;
+            Arquimago.saveState(Arquimago.state);
+            Arquimago.updatePlayerName();
+            Arquimago.showNotification(name ? "Nome atualizado: " + name : "Nome removido", "xp");
+        }
+
+        btn.addEventListener("click", function () {
+            Arquimago.playClick();
+            save();
+        });
+
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                Arquimago.playClick();
+                save();
+            }
+        });
+    }
 
     function bindAvatarUpload() {
         var btn = document.getElementById("avatarUploadBtn");
@@ -109,8 +160,7 @@
                         alert("Imagem muito grande. Tente uma com resolução menor.");
                     }
                 }
-                var img = document.querySelector(".profile-avatar .mage-avatar-img");
-                if (img) img.src = e.target.result;
+                Arquimago.refreshPlayerPhotos();
             };
             reader.readAsDataURL(file);
             input.value = "";

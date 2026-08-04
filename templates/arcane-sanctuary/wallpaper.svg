@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+    <radialGradient id="u-core" cx="0.5" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#e0e7ff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#e0e7ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="u-glow"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#050708"/>
+  <rect width="1920" height="1080" fill="url(#u-core)"/>
+<g fill="#11181a">
+<rect x="240" y="260" width="70" height="760"/>
+<rect x="1610" y="260" width="70" height="760"/>
+<rect x="200" y="220" width="150" height="50"/>
+<rect x="1570" y="220" width="150" height="50"/>
+</g>
+<path d="M370 1020 V600 A590 590 0 0 1 1550 600 V1020" fill="none" stroke="#1c2628" stroke-width="24"/>
+<g fill="#12191b"><rect x="660" y="880" width="600" height="30"/><rect x="720" y="930" width="480" height="30"/><rect x="780" y="980" width="360" height="30"/></g>
+<circle cx="960" cy="500" r="150" fill="none" stroke="#e0e7ff" stroke-width="2" opacity="0.4" filter="url(#u-glow)"/>
+<circle cx="960" cy="500" r="110" fill="none" stroke="#e0e7ff" stroke-width="1" opacity="0.3"/>
+<ellipse cx="960" cy="500" rx="420" ry="200" fill="#e0e7ff" opacity="0.06" filter="url(#u-glow)"/>
+<g stroke="#67e8f9" stroke-width="1.5" opacity="0.18">
+    <line x1="960" y1="380" x2="600" y2="900" stroke="#67e8f9" stroke-width="1.5" opacity="0.18"/>
+    <line x1="960" y1="380" x2="1320" y2="900" stroke="#67e8f9" stroke-width="1.5" opacity="0.18"/>
+    <line x1="960" y1="380" x2="780" y2="900" stroke="#e0e7ff" stroke-width="1.5" opacity="0.15"/>
+    <line x1="960" y1="380" x2="1140" y2="900" stroke="#e0e7ff" stroke-width="1.5" opacity="0.15"/>
+</g>
+    <circle cx="0" cy="0" r="1.4" fill="#67e8f9" opacity="0.4"/>
+    <circle cx="181" cy="113" r="1.4" fill="#e0e7ff" opacity="0.4"/>
+    <circle cx="362" cy="226" r="1.4" fill="#67e8f9" opacity="0.4"/>
+    <circle cx="543" cy="339" r="1.4" fill="#e0e7ff" opacity="0.4"/>
+    <circle cx="724" cy="452" r="1.4" fill="#67e8f9" opacity="0.4"/>
+    <circle cx="905" cy="565" r="1.4" fill="#e0e7ff" opacity="0.4"/>
+    <circle cx="1086" cy="678" r="1.4" fill="#67e8f9" opacity="0.4"/>
+    <circle cx="1267" cy="791" r="1.4" fill="#e0e7ff" opacity="0.4"/>
+    <circle cx="1448" cy="4" r="1.4" fill="#67e8f9" opacity="0.4"/>
+    <circle cx="1629" cy="117" r="1.4" fill="#e0e7ff" opacity="0.4"/></svg>

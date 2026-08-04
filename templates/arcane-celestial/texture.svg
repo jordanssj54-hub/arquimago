@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+<path d="M50 53 L52.1 57.9 L57 60 L52.1 62.1 L50 67 L47.9 62.1 L43 60 L47.9 57.9 Z" fill="#a5b4fc" opacity="0.5"/>
+<path d="M150 35 L151.5 38.5 L155 40 L151.5 41.5 L150 45 L148.5 41.5 L145 40 L148.5 38.5 Z" fill="#a5b4fc" opacity="0.5"/>
+<path d="M220 132 L222.4 137.6 L228 140 L222.4 142.4 L220 148 L217.6 142.4 L212 140 L217.6 137.6 Z" fill="#a5b4fc" opacity="0.5"/>
+<path d="M90 184 L91.8 188.2 L96 190 L91.8 191.8 L90 196 L88.2 191.8 L84 190 L88.2 188.2 Z" fill="#a5b4fc" opacity="0.5"/>
+<path d="M200 225 L201.5 228.5 L205 230 L201.5 231.5 L200 235 L198.5 231.5 L195 230 L198.5 228.5 Z" fill="#a5b4fc" opacity="0.5"/>
+<path d="M40 246 L41.2 248.8 L44 250 L41.2 251.2 L40 254 L38.8 251.2 L36 250 L38.8 248.8 Z" fill="#a5b4fc" opacity="0.5"/>
+    <circle cx="180" cy="110" r="2" fill="#c7d2fe" opacity="0.5"/>
+    <circle cx="80" cy="130" r="2" fill="#c7d2fe" opacity="0.5"/>
+    <line x1="50" y1="60" x2="150" y2="40" stroke="#a5b4fc" stroke-width="1" opacity="0.35"/>
+    <line x1="150" y1="40" x2="220" y2="140" stroke="#a5b4fc" stroke-width="1" opacity="0.35"/></svg>

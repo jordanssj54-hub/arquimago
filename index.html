@@ -6,17 +6,21 @@
 <title>Arquimago • O Recomeço</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;600;700&family=Alegreya+SC:wght@400;500;700&family=Caveat:wght@400;600;700&family=Chakra+Petch:wght@400;500;600;700&family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Cormorant:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=EB+Garamond:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&family=Great+Vibes:wght@400&family=IBM+Plex+Mono:wght@400;500;600&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC:wght@400&family=Inter:wght@300;400;500;600;700&family=Klee+One:wght@400;600&family=Lora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=MedievalSharp:wght@400&family=Noto+Sans+JP:wght@400;500;700&family=Old+Standard+TT:wght@400;700&family=Orbitron:wght@500;600;700;900&family=Oxanium:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono:wght@400&family=Shippori+Mincho:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Spectral:wght@400;500;600&family=UnifrakturMaguntia:wght@400&family=Yuji+Syuku:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/templates.css">
 <link rel="stylesheet" href="css/intro.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/map.css">
 <link rel="stylesheet" href="css/missions.css">
 <link rel="stylesheet" href="css/grimoire.css">
+<link rel="stylesheet" href="css/avatar.css">
 <link rel="stylesheet" href="css/profile.css">
 <link rel="stylesheet" href="css/history.css">
 <link rel="stylesheet" href="css/history-intro.css">
 <link rel="stylesheet" href="css/overlays.css">
+<link rel="stylesheet" href="css/ui-frame.css">
+<link rel="stylesheet" href="css/ui-effects.css">
 </head>
 <body class="theme-black">
 
@@ -29,6 +33,9 @@
 <div id="settings-modal" class="modal" hidden>
 <div class="modal-backdrop" data-close-modal></div>
 <div class="modal-panel">
+<button type="button" class="modal-close-button" data-close-modal aria-label="Fechar">
+<img src="assets/ui/icons/icon-close.png" alt="">
+</button>
 <h3>Configurações</h3>
 <div class="settings-group">
 <label class="toggle-row">
@@ -39,13 +46,37 @@
 <button class="btn-secondary compact" id="audioToggleButton" type="button">🔊 Som</button>
 </div>
 <div class="settings-group">
-<h4>Temas</h4>
-<div class="theme-switcher">
-<button class="theme-chip" type="button" data-theme-option="current">Atual</button>
-<button class="theme-chip" type="button" data-theme-option="light">Claro</button>
-<button class="theme-chip" type="button" data-theme-option="dark">Escuro</button>
-<button class="theme-chip" type="button" data-theme-option="fantasy">Fantasia</button>
+<h4>Template Visual</h4>
+<div class="field-select" id="templateSelect" data-select="template"></div>
+<p class="settings-hint" id="templateSelectHint"></p>
 </div>
+<div class="settings-group">
+<h4>Tema de Cores</h4>
+<div class="field-select" id="themeSelect" data-select="theme"></div>
+</div>
+<div class="settings-group">
+<h4>Tipografia</h4>
+<div class="field-select" id="fontSelect" data-select="font"></div>
+</div>
+<div class="settings-group">
+<h4>Layout da Navegação</h4>
+<p class="settings-hint">Posição das abas.</p>
+<div class="segmented" id="navPositionControl">
+<button type="button" data-nav-pos="top" class="segmented__btn">Topo</button>
+<button type="button" data-nav-pos="left" class="segmented__btn">Lateral</button>
+</div>
+<p class="settings-hint">Tamanho das abas.</p>
+<div class="segmented" id="navScaleControl">
+<button type="button" data-nav-scale="0.8" class="segmented__btn">80%</button>
+<button type="button" data-nav-scale="1" class="segmented__btn">100%</button>
+<button type="button" data-nav-scale="1.2" class="segmented__btn">120%</button>
+<button type="button" data-nav-scale="1.5" class="segmented__btn">150%</button>
+</div>
+</div>
+<div class="settings-group">
+<h4>Navegação</h4>
+<p class="settings-hint">Arraste as abas para reorganizar a ordem.</p>
+<button class="btn-secondary compact" id="restoreTabOrderButton" type="button">↺ Restaurar ordem padrão</button>
 </div>
 <button class="btn-secondary" data-close-modal>Fechar</button>
 </div>
@@ -53,24 +84,66 @@
 
 <div id="game" hidden>
 <header class="topbar">
+<div class="logo-container">
+<img class="logo-emblem" src="assets/ui/emblems/emblem_archmage.png?v=2" alt="Archmage Emblem">
 <div class="logo-area">
-<h1>ARQUIMAGO</h1>
+<h1 class="logo-title">ARQUIMAGO</h1>
 <span>O RECOMEÇO</span>
 </div>
+</div>
+<div class="top-level-badge" aria-label="Nível do jogador">
+<span>NÍVEL</span>
+<strong id="topPlayerLevel">1</strong>
+</div>
+<div class="xp-bar xp-bar--top">
+<div class="xp-fill" style="width:0"></div>
+<img class="xp-frame" src="assets/frames/xp_frame.png" alt="">
+<div class="xp-text">0 / 100 XP</div>
+</div>
 <button id="settingsButton" class="icon-button" aria-label="Configurações">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+<img class="icon-button-icon" src="assets/ui/icons/icon_settings.png?v=2" alt="" aria-hidden="true">
 </button>
 </header>
 
 <nav class="main-tabs">
-<button class="tab active" data-screen="home">Home</button>
-<button class="tab" data-screen="history">História</button>
-<button class="tab" data-screen="map">Mapa</button>
-<button class="tab" data-screen="missions">Missões</button>
-<button class="tab" data-screen="grimoire">Grimório</button>
-<button class="tab" data-screen="profile">Perfil</button>
+<span class="tab-bar-bg" aria-hidden="true">
+<span class="tab-bar-bg__segment tab-bar-bg__segment--left"></span>
+<span class="tab-bar-bg__segment tab-bar-bg__segment--center"></span>
+<span class="tab-bar-bg__segment tab-bar-bg__segment--right"></span>
+</span>
+<button class="tab active" data-screen="home" aria-label="Home">
+<span class="tab-glow" aria-hidden="true"></span>
+<img class="tab-icon" src="assets/ui/icons/icon-home.png" alt="" aria-hidden="true">
+<img class="tab-txt" src="assets/ui/texts/txt_home.png" alt="" aria-hidden="true">
+</button>
+<button class="tab" data-screen="history" aria-label="História">
+<span class="tab-glow" aria-hidden="true"></span>
+<img class="tab-icon" src="assets/ui/icons/icon-historia.png" alt="" aria-hidden="true">
+<img class="tab-txt" src="assets/ui/texts/txt_historia.png" alt="" aria-hidden="true">
+</button>
+<button class="tab" data-screen="map" aria-label="Mapa">
+<span class="tab-glow" aria-hidden="true"></span>
+<img class="tab-icon" src="assets/ui/icons/icon-mapa.png" alt="" aria-hidden="true">
+<img class="tab-txt" src="assets/ui/texts/txt_mapa.png" alt="" aria-hidden="true">
+</button>
+<button class="tab" data-screen="missions" aria-label="Missões">
+<span class="tab-glow" aria-hidden="true"></span>
+<img class="tab-icon" src="assets/ui/icons/icon-missoes.png" alt="" aria-hidden="true">
+<img class="tab-txt" src="assets/ui/texts/txt_missoes.png" alt="" aria-hidden="true">
+</button>
+<button class="tab" data-screen="grimoire" aria-label="Grimório">
+<span class="tab-glow" aria-hidden="true"></span>
+<img class="tab-icon" src="assets/ui/icons/icon-grimorio.png" alt="" aria-hidden="true">
+<img class="tab-txt" src="assets/ui/texts/txt_grimorio.png" alt="" aria-hidden="true">
+</button>
+<button class="tab" data-screen="profile" aria-label="Perfil">
+<span class="tab-glow" aria-hidden="true"></span>
+<img class="tab-icon" src="assets/ui/icons/icon-perfil.png" alt="" aria-hidden="true">
+<img class="tab-txt" src="assets/ui/texts/txt_perfil.png" alt="" aria-hidden="true">
+</button>
 </nav>
 
+<div class="main-frame">
 <main class="main-content">
 <section id="home" class="screen active"></section>
 <section id="history" class="screen"></section>
@@ -79,6 +152,7 @@
 <section id="grimoire" class="screen"></section>
 <section id="profile" class="screen"></section>
 </main>
+</div>
 </div>
 
 <script src="js/config.js"></script>
@@ -91,8 +165,10 @@
 <script src="js/map.js"></script>
 <script src="js/grimoire.js"></script>
 <script src="js/profile.js"></script>
+<script src="js/avatar.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/navigation.js"></script>
+<script src="js/tabs.js"></script>
 <script src="js/narrative.js"></script>
 <script src="js/engine/cinematic.js"></script>
 <script src="js/intro.js"></script>

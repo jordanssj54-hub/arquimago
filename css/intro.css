@@ -86,7 +86,7 @@
     background-clip: text;
     color: transparent;
     text-shadow: none;
-    filter: drop-shadow(0 0 40px rgba(201,168,76,0.5));
+    filter: drop-shadow(0 0 40px var(--fx-gold-strong));
     margin-bottom: 8px;
 }
 
@@ -116,7 +116,7 @@
 
 .intro-start:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 40px rgba(201, 168, 76, 0.4);
+    box-shadow: 0 8px 40px var(--fx-gold-strong);
 }
 
 @keyframes pulseBtn {

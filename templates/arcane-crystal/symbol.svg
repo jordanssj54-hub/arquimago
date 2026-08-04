@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+<g fill="none" stroke="#2dd4bf" stroke-width="2" opacity="0.85">
+<polygon points="80,15 130,90 80,145 30,90"/>
+<polygon points="80,15 130,90 80,105" fill="#5eead4" opacity="0.4"/>
+<path d="M80 60 L95 90" stroke-width="1.5" opacity="0.5"/>
+</g></svg>

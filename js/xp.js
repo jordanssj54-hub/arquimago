@@ -17,6 +17,7 @@
         var bonus = Math.round(amount * Arquimago.getEventBonus());
         var total = amount + bonus;
         var levelUps = [];
+        var prevLevel = state.level;
 
         state.totalXP += total;
         state.xp += total;
@@ -39,13 +40,28 @@
             });
         }
 
+        var unlockedRewards = [];
+        if (Arquimago.getGrimoireRewards) {
+            Arquimago.getGrimoireRewards().forEach(function (reward) {
+                if (state.level >= reward.nivelNecessario && prevLevel < reward.nivelNecessario) {
+                    unlockedRewards.push(reward);
+                }
+            });
+        }
+
         Arquimago.saveState(state);
 
         if (levelUps.length) {
             var idx = 0;
             function nextLevelUp() {
                 if (idx >= levelUps.length) {
-                    Arquimago.refreshAll();
+                    if (unlockedRewards.length && Arquimago.showRewardUnlock) {
+                        Arquimago.showRewardUnlock(unlockedRewards, function () {
+                            Arquimago.refreshAll();
+                        });
+                    } else {
+                        Arquimago.refreshAll();
+                    }
                     return;
                 }
                 Arquimago.showLevelUp(levelUps[idx], function () {
@@ -54,6 +70,10 @@
                 });
             }
             nextLevelUp();
+        } else if (unlockedRewards.length && Arquimago.showRewardUnlock) {
+            Arquimago.showRewardUnlock(unlockedRewards, function () {
+                Arquimago.refreshAll(true);
+            });
         } else {
             Arquimago.refreshAll(true);
         }

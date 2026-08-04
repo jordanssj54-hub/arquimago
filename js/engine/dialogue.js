@@ -1,4 +1,4 @@
-export function createDialogueSystem() {
+export function createDialogueSystem(containerEl) {
     let active = false;
     let lines = [];
     let currentIndex = 0;
@@ -10,17 +10,77 @@ export function createDialogueSystem() {
     let displayedText = "";
     let finished = false;
 
+    const el = containerEl || document.getElementById("history-dialogue");
+    if (!el) return { start() {}, advance() {}, update() {}, draw() {}, isActive() { return false; } };
+
+    const speakerPortraits = {
+        "Espírito da Floresta": { color: "#88ccff", icon: "✦" },
+        "Viajante Perdido": { color: "#aa8844", icon: "◈" },
+        "Guardião das Ruínas": { color: "#c9a84c", icon: "⚜" },
+        "Eco do Passado": { color: "#886644", icon: "◇" },
+        "Guardião do Portal": { color: "#aa44ff", icon: "◆" },
+        "Espírito Ancião": { color: "#8844aa", icon: "★" },
+        "Monumento": { color: "#c9a84c", icon: "▲" },
+        "Portal": { color: "#4a7fd4", icon: "●" },
+    };
+
+    function getSpeakerStyle(name) {
+        return speakerPortraits[name] || { color: "#88aaff", icon: "●" };
+    }
+
+    function buildHTML() {
+        return `
+            <div class="dlg-backdrop"></div>
+            <div class="dlg-box">
+                <div class="dlg-content">
+                    <div class="dlg-portrait" id="dlgPortrait"></div>
+                    <div class="dlg-text-area">
+                        <div class="dlg-speaker" id="dlgSpeaker"></div>
+                        <div class="dlg-text" id="dlgText"></div>
+                    </div>
+                    <div class="dlg-indicator" id="dlgIndicator">▸</div>
+                </div>
+                <div class="dlg-buttons">
+                    <button class="dlg-btn dlg-skip" id="dlgSkip">Pular</button>
+                    <button class="dlg-btn dlg-next" id="dlgNext">Próximo</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function render() {
+        el.innerHTML = buildHTML();
+        el.classList.add("dlg-active");
+
+        const skipBtn = document.getElementById("dlgSkip");
+        const nextBtn = document.getElementById("dlgNext");
+
+        if (skipBtn) {
+            skipBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                skip();
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                advance();
+            });
+        }
+    }
+
     function start(dialogueLines, onComplete) {
         if (!dialogueLines || dialogueLines.length === 0) return;
         lines = dialogueLines;
         currentIndex = 0;
         callback = onComplete || null;
         active = true;
+        render();
         showLine(0);
     }
 
     function showLine(idx) {
-        if (idx >= lines.length) { active = false; return; }
+        if (idx >= lines.length) { close(); return; }
         const line = lines[idx];
         speaker = line.speaker || "";
         fullText = line.text || "";
@@ -28,29 +88,77 @@ export function createDialogueSystem() {
         charTimer = 0;
         displayedText = "";
         finished = false;
+
+        const speakerEl = document.getElementById("dlgSpeaker");
+        const textEl = document.getElementById("dlgText");
+        const portraitEl = document.getElementById("dlgPortrait");
+        const indicatorEl = document.getElementById("dlgIndicator");
+        const nextBtn = document.getElementById("dlgNext");
+
+        if (speakerEl) {
+            const style = getSpeakerStyle(speaker);
+            speakerEl.textContent = speaker;
+            speakerEl.style.color = style.color;
+        }
+
+        if (portraitEl) {
+            const style = getSpeakerStyle(speaker);
+            portraitEl.innerHTML = `<span class="dlg-portrait-icon" style="color:${style.color}">${style.icon}</span>`;
+        }
+
+        if (textEl) textEl.textContent = "";
+        if (indicatorEl) indicatorEl.classList.remove("visible");
+        if (nextBtn) {
+            const isLast = currentIndex >= lines.length - 1;
+            nextBtn.textContent = isLast ? "Fechar" : "Próximo";
+        }
     }
 
     function advance() {
-        if (!active) return false;
+        if (!active) return;
         if (!finished) {
             finished = true;
             displayedText = fullText;
-            return true;
+            updateTextDisplay();
+            return;
         }
         currentIndex++;
         if (currentIndex >= lines.length) {
-            active = false;
-            if (callback) callback();
-            return false;
+            close();
+            return;
         }
         showLine(currentIndex);
-        return true;
+    }
+
+    function skip() {
+        if (!active) return;
+        close();
+    }
+
+    function close() {
+        active = false;
+        el.classList.remove("dlg-active");
+        el.innerHTML = "";
+        if (callback) {
+            const cb = callback;
+            callback = null;
+            cb();
+        }
+    }
+
+    function updateTextDisplay() {
+        const textEl = document.getElementById("dlgText");
+        const indicatorEl = document.getElementById("dlgIndicator");
+        if (textEl) textEl.textContent = displayedText;
+        if (indicatorEl && finished) {
+            indicatorEl.classList.add("visible");
+        }
     }
 
     function update(dt) {
         if (!active || finished) return;
         charTimer += dt;
-        if (charTimer > 0.03) {
+        if (charTimer > 0.025) {
             charTimer = 0;
             charIndex++;
             if (charIndex >= fullText.length) {
@@ -59,68 +167,14 @@ export function createDialogueSystem() {
             } else {
                 displayedText = fullText.substring(0, charIndex);
             }
+            updateTextDisplay();
         }
     }
 
-    function draw(ctx, width, height) {
-        if (!active) return;
-
-        const boxH = 80;
-        const boxY = height - boxH - 8;
-        const pad = 12;
-
-        ctx.fillStyle = "rgba(8, 6, 18, 0.92)";
-        ctx.beginPath();
-        ctx.roundRect(8, boxY, width - 16, boxH, 8);
-        ctx.fill();
-
-        ctx.strokeStyle = "rgba(201, 168, 76, 0.4)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(8, boxY, width - 16, boxH, 8);
-        ctx.stroke();
-
-        if (speaker) {
-            ctx.fillStyle = "#c9a84c";
-            ctx.font = "bold 11px Inter, sans-serif";
-            ctx.fillText(speaker, pad + 8, boxY + 18);
-        }
-
-        ctx.fillStyle = "#e8e6e0";
-        ctx.font = "12px Inter, sans-serif";
-        const lines_text = wrapText(displayedText, width - 32);
-        lines_text.forEach((line, i) => {
-            ctx.fillText(line, pad + 8, boxY + 34 + i * 16);
-        });
-
-        if (finished) {
-            const blink = Math.sin(Date.now() * 0.005) > 0;
-            if (blink) {
-                ctx.fillStyle = "#c9a84c";
-                ctx.font = "10px Inter, sans-serif";
-                ctx.fillText("\u25BC", width - 24, boxY + boxH - 10);
-            }
-        }
-    }
-
-    function wrapText(text, maxWidth) {
-        const words = text.split(" ");
-        const result = [];
-        let current = "";
-        for (const word of words) {
-            const test = current ? current + " " + word : word;
-            if (test.length * 7 > maxWidth) {
-                if (current) result.push(current);
-                current = word;
-            } else {
-                current = test;
-            }
-        }
-        if (current) result.push(current);
-        return result;
+    function draw() {
     }
 
     function isActive() { return active; }
 
-    return { start, advance, update, draw, isActive };
+    return { start, advance, update, draw, isActive, skip };
 }

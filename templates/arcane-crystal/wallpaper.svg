@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+    <radialGradient id="t-core" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="t-glow"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#020807"/>
+  <rect width="1920" height="1080" fill="url(#t-core)"/>
+<g filter="url(#t-glow)"><polygon points="790,887 900,360 1010,887 900,1040 " fill="#2dd4bf" opacity="0.55"/>
+     <polygon points="900,360 1010,887 900,819" fill="#a7f3d0" opacity="0.28"/></g>
+<g filter="url(#t-glow)"><polygon points="1010,881 1080,540 1150,881 1080,980 " fill="#0d9488" opacity="0.55"/>
+     <polygon points="1080,540 1150,881 1080,837" fill="#a7f3d0" opacity="0.28"/></g>
+<g filter="url(#t-glow)"><polygon points="700,899 760,620 820,899 760,980 " fill="#14b8a6" opacity="0.55"/>
+     <polygon points="760,620 820,899 760,863" fill="#a7f3d0" opacity="0.28"/></g>
+<g filter="url(#t-glow)"><polygon points="1136,911.5 1180,710 1224,911.5 1180,970 " fill="#2dd4bf" opacity="0.55"/>
+     <polygon points="1180,710 1224,911.5 1180,885.5" fill="#a7f3d0" opacity="0.28"/></g>
+<g filter="url(#t-glow)"><polygon points="582,940.5 620,770 658,940.5 620,990 " fill="#0d9488" opacity="0.55"/>
+     <polygon points="620,770 658,940.5 620,918.5" fill="#a7f3d0" opacity="0.28"/></g>
+    <circle cx="0" cy="0" r="1.5" fill="#a7f3d0" opacity="0.55"/>
+    <circle cx="157" cy="89" r="1.5" fill="#5eead4" opacity="0.55"/>
+    <circle cx="314" cy="178" r="1.5" fill="#a7f3d0" opacity="0.55"/>
+    <circle cx="471" cy="267" r="1.5" fill="#5eead4" opacity="0.55"/>
+    <circle cx="628" cy="356" r="1.5" fill="#a7f3d0" opacity="0.55"/>
+    <circle cx="785" cy="445" r="1.5" fill="#5eead4" opacity="0.55"/>
+    <circle cx="942" cy="534" r="1.5" fill="#a7f3d0" opacity="0.55"/>
+    <circle cx="1099" cy="623" r="1.5" fill="#5eead4" opacity="0.55"/>
+    <circle cx="1256" cy="712" r="1.5" fill="#a7f3d0" opacity="0.55"/>
+    <circle cx="1413" cy="801" r="1.5" fill="#5eead4" opacity="0.55"/>
+    <circle cx="1570" cy="890" r="1.5" fill="#a7f3d0" opacity="0.55"/>
+    <circle cx="1727" cy="79" r="1.5" fill="#5eead4" opacity="0.55"/>
+<rect width="1920" height="1080" fill="#000" opacity="0.2"/></svg>

@@ -5,14 +5,22 @@
 
     Arquimago.STORAGE_KEY = "arquimago_recomeco_v3";
 
+    Arquimago.NAVIGATION = {
+        position: "top",
+        scale: 1.0
+    };
+
     Arquimago.DEFAULT_STATE = {
-        name: "Arquimago Jordan",
+        name: "",
         title: "Aprendiz do Recomeço",
         level: 1,
         xp: 0,
         totalXP: 0,
         streak: 0,
+        template: "default",
         theme: "current",
+        font: "classica",
+        wallpaper: "auto",
         lastActiveDate: "",
         chapter: 1,
         completedIds: [],
@@ -20,13 +28,18 @@
         playTimeSeconds: 0,
         introSeen: false,
         soundEnabled: true,
+        navPosition: "top",
+        navScale: 1,
         dailyDate: "",
         weeklyDate: "",
         dailyDone: [],
         weeklyDone: [],
         habitsDone: [],
+        customMissions: [],
         unlockedSpells: ["focus"],
         achievements: ["recomeco"],
+        grimoireData: [],
+        grimoireFavs: {},
         attributes: {
             discipline: 5,
             wisdom: 3,
@@ -36,12 +49,16 @@
     };
 
     Arquimago.CHAPTERS = [
-        { id: 1, name: "O Despertar", minLevel: 1, desc: "Das cinzas ao primeiro passo — encontrar forças para recomeçar." },
-        { id: 2, name: "A Floresta dos Ecos", minLevel: 3, desc: "Onde o passado nunca morre — confrontar os ecos do abandono." },
-        { id: 3, name: "Ruínas de Asterion", minLevel: 6, desc: "O conhecimento tem seu preço — buscar a sabedoria perdida." },
-        { id: 4, name: "Montanhas Cinzentas", minLevel: 10, desc: "O fogo que forja — temperar a determinação nas adversidades." },
-        { id: 5, name: "Castelo do Eclipse", minLevel: 15, desc: "O fim do recomeço — enfrentar o Vazio e redefinir o destino." }
+        { id: 1, name: "Floresta Arcana", minLevel: 1, desc: "Uma floresta antiga onde árvores milenares guardam segredos esquecidos." },
+        { id: 2, name: "Ruínas Antigas", minLevel: 2, desc: "Pilares quebrados e inscrições antigas contam a história de um poder perdido." },
+        { id: 3, name: "Entrada da Masmorra", minLevel: 3, desc: "A escuridão aguarda. Algo ancestral pulsa nas profundezas." }
     ];
+
+    Arquimago.CHAPTER_FLOW = {
+        1: { next: 2, room: "floresta_arcana", title: "Floresta Arcana" },
+        2: { next: 3, room: "ruinas_antigas", title: "Ruínas Antigas" },
+        3: { next: null, room: "entrada_masmorra", title: "Entrada da Masmorra" }
+    };
 
     Arquimago.TITLES = [
         { level: 1, title: "Aprendiz do Recomeço" },
@@ -71,6 +88,47 @@
         { id: "archmage", name: "Arquimago Supremo", desc: "Conclua todos os capítulos.", condition: function (s) { return s.level >= 20; } }
     ];
 
+    Arquimago.GRIMOIRE_TYPES = [
+        { id: "imagem", label: "Imagem", icon: "🖼️", color: "#a78bfa" },
+        { id: "foto", label: "Fotografia", icon: "📷", color: "#60a5fa" },
+        { id: "texto", label: "Texto", icon: "📝", color: "#e2c184" },
+        { id: "poesia", label: "Poesia", icon: "📜", color: "#f5c65c" },
+        { id: "carta", label: "Carta", icon: "💌", color: "#f472b6" },
+        { id: "musica", label: "Música", icon: "🎵", color: "#34d399" },
+        { id: "audio", label: "Áudio", icon: "🎧", color: "#22d3ee" },
+        { id: "video", label: "Vídeo", icon: "🎬", color: "#fb7185" },
+        { id: "link", label: "Link", icon: "🔗", color: "#818cf8" },
+        { id: "curiosidade", label: "Curiosidade", icon: "🔍", color: "#fbbf24" },
+        { id: "colecionavel", label: "Colecionável", icon: "🏺", color: "#c084fc" },
+        { id: "medalha", label: "Medalha", icon: "🎖️", color: "#f59e0b" },
+        { id: "trofeu", label: "Troféu", icon: "🏆", color: "#facc15" },
+        { id: "premio", label: "Prêmio", icon: "🎁", color: "#fb923c" }
+    ];
+
+    Arquimago.getGrimoireType = function (id) {
+        var t = Arquimago.GRIMOIRE_TYPES.find(function (g) { return g.id === id; });
+        return t || { id: "premio", label: "Prêmio", icon: "🎁", color: "#fb923c" };
+    };
+
+    Arquimago.GRIMOIRE_ICONS = [
+        "🎁", "🏆", "🎖️", "🥇", "🥈", "🥉", "👑", "💎", "🏺", "🗿", "🪙", "💰",
+        "🍟", "🍕", "🍰", "🍪", "🍫", "🍭", "☕", "🧋", "🥤", "🍹", "🍿", "🍩",
+        "📜", "📖", "📚", "✉️", "💌", "📝", "🖋️", "📷", "🖼️", "🎨", "🎬", "🎵",
+        "🎧", "🎤", "🎸", "🎹", "📻", "📱", "💻", "🔗", "🔍", "🔭", "🌌", "⭐",
+        "🌟", "✨", "🌙", "☀️", "🌸", "🌹", "🌻", "🍀", "🦋", "🕊️", "🐺", "🔥",
+        "💖", "💫", "🧸", "🪄", "⚗️", "🧿", "🕯️", "🗝️", "🗺️", "🧭", "⌛", "⏳"
+    ];
+
+    Arquimago.GRIMOIRE_REWARDS = [
+        { id: "recompensa_batata", nome: "Batata Sensações", descricao: "O primeiro passo merece celebração: um pacote de batata para comemorar o recomeço.", categoria: "Comida", nivelNecessario: 1, icone: "🍟", tipo: "premio" },
+        { id: "recompensa_poesia", nome: "Poesia", descricao: "Uma poesia declamada só para você, com calma, ao entardecer.", categoria: "Arte", nivelNecessario: 2, icone: "📜", tipo: "poesia" },
+        { id: "recompensa_musica", nome: "Música", descricao: "Uma música para ouvir de olhos fechados e sentir.", categoria: "Música", nivelNecessario: 3, icone: "🎵", tipo: "musica" },
+        { id: "recompensa_fotografia", nome: "Fotografia", descricao: "Uma fotografia especial para guardar esse momento.", categoria: "Arte", nivelNecessario: 4, icone: "📸", tipo: "foto" },
+        { id: "recompensa_video", nome: "Vídeo", descricao: "Um vídeo escolhido para te emocionar.", categoria: "Lazer", nivelNecessario: 5, icone: "🎬", tipo: "video" },
+        { id: "recompensa_mensagem", nome: "Mensagem", descricao: "Uma mensagem escrita do fundo do coração, só para você.", categoria: "Surpresa", nivelNecessario: 6, icone: "💬", tipo: "texto" },
+        { id: "recompensa_presente", nome: "Presente", descricao: "O grande prêmio do recomeço. Uma surpresa especial.", categoria: "Surpresa", nivelNecessario: 7, icone: "🎁", tipo: "premio" }
+    ];
+
     Arquimago.EVENT = {
         name: "Noites do Recomeço",
         desc: "Toda missão concluída concede experiência adicional.",
@@ -81,39 +139,237 @@
         current: { name: "Tema Atual", accent: "#c9a84c" },
         light: { name: "Tema Claro", accent: "#7b5a2f" },
         dark: { name: "Tema Escuro", accent: "#d8b970" },
-        fantasy: { name: "Tema Fantasia", accent: "#5f8bff" }
+        fantasy: { name: "Tema Fantasia", accent: "#5f8bff" },
+        rosa: { name: "Tema Rosa", accent: "#f2a0c0" },
+        cyberpunk: { name: "Cyberpunk Neon", accent: "#22d3ee" },
+        arcane: { name: "Arcane Esmeralda", accent: "#34d399" },
+        shadow: { name: "Shadow Elétrico", accent: "#3b82f6" },
+        crimson: { name: "Tema Crimson", accent: "#e50914" },
+        emerald: { name: "Tema Emerald", accent: "#2dd47f" },
+        mystic: { name: "Tema Mystic Purple", accent: "#a78bfa" },
+        abyss: { name: "Tema Dark Abyss", accent: "#5b7c99" },
+        "arcane-ancient": { name: "Ancient Ember", accent: "#d97706" },
+        "arcane-forest": { name: "Forest Glow", accent: "#4ade80" },
+        "arcane-royal": { name: "Royal Gold", accent: "#f5c65c" },
+        "arcane-alchemist": { name: "Alchemist Copper", accent: "#c07a4a" },
+        "arcane-celestial": { name: "Celestial Starlight", accent: "#a5b4fc" },
+        "arcane-crystal": { name: "Crystal Teal", accent: "#2dd4bf" },
+        "arcane-druid": { name: "Druid Moss", accent: "#84cc16" },
+        "arcane-library": { name: "Library Candle", accent: "#e2c184" },
+        "arcane-sanctuary": { name: "Sanctuary Light", accent: "#e0e7ff" }
+    };
+
+    Arquimago.TEMPLATES = {
+        default: { id: "default", name: "Padrão", officialTheme: "current", desc: "Visual original do Arquimago." },
+        cyberpunk: { id: "cyberpunk", name: "Cyberpunk", officialTheme: "cyberpunk", desc: "Cidade neon, HUD futurista e chuva." },
+        arcane: { id: "arcane", name: "Arcane Magic", officialTheme: "arcane", desc: "Grimório mágico, runas e pergaminhos." },
+        shadow: { id: "shadow", name: "Shadow System", officialTheme: "shadow", desc: "Interface de evolução de RPG." },
+        "arcane-ancient": { id: "arcane-ancient", name: "Arcane Ancient", officialTheme: "arcane-ancient", desc: "Ruínas antigas, grimórios esquecidos, runas e magia ancestral." },
+        "arcane-forest": { id: "arcane-forest", name: "Arcane Forest", officialTheme: "arcane-forest", desc: "Florestas mágicas, espíritos da natureza e brilho verde." },
+        "arcane-royal": { id: "arcane-royal", name: "Arcane Royal", officialTheme: "arcane-royal", desc: "Magia nobre, dourado, castelos, brasões e luxo." },
+        "arcane-alchemist": { id: "arcane-alchemist", name: "Arcane Alchemist", officialTheme: "arcane-alchemist", desc: "Frascos, alquimia, cobre, bronze e laboratórios mágicos." },
+        "arcane-celestial": { id: "arcane-celestial", name: "Arcane Celestial", officialTheme: "arcane-celestial", desc: "Constelações, estrelas, céu noturno e magia astral." },
+        "arcane-crystal": { id: "arcane-crystal", name: "Arcane Crystal", officialTheme: "arcane-crystal", desc: "Cristais mágicos, energia e brilho azul-esverdeado." },
+        "arcane-druid": { id: "arcane-druid", name: "Arcane Druid", officialTheme: "arcane-druid", desc: "Natureza, madeira, raízes, pedras e magia elemental." },
+        "arcane-library": { id: "arcane-library", name: "Arcane Library", officialTheme: "arcane-library", desc: "Biblioteca mágica, pergaminhos, livros, velas e mapas." },
+        "arcane-sanctuary": { id: "arcane-sanctuary", name: "Arcane Sanctuary", officialTheme: "arcane-sanctuary", desc: "Templos antigos, mármore, colunas e símbolos sagrados." }
+    };
+
+    Arquimago.TYPOGRAPHY = {
+        classica: { id: "classica", name: "Clássica", display: '"Cinzel", serif', body: '"Inter", sans-serif' },
+        pixel: { id: "pixel", name: "Pixel", display: '"Pixelify Sans", monospace', body: '"Pixelify Sans", sans-serif' },
+        ninja: { id: "ninja", name: "Ninja", display: '"Yuji Syuku", "Klee One", serif', body: '"Klee One", sans-serif' },
+        arcane: { id: "arcane", name: "Arcane", display: '"IM Fell English", "Cormorant", serif', body: '"Cormorant", serif' },
+        shadow: { id: "shadow", name: "Shadow", display: '"Chakra Petch", "Rajdhani", sans-serif', body: '"Chakra Petch", sans-serif' },
+        cyber: { id: "cyber", name: "Cyber", display: '"Orbitron", sans-serif', body: '"Exo 2", sans-serif' },
+        medieval: { id: "medieval", name: "Medieval", display: '"Cinzel Decorative", "Cinzel", serif', body: '"EB Garamond", serif' },
+        rune: { id: "rune", name: "Rune", display: '"MedievalSharp", "Cormorant", cursive', body: '"Cormorant", serif' },
+        fantasy: { id: "fantasy", name: "Fantasy", display: '"Cinzel", serif', body: '"Alegreya", serif' },
+        mystic: { id: "mystic", name: "Mystic", display: '"IM Fell English SC", "IM Fell English", serif', body: '"EB Garamond", serif' },
+        ancient: { id: "ancient", name: "Ancient", display: '"Cinzel", serif', body: '"Old Standard TT", serif' },
+        gothic: { id: "gothic", name: "Gothic", display: '"UnifrakturMaguntia", "Cinzel Decorative", cursive', body: '"Cormorant Garamond", serif' },
+        elegant: { id: "elegant", name: "Elegant Serif", display: '"Cormorant Garamond", serif', body: '"Lora", serif' },
+        tech: { id: "tech", name: "Tech", display: '"Space Grotesk", sans-serif', body: '"IBM Plex Mono", monospace' },
+        digital: { id: "digital", name: "Digital", display: '"Share Tech Mono", monospace', body: '"Space Grotesk", sans-serif' },
+        futuristic: { id: "futuristic", name: "Futuristic", display: '"Oxanium", sans-serif', body: '"Rajdhani", sans-serif' },
+        hud: { id: "hud", name: "HUD", display: '"Rajdhani", sans-serif', body: '"Chakra Petch", sans-serif' },
+        brush: { id: "brush", name: "Brush Oriental", display: '"Shippori Mincho", serif', body: '"Noto Sans JP", sans-serif' },
+        minimal: { id: "minimal", name: "Minimal", display: '"Manrope", sans-serif', body: '"Inter", sans-serif' },
+        manuscript: { id: "manuscript", name: "Manuscript", display: '"Caveat", cursive', body: '"EB Garamond", serif' },
+        script: { id: "script", name: "Magic Script", display: '"Great Vibes", cursive', body: '"Cormorant", serif' },
+        darkfantasy: { id: "darkfantasy", name: "Dark Fantasy", display: '"Cinzel", serif', body: '"Alegreya SC", serif' },
+        royal: { id: "royal", name: "Royal", display: '"Cinzel", serif', body: '"Playfair Display", serif' },
+        ancientbook: { id: "ancientbook", name: "Ancient Book", display: '"EB Garamond", serif', body: '"Spectral", serif' }
+    };
+
+    Arquimago.WALLPAPERS = {
+        auto: { id: "auto", name: "Automático", desc: "Usa o wallpaper do Template ativo.", src: null }
     };
 
     Arquimago.MISSIONS = {
         main: [
-            { id: "main_treino", name: "Treino", desc: "Uma sessão de treino completa para fortalecer o corpo.", objective: "Realizar uma sessão completa de exercícios", category: "Corpo", xp: 50, attribute: "discipline" },
-            { id: "main_caminhada", name: "Caminhada", desc: "Uma caminhada longa para clarear a mente e o corpo.", objective: "Fazer uma caminhada longa ao ar livre", category: "Corpo", xp: 40, attribute: "discipline" },
-            { id: "main_alongamento", name: "Alongamento", desc: "Movimentos suaves para liberar tensões e preparar o espírito.", objective: "Praticar movimentos de alongamento", category: "Corpo", xp: 35, attribute: "discipline" },
-            { id: "main_agua", name: "Água", desc: "Hidrate-se com consistência ao longo do dia.", objective: "Manter-se hidratado durante o dia", category: "Corpo", xp: 25, attribute: "discipline" },
-            { id: "main_alimentacao", name: "Alimentação", desc: "Escolha uma refeição equilibrada e consciente.", objective: "Escolher uma refeição equilibrada", category: "Corpo", xp: 30, attribute: "consistency" },
-            { id: "main_sono", name: "Sono", desc: "Descanse em hora adequada para recuperar força.", objective: "Dormir em horário adequado", category: "Corpo", xp: 35, attribute: "consistency" }
+            { id: "main_treino", name: "Treino", desc: "Uma sessão de treino completa para fortalecer o corpo.", objective: "Realizar uma sessão completa de exercícios", category: "Corpo", xp: 50, attribute: "discipline", icon: "🏋️" },
+            { id: "main_caminhada", name: "Caminhada", desc: "Uma caminhada longa para clarear a mente e o corpo.", objective: "Fazer uma caminhada longa ao ar livre", category: "Corpo", xp: 40, attribute: "discipline", icon: "🚶" },
+            { id: "main_alongamento", name: "Alongamento", desc: "Movimentos suaves para liberar tensões e preparar o espírito.", objective: "Praticar movimentos de alongamento", category: "Corpo", xp: 35, attribute: "discipline", icon: "🤸" },
+            { id: "main_agua", name: "Água", desc: "Hidrate-se com consistência ao longo do dia.", objective: "Manter-se hidratado durante o dia", category: "Corpo", xp: 25, attribute: "discipline", icon: "💧" },
+            { id: "main_alimentacao", name: "Alimentação", desc: "Escolha uma refeição equilibrada e consciente.", objective: "Escolher uma refeição equilibrada", category: "Corpo", xp: 30, attribute: "consistency", icon: "🍎" },
+            { id: "main_sono", name: "Sono", desc: "Descanse em hora adequada para recuperar força.", objective: "Dormir em horário adequado", category: "Corpo", xp: 35, attribute: "consistency", icon: "😴" }
         ],
         daily: [
-            { id: "daily_meditacao", name: "Meditação", desc: "10 minutos de silêncio para acalmar a mente.", objective: "Dedicar 10 minutos ao silêncio", category: "Mente", xp: 25, attribute: "wisdom" },
-            { id: "daily_leitura", name: "Leitura", desc: "Leia por 20 minutos e amplie sua visão.", objective: "Ler por 20 minutos", category: "Mente", xp: 30, attribute: "wisdom" },
-            { id: "daily_estudo", name: "Estudo", desc: "Dedique um tempo a aprender algo novo.", objective: "Aprender algo novo hoje", category: "Mente", xp: 35, attribute: "wisdom" },
-            { id: "daily_diario", name: "Diário", desc: "Escreva um registro breve sobre o seu dia.", objective: "Escrever um registro do dia", category: "Mente", xp: 20, attribute: "wisdom" },
-            { id: "daily_gratidao", name: "Gratidão", desc: "Anote 3 razões para agradecer.", objective: "Anotar 3 razões para agradecer", category: "Mente", xp: 20, attribute: "wisdom" }
+            { id: "daily_meditacao", name: "Meditação", desc: "10 minutos de silêncio para acalmar a mente.", objective: "Dedicar 10 minutos ao silêncio", category: "Mente", xp: 25, attribute: "wisdom", icon: "🧘" },
+            { id: "daily_leitura", name: "Leitura", desc: "Leia por 20 minutos e amplie sua visão.", objective: "Ler por 20 minutos", category: "Mente", xp: 30, attribute: "wisdom", icon: "📖" },
+            { id: "daily_estudo", name: "Estudo", desc: "Dedique um tempo a aprender algo novo.", objective: "Aprender algo novo hoje", category: "Mente", xp: 35, attribute: "wisdom", icon: "🧠" },
+            { id: "daily_diario", name: "Diário", desc: "Escreva um registro breve sobre o seu dia.", objective: "Escrever um registro do dia", category: "Mente", xp: 20, attribute: "wisdom", icon: "📝" },
+            { id: "daily_gratidao", name: "Gratidão", desc: "Anote 3 razões para agradecer.", objective: "Anotar 3 razões para agradecer", category: "Mente", xp: 20, attribute: "wisdom", icon: "🙏" }
         ],
         weekly: [
-            { id: "weekly_planejamento", name: "Planejamento", desc: "Organize seus objetivos da semana com clareza.", objective: "Organizar objetivos da semana", category: "Produtividade", xp: 80, attribute: "determination" },
-            { id: "weekly_trabalho", name: "Trabalho", desc: "Conclua uma etapa importante de seu projeto.", objective: "Concluir uma etapa importante", category: "Produtividade", xp: 90, attribute: "determination" },
-            { id: "weekly_projeto", name: "Projeto Arquimago", desc: "Acelere um avanço concreto no projeto da jornada.", objective: "Acelerar avanço no projeto", category: "Produtividade", xp: 100, attribute: "determination" },
-            { id: "weekly_organizacao", name: "Organização", desc: "Revise e organize seu espaço e suas prioridades.", objective: "Revisar e organizar espaço", category: "Produtividade", xp: 70, attribute: "discipline" },
-            { id: "weekly_revisao", name: "Revisão", desc: "Reveja seu progresso e ajuste sua direção.", objective: "Rever progresso e ajustar direção", category: "Produtividade", xp: 75, attribute: "wisdom" }
+            { id: "weekly_planejamento", name: "Planejamento", desc: "Organize seus objetivos da semana com clareza.", objective: "Organizar objetivos da semana", category: "Produtividade", xp: 80, attribute: "determination", icon: "🎯" },
+            { id: "weekly_trabalho", name: "Trabalho", desc: "Conclua uma etapa importante de seu projeto.", objective: "Concluir uma etapa importante", category: "Produtividade", xp: 90, attribute: "determination", icon: "💼" },
+            { id: "weekly_projeto", name: "Projeto Arquimago", desc: "Acelere um avanço concreto no projeto da jornada.", objective: "Acelerar avanço no projeto", category: "Produtividade", xp: 100, attribute: "determination", icon: "🔮" },
+            { id: "weekly_organizacao", name: "Organização", desc: "Revise e organize seu espaço e suas prioridades.", objective: "Revisar e organizar espaço", category: "Produtividade", xp: 70, attribute: "discipline", icon: "🗂️" },
+            { id: "weekly_revisao", name: "Revisão", desc: "Reveja seu progresso e ajuste sua direção.", objective: "Rever progresso e ajustar direção", category: "Produtividade", xp: 75, attribute: "wisdom", icon: "🔍" }
         ],
         habits: [
-            { id: "habit_limpeza", name: "Limpeza", desc: "Mantenha seu ambiente mais sereno e ordenado.", objective: "Manter ambiente sereno e ordenado", category: "Vida", xp: 35, attribute: "consistency" },
-            { id: "habit_familia", name: "Família", desc: "Reserve um tempo para quem é importante.", objective: "Reservar tempo para entes queridos", category: "Vida", xp: 40, attribute: "consistency" },
-            { id: "habit_lazer", name: "Lazer saudável", desc: "Descanse com algo leve e prazeroso.", objective: "Descansar com algo leve e prazeroso", category: "Vida", xp: 35, attribute: "determination" },
-            { id: "habit_descanso", name: "Descanso", desc: "Pare por um tempo e recupere sua energia.", objective: "Parar e recuperar energia", category: "Vida", xp: 40, attribute: "consistency" }
+            { id: "habit_limpeza", name: "Limpeza", desc: "Mantenha seu ambiente mais sereno e ordenado.", objective: "Manter ambiente sereno e ordenado", category: "Vida", xp: 35, attribute: "consistency", icon: "🧹" },
+            { id: "habit_familia", name: "Família", desc: "Reserve um tempo para quem é importante.", objective: "Reservar tempo para entes queridos", category: "Vida", xp: 40, attribute: "consistency", icon: "👨‍👩‍👧" },
+            { id: "habit_lazer", name: "Lazer saudável", desc: "Descanse com algo leve e prazeroso.", objective: "Descansar com algo leve e prazeroso", category: "Vida", xp: 35, attribute: "determination", icon: "🎮" },
+            { id: "habit_descanso", name: "Descanso", desc: "Pare por um tempo e recupere sua energia.", objective: "Parar e recuperar energia", category: "Vida", xp: 40, attribute: "consistency", icon: "🛌" }
         ]
     };
+
+    Arquimago.NATIVE_MISSION_ICONS = {
+        main_treino: "🏋️",
+        main_caminhada: "🚶",
+        main_alongamento: "🤸",
+        main_agua: "💧",
+        main_alimentacao: "🍎",
+        main_sono: "😴",
+        daily_meditacao: "🧘",
+        daily_leitura: "📖",
+        daily_estudo: "🧠",
+        daily_diario: "📝",
+        daily_gratidao: "🙏",
+        weekly_planejamento: "🎯",
+        weekly_trabalho: "💼",
+        weekly_projeto: "🔮",
+        weekly_organizacao: "🗂️",
+        weekly_revisao: "🔍",
+        habit_limpeza: "🧹",
+        habit_familia: "👨‍👩‍👧",
+        habit_lazer: "🎮",
+        habit_descanso: "🛌"
+    };
+
+    Arquimago.MISSION_ICON_CATEGORIES = [
+        { id: "saude", label: "Saúde" },
+        { id: "esporte", label: "Esporte" },
+        { id: "estudos", label: "Estudos" },
+        { id: "trabalho", label: "Trabalho" },
+        { id: "casa", label: "Casa" },
+        { id: "alimentacao", label: "Alimentação" },
+        { id: "espiritualidade", label: "Espiritualidade" },
+        { id: "tecnologia", label: "Tecnologia" },
+        { id: "lazer", label: "Lazer" },
+        { id: "financas", label: "Finanças" },
+        { id: "habitos", label: "Hábitos" },
+        { id: "objetivos", label: "Objetivos" }
+    ];
+
+    Arquimago.MISSION_ICONS = [
+        { key: "stethoscope", emoji: "🩺", name: "Estetoscópio", category: "saude" },
+        { key: "pill", emoji: "💊", name: "Remédio", category: "saude" },
+        { key: "hospital", emoji: "🏥", name: "Hospital", category: "saude" },
+        { key: "tooth", emoji: "🦷", name: "Dente", category: "saude" },
+        { key: "heart-organs", emoji: "🫀", name: "Coração", category: "saude" },
+        { key: "lotion", emoji: "🧴", name: "Loção", category: "saude" },
+        { key: "toothbrush", emoji: "🪥", name: "Escova", category: "saude" },
+        { key: "bandage", emoji: "❤️‍🩹", name: "Cuidado", category: "saude" },
+        { key: "strength", emoji: "💪", name: "Força", category: "saude" },
+        { key: "run", emoji: "🏃", name: "Corrida", category: "esporte" },
+        { key: "walk", emoji: "🚶", name: "Caminhada", category: "esporte" },
+        { key: "gym", emoji: "🏋️", name: "Treino", category: "esporte" },
+        { key: "swim", emoji: "🏊", name: "Natação", category: "esporte" },
+        { key: "bike", emoji: "🚴", name: "Bicicleta", category: "esporte" },
+        { key: "soccer", emoji: "⚽", name: "Futebol", category: "esporte" },
+        { key: "basketball", emoji: "🏀", name: "Basquete", category: "esporte" },
+        { key: "tennis", emoji: "🎾", name: "Tênis", category: "esporte" },
+        { key: "basket", emoji: "⛹️", name: "Arremesso", category: "esporte" },
+        { key: "books", emoji: "📚", name: "Livros", category: "estudos" },
+        { key: "book", emoji: "📖", name: "Livro", category: "estudos" },
+        { key: "pencil", emoji: "✏️", name: "Lápis", category: "estudos" },
+        { key: "notes", emoji: "📝", name: "Anotações", category: "estudos" },
+        { key: "brain", emoji: "🧠", name: "Mente", category: "estudos" },
+        { key: "graduation", emoji: "🎓", name: "Formação", category: "estudos" },
+        { key: "microscope", emoji: "🔬", name: "Laboratório", category: "estudos" },
+        { key: "test-tube", emoji: "🧪", name: "Experimento", category: "estudos" },
+        { key: "ruler", emoji: "📐", name: "Geometria", category: "estudos" },
+        { key: "briefcase", emoji: "💼", name: "Trabalho", category: "trabalho" },
+        { key: "laptop", emoji: "💻", name: "Notebook", category: "trabalho" },
+        { key: "chart", emoji: "📊", name: "Gráfico", category: "trabalho" },
+        { key: "growth", emoji: "📈", name: "Crescimento", category: "trabalho" },
+        { key: "folder", emoji: "🗂️", name: "Organização", category: "trabalho" },
+        { key: "alarm", emoji: "⏰", name: "Despertador", category: "trabalho" },
+        { key: "calendar", emoji: "🗓️", name: "Calendário", category: "trabalho" },
+        { key: "phone", emoji: "📞", name: "Telefone", category: "trabalho" },
+        { key: "desktop", emoji: "🖥️", name: "Computador", category: "trabalho" },
+        { key: "broom", emoji: "🧹", name: "Limpeza", category: "casa" },
+        { key: "laundry", emoji: "🧺", name: "Lavanderia", category: "casa" },
+        { key: "soap", emoji: "🧼", name: "Sabão", category: "casa" },
+        { key: "cart", emoji: "🛒", name: "Compras", category: "casa" },
+        { key: "plate", emoji: "🍽️", name: "Mesa", category: "casa" },
+        { key: "toilet-paper", emoji: "🧻", name: "Suprimentos", category: "casa" },
+        { key: "plant", emoji: "🪴", name: "Plantas", category: "casa" },
+        { key: "bathtub", emoji: "🛁", name: "Banho", category: "casa" },
+        { key: "apple", emoji: "🍎", name: "Frutas", category: "alimentacao" },
+        { key: "salad", emoji: "🥗", name: "Salada", category: "alimentacao" },
+        { key: "cooking", emoji: "🍳", name: "Cozinhar", category: "alimentacao" },
+        { key: "juice", emoji: "🥤", name: "Bebida", category: "alimentacao" },
+        { key: "water", emoji: "💧", name: "Hidratação", category: "alimentacao" },
+        { key: "faucet", emoji: "🚰", name: "Água", category: "alimentacao" },
+        { key: "broccoli", emoji: "🥦", name: "Vegetais", category: "alimentacao" },
+        { key: "meditate", emoji: "🧘", name: "Meditação", category: "espiritualidade" },
+        { key: "om", emoji: "🕉️", name: "Om", category: "espiritualidade" },
+        { key: "prayer-beads", emoji: "📿", name: "Oração", category: "espiritualidade" },
+        { key: "pray", emoji: "🙏", name: "Gratidão", category: "espiritualidade" },
+        { key: "candle", emoji: "🕯️", name: "Vela", category: "espiritualidade" },
+        { key: "herb", emoji: "🌿", name: "Natureza", category: "espiritualidade" },
+        { key: "nazar", emoji: "🧿", name: "Proteção", category: "espiritualidade" },
+        { key: "yin-yang", emoji: "☯️", name: "Equilíbrio", category: "espiritualidade" },
+        { key: "keyboard", emoji: "⌨️", name: "Teclado", category: "tecnologia" },
+        { key: "mouse", emoji: "🖱️", name: "Mouse", category: "tecnologia" },
+        { key: "smartphone", emoji: "📱", name: "Celular", category: "tecnologia" },
+        { key: "plug", emoji: "🔌", name: "Energia", category: "tecnologia" },
+        { key: "robot", emoji: "🤖", name: "Robô", category: "tecnologia" },
+        { key: "disk", emoji: "💾", name: "Armazenamento", category: "tecnologia" },
+        { key: "lock", emoji: "🔐", name: "Segurança", category: "tecnologia" },
+        { key: "music", emoji: "🎵", name: "Música", category: "lazer" },
+        { key: "art", emoji: "🎨", name: "Arte", category: "lazer" },
+        { key: "game", emoji: "🎮", name: "Jogos", category: "lazer" },
+        { key: "movie", emoji: "🎬", name: "Filmes", category: "lazer" },
+        { key: "headphones", emoji: "🎧", name: "Áudio", category: "lazer" },
+        { key: "camera", emoji: "📷", name: "Fotografia", category: "lazer" },
+        { key: "mic", emoji: "🎤", name: "Música ao vivo", category: "lazer" },
+        { key: "dice", emoji: "🎲", name: "Jogos de tabuleiro", category: "lazer" },
+        { key: "money", emoji: "💰", name: "Dinheiro", category: "financas" },
+        { key: "card", emoji: "💳", name: "Cartão", category: "financas" },
+        { key: "bank", emoji: "🏦", name: "Banco", category: "financas" },
+        { key: "chart-down", emoji: "📉", name: "Redução", category: "financas" },
+        { key: "coin", emoji: "🪙", name: "Moeda", category: "financas" },
+        { key: "cash", emoji: "💸", name: "Gastos", category: "financas" },
+        { key: "sleep", emoji: "😴", name: "Sono", category: "habitos" },
+        { key: "stand", emoji: "🧍", name: "Postura", category: "habitos" },
+        { key: "bed", emoji: "🛌", name: "Descanso", category: "habitos" },
+        { key: "target", emoji: "🎯", name: "Objetivo", category: "objetivos" },
+        { key: "trophy", emoji: "🏆", name: "Troféu", category: "objetivos" },
+        { key: "star", emoji: "⭐", name: "Estrela", category: "objetivos" },
+        { key: "rocket", emoji: "🚀", name: "Avanço", category: "objetivos" },
+        { key: "fire", emoji: "🔥", name: "Progresso", category: "objetivos" },
+        { key: "crown", emoji: "👑", name: "Realeza", category: "objetivos" },
+        { key: "sparkle", emoji: "🌟", name: "Brilho", category: "objetivos" },
+        { key: "gym-2", emoji: "🧗", name: "Escalada", category: "esporte" },
+        { key: "stretch", emoji: "🤸", name: "Alongamento", category: "esporte" },
+        { key: "sparkles", emoji: "✨", name: "Magia", category: "objetivos" }
+    ];
 
     Arquimago.xpRequiredForLevel = function (level) {
         return Math.floor(100 * Math.pow(1.25, Math.max(0, level - 1)));
@@ -151,12 +407,33 @@
         return false;
     };
 
-    Arquimago.getMageImage = function () {
-        var src = "assets/illustrations/bfa5928a-10a0-4051-82cc-afc7765cc438.png";
+    Arquimago.CHARACTER_CLASS = "Arquimago";
+
+    Arquimago.getCharacterClass = function () {
+        return Arquimago.CHARACTER_CLASS;
+    };
+
+    Arquimago.getCharacterName = function () {
+        var name = (Arquimago.state && Arquimago.state.name) || "";
+        name = String(name).trim();
+        if (!name || name === "Arquimago Jordan") return "";
+        return name;
+    };
+
+    Arquimago.getDisplayName = function () {
+        return Arquimago.getCharacterName() || Arquimago.getCharacterClass();
+    };
+
+    Arquimago.getMageImageSrc = function () {
+        var src = "assets/characters/arquimago_down.png";
         if (Arquimago.state && Arquimago.state.customAvatar) {
             src = Arquimago.state.customAvatar;
         }
-        return '<img src="' + src + '" alt="Arquimago" class="mage-avatar-img">';
+        return src;
+    };
+
+    Arquimago.getMageImage = function () {
+        return '<img src="' + Arquimago.getMageImageSrc() + '" alt="' + Arquimago.getCharacterClass() + '" class="mage-avatar-img">';
     };
 
     global.Arquimago = Arquimago;

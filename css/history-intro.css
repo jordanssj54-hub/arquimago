@@ -68,7 +68,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 0 30px rgba(201, 168, 76, 0.35));
+    filter: drop-shadow(0 0 30px var(--fx-gold-mid));
     opacity: 0;
     transform: translateY(18px) scale(0.97);
     transition: opacity 1.6s ease 0.4s, transform 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;

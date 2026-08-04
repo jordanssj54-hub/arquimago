@@ -1,38 +1,171 @@
-.grimoire-page { padding: 24px; }
+/* ════════════════════════════════════════════════════════════
+   Grimório de Recompensas
+   ════════════════════════════════════════════════════════════ */
+.grimoire-page {
+    padding: 24px 24px 48px;
+    max-width: 1080px;
+    margin: 0 auto;
+}
 
 .grimoire-header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .grimoire-header h2 {
     font-family: var(--font-display);
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     color: var(--gold-light);
     letter-spacing: 0.1em;
 }
 
-.grimoire-header p { color: var(--text-muted); margin-top: 8px; }
-
-.spells-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+.grimoire-header p {
+    color: var(--text-muted);
+    margin-top: 8px;
 }
 
-.spell-card {
-    display: flex;
-    gap: 20px;
-    padding: 24px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(145deg, var(--bg-elevated), var(--bg-card));
+.grimoire-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border);
-    transition: var(--transition);
-    position: relative;
+    margin: 16px auto 0;
+    max-width: 420px;
     overflow: hidden;
 }
 
-.spell-card::after {
+.grimoire-progress div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+    border-radius: 999px;
+    box-shadow: var(--fx-glow-soft);
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Toolbar ── */
+.grimoire-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.grimoire-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.grimoire-search__icon {
+    position: absolute;
+    left: 12px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.grimoire-search input {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    transition: var(--transition);
+}
+
+.grimoire-search input:focus {
+    outline: none;
+    border-color: var(--border-gold);
+    box-shadow: 0 0 0 1px var(--border-gold);
+}
+
+.grimoire-filters,
+.grimoire-cats {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.grimoire-filter,
+.grimoire-cat {
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.grimoire-filter:hover,
+.grimoire-cat:hover {
+    border-color: var(--border-gold);
+    color: var(--text);
+}
+
+.grimoire-filter.is-active {
+    background: rgba(201, 168, 76, 0.14);
+    border-color: var(--gold);
+    color: var(--gold-light);
+    box-shadow: var(--fx-glow-soft);
+}
+
+.grimoire-cat.is-active {
+    background: rgba(74, 127, 212, 0.14);
+    border-color: var(--magic);
+    color: var(--magic);
+}
+
+.grimoire-toolbar__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Grid ── */
+.grimoire-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 18px;
+}
+
+.grimoire-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 22px 20px;
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.02) 100%),
+        rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.grimoire-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(74, 127, 212, 0.025) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.grimoire-card::after {
     content: "";
     position: absolute;
     top: -50%;
@@ -45,62 +178,829 @@
     pointer-events: none;
 }
 
-.spell-card.unlocked:hover {
+.grimoire-card.is-unlocked:hover {
     border-color: var(--border-gold);
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 20px rgba(74,127,212,0.1);
+    transform: translateY(-5px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+        0 20px 50px rgba(0, 0, 0, 0.3),
+        0 0 24px var(--fx-gold-soft);
 }
 
-.spell-card.unlocked:hover::after { opacity: 1; }
-
-.spell-card.locked {
-    opacity: 0.4;
-    filter: grayscale(0.6);
+.grimoire-card.is-unlocked:hover::after {
+    opacity: 1;
 }
 
-.spell-card__icon {
+.grimoire-card.is-locked {
+    opacity: 0.55;
+    filter: grayscale(0.55);
+}
+
+.grimoire-card.is-locked:hover {
+    opacity: 0.75;
+    border-color: var(--border);
+}
+
+.grimoire-card__fav {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.15) 100%),
+        rgba(0, 0, 0, 0.35);
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.grimoire-card__fav:hover {
+    border-color: var(--border-gold);
+    color: var(--gold-light);
+    transform: scale(1.1);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 0 16px var(--fx-gold-soft);
+}
+
+.grimoire-card__fav.is-fav {
+    color: var(--gold-light);
+    border-color: var(--gold);
+    background:
+        linear-gradient(180deg, rgba(201, 168, 76, 0.15) 0%, rgba(201, 168, 76, 0.08) 100%);
+    text-shadow: 0 0 10px rgba(201, 168, 76, 0.6);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+        0 0 12px var(--fx-gold-soft);
+}
+
+.grimoire-card__visual {
+    height: 140px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.1) 100%),
+        rgba(255, 255, 255, 0.02);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.grimoire-card__visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.grimoire-card__icon {
+    font-size: 2.8rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 16px var(--fx-gold-mid));
+}
+
+.grimoire-card__mystery {
+    height: 140px;
+    border-radius: 16px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, rgba(0, 0, 0, 0.08) 100%),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.008) 0 6px, transparent 6px 12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-dim);
+}
+
+.grimoire-card__mystery-icon {
+    font-size: 1.8rem;
+    opacity: 0.6;
+}
+
+.grimoire-card__mystery-q {
+    font-family: var(--font-display);
+    letter-spacing: 0.18em;
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.grimoire-card__name {
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    margin-top: 2px;
+}
+
+.grimoire-card__desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grimoire-card__type {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.grimoire-card__type--locked {
+    color: var(--text-dim) !important;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.grimoire-card__name {
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+}
+
+.grimoire-card__desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grimoire-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 6px;
+}
+
+.grimoire-card__level {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+}
+
+.grimoire-card__cat {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.grimoire-card.is-locked .grimoire-card__level {
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.grimoire-empty {
+    grid-column: 1 / -1;
+    border: 1px dashed var(--border-gold);
+    border-radius: var(--radius-sm);
+    padding: 28px 16px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* ── Detail modal ── */
+.grimoire-detail {
+    min-width: min(92vw, 420px);
+    text-align: center;
+}
+
+.grimoire-detail__close,
+.grimoire-editor__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.grimoire-detail__close,
+.grimoire-editor__close {
+    padding: 5px;
+}
+
+.grimoire-detail__close:hover,
+.grimoire-editor__close:hover {
+    color: var(--text);
+    border-color: var(--border-gold);
+}
+
+.grimoire-detail__visual {
+    width: 100%;
+    max-height: 220px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.grimoire-detail__visual img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+}
+
+.grimoire-detail__icon {
+    font-size: 4rem;
+    line-height: 1;
+    padding: 28px 0;
+    filter: drop-shadow(0 0 20px var(--fx-gold-strong));
+}
+
+.grimoire-detail__visual--locked {
+    background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 10px, transparent 10px 20px);
+    border-style: dashed;
+}
+
+.grimoire-detail__lock {
+    font-size: 2.6rem;
+    padding: 28px 0;
+    opacity: 0.7;
+}
+
+.grimoire-detail__type {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.grimoire-detail h3 {
+    margin: 6px 0 8px;
+}
+
+.grimoire-detail__meta {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.grimoire-detail__meta span {
+    font-size: 0.75rem;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+}
+
+.grimoire-detail__desc {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.grimoire-detail__locked-hint {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.grimoire-detail__locked-hint strong {
+    color: var(--gold-light);
+    font-size: 0.9rem;
+}
+
+.grimoire-detail__locked-hint span {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+}
+
+.grimoire-detail__actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Editor modal ── */
+.grimoire-editor {
+    min-width: min(92vw, 460px);
+}
+
+.grimoire-editor form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.grimoire-editor__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.grimoire-editor__field--full {
+    grid-column: 1 / -1;
+}
+
+.grimoire-editor__field label {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+}
+
+.grimoire-editor__field input,
+.grimoire-editor__field select,
+.grimoire-editor__field textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    resize: vertical;
+    transition: var(--transition);
+}
+
+.grimoire-editor__field input:focus,
+.grimoire-editor__field select:focus,
+.grimoire-editor__field textarea:focus {
+    outline: none;
+    border-color: var(--border-gold);
+    box-shadow: 0 0 0 1px var(--border-gold);
+}
+
+.grimoire-editor__row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.grimoire-icon-preview {
+    display: flex;
+    align-items: stretch;
+}
+
+.grimoire-icon-preview__btn {
+    width: 100%;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.grimoire-icon-preview__btn:hover {
+    border-color: var(--border-gold);
+    box-shadow: var(--fx-glow-soft);
+}
+
+.grimoire-icon-picker {
+    grid-column: 1 / -1;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 12px;
+}
+
+.grimoire-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 6px;
+}
+
+.grimoire-icon-option {
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.grimoire-icon-option:hover {
+    border-color: var(--border-gold);
+    transform: scale(1.1);
+}
+
+.grimoire-icon-option.is-selected {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 10px var(--fx-gold-mid);
+    background: rgba(201, 168, 76, 0.1);
+}
+
+.grimoire-image-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.grimoire-image-thumb {
+    position: relative;
     width: 64px;
     height: 64px;
-    flex-shrink: 0;
-    display: flex;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border-gold);
+}
+
+.grimoire-image-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.grimoire-image-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 0.6rem;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
-.spell-card__icon svg { width: 56px; height: 56px; }
-
-.spell-card__level {
-    display: inline-block;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    color: var(--magic);
-    text-transform: uppercase;
-    margin-bottom: 6px;
+.grimoire-image-remove:hover {
+    background: rgba(229, 9, 20, 0.8);
 }
 
-.spell-card__body h3 {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    color: var(--text);
-    margin-bottom: 6px;
+.grimoire-editor__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 4px;
 }
 
-.spell-card__body p {
-    font-size: 0.85rem;
+.btn-danger {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(229, 9, 20, 0.4);
+    background: rgba(229, 9, 20, 0.08);
+    color: #ff7a7a;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-danger:hover {
+    background: rgba(229, 9, 20, 0.18);
+    border-color: #ff5a5a;
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.2);
+}
+
+/* ── Crop modal ── */
+.grimoire-crop {
+    min-width: min(92vw, 400px);
+    text-align: center;
+}
+
+.crop-stage {
+    width: min(82vw, 320px);
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: repeating-conic-gradient(rgba(255, 255, 255, 0.04) 0% 25%, transparent 0% 50%) 0 0 / 24px 24px;
+    border: 1px solid var(--border);
+    margin: 0 auto 14px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.crop-stage:active {
+    cursor: grabbing;
+}
+
+.crop-image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-width: none;
+    transform-origin: 0 0;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.crop-controls {
+    margin-bottom: 14px;
+}
+
+.crop-zoom-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.78rem;
     color: var(--text-muted);
-    line-height: 1.6;
 }
 
-.spell-card__lock {
-    display: inline-block;
-    margin-top: 10px;
-    font-size: 0.72rem;
-    color: var(--text-dim);
+.crop-zoom-label input[type="range"] {
+    flex: 1;
+    accent-color: var(--gold);
+}
+
+.crop-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* ── Unlock overlay ── */
+#reward-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.reward-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+#reward-overlay.active .reward-backdrop {
+    opacity: 1;
+}
+
+.reward-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 24px;
+    max-width: 720px;
+    width: 92vw;
+}
+
+.reward-pre {
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 4vw, 1.9rem);
+    letter-spacing: 0.3em;
+    color: var(--gold-light);
+    text-shadow: 0 0 40px rgba(201, 168, 76, 0.8);
+    animation: levelShine 1.2s ease infinite;
+    margin-bottom: 24px;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+#reward-overlay.active .reward-pre {
+    animation: levelShine 1.2s ease infinite, rewardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes rewardIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.reward-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.reward-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px 20px;
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.02) 100%),
+        rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+        0 0 28px var(--fx-gold-soft);
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+    transition: all 0.3s ease;
+}
+
+.reward-card:hover {
+    border-color: var(--gold);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 0 36px var(--fx-gold-mid);
+}
+
+#reward-overlay.active .reward-card {
+    animation: rewardCardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes rewardCardIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.reward-card__visual {
+    height: 110px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.1) 100%),
+        rgba(255, 255, 255, 0.02);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.reward-card__visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reward-card__icon {
+    font-size: 2.6rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 16px var(--fx-gold-strong));
+}
+
+.reward-card__type {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201, 168, 76, 0.12);
+    border: 1px solid rgba(201, 168, 76, 0.25);
 }
 
+.reward-card h3 {
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 2px 0 4px;
+}
+
+.reward-card p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#reward-overlay.out .reward-content {
+    animation: levelContentOut 0.5s ease forwards;
+}
+
+@keyframes levelShine {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+}
+
+/* ── Responsive ── */
 @media (max-width: 640px) {
-    .grimoire-page { padding: 16px; }
-    .spells-grid { grid-template-columns: 1fr; }
+    .grimoire-page {
+        padding: 16px 12px 32px;
+    }
+
+    .grimoire-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .grimoire-card {
+        padding: 14px;
+    }
+
+    .grimoire-card__visual {
+        height: 90px;
+    }
+
+    .grimoire-card__mystery {
+        height: 90px;
+    }
+
+    .grimoire-card__icon {
+        font-size: 2rem;
+    }
+
+    .grimoire-editor form {
+        grid-template-columns: 1fr;
+    }
+
+    .grimoire-editor__row {
+        grid-template-columns: 1fr;
+    }
+
+    .grimoire-editor__field--full {
+        grid-column: 1;
+    }
+
+    .grimoire-toolbar__actions {
+        justify-content: stretch;
+    }
+
+    .grimoire-toolbar__actions .btn-primary {
+        width: 100%;
+    }
 }

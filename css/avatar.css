@@ -1,0 +1,44 @@
+/* ════════════════════════════════════════════════════════════
+   <PlayerAvatar /> — foto do personagem + moldura overlay
+   ════════════════════════════════════════════════════════════ */
+.player-avatar {
+    --avatar-scale: 1.15;
+    --avatar-x: 0px;
+    --avatar-y: 0px;
+    --avatar-inset: 10%;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: hidden;
+}
+
+/* A foto fica contida dentro do recorte da moldura: a borda do
+   retrato é "escondida" por baixo do anel da moldura, deixando a
+   moldura por fora da borda quadrada da imagem. */
+.player-avatar .mage-avatar-img {
+    position: absolute;
+    top: var(--avatar-inset, 10%);
+    left: var(--avatar-inset, 10%);
+    width: calc(100% - 2 * var(--avatar-inset));
+    height: calc(100% - 2 * var(--avatar-inset));
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+    z-index: 1;
+    transform: translate(var(--avatar-x, 0px), var(--avatar-y, 0px)) scale(var(--avatar-scale, 1));
+    transform-origin: center center;
+}
+
+.player-avatar__frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: transparent;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    z-index: 2;
+}

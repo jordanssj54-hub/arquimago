@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+    <radialGradient id="d-core" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#84cc16" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#84cc16" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="d-glow"><feGaussianBlur stdDeviation="4"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#060703"/>
+  <rect width="1920" height="1080" fill="url(#d-core)"/>
+<g stroke="#2d3013" stroke-width="14" fill="none" opacity="0.9">
+<path d="M960 1050 V560 M960 660 Q880 600 840 520 M960 700 Q1060 620 1110 540 M960 800 Q860 760 800 700 M960 820 Q1080 780 1140 700"/>
+</g>
+<g fill="#0b1a08" opacity="0.9">
+<ellipse cx="700" cy="430" rx="240" ry="130"/><ellipse cx="1220" cy="430" rx="240" ry="130"/>
+<ellipse cx="960" cy="360" rx="300" ry="150"/><ellipse cx="840" cy="290" rx="170" ry="110"/>
+<ellipse cx="1100" cy="300" rx="180" ry="110"/>
+</g>
+<g stroke="#3a3326" stroke-width="3" fill="#151307" opacity="0.9">
+<polygon points="420,880 470,880 455,620 435,620"/>
+<polygon points="1480,900 1540,900 1520,560 1500,560"/>
+</g>
+<g stroke="#84cc16" fill="none" opacity="0.35" filter="url(#d-glow)">
+<circle cx="960" cy="980" r="300" stroke-width="2"/>
+<circle cx="960" cy="980" r="330" stroke-width="1" stroke-dasharray="6 14"/>
+</g>
+<path d="M0 0 L8 3 L0 6 Z" transform="rotate(0 0 0)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M131 173 L139 176 L131 179 Z" transform="rotate(61 131 173)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M262 346 L270 349 L262 352 Z" transform="rotate(122 262 346)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M393 519 L401 522 L393 525 Z" transform="rotate(183 393 519)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M524 692 L532 695 L524 698 Z" transform="rotate(244 524 692)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M655 25 L663 28 L655 31 Z" transform="rotate(305 655 25)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M786 198 L794 201 L786 204 Z" transform="rotate(366 786 198)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M917 371 L925 374 L917 377 Z" transform="rotate(427 917 371)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1048 544 L1056 547 L1048 550 Z" transform="rotate(488 1048 544)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1179 717 L1187 720 L1179 723 Z" transform="rotate(549 1179 717)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1310 50 L1318 53 L1310 56 Z" transform="rotate(610 1310 50)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1441 223 L1449 226 L1441 229 Z" transform="rotate(671 1441 223)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1572 396 L1580 399 L1572 402 Z" transform="rotate(732 1572 396)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1703 569 L1711 572 L1703 575 Z" transform="rotate(793 1703 569)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M1834 742 L1842 745 L1834 748 Z" transform="rotate(854 1834 742)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/>
+<path d="M65 75 L73 78 L65 81 Z" transform="rotate(915 65 75)" fill="#84cc16" opacity="0.5" filter="url(#d-glow)"/></svg>

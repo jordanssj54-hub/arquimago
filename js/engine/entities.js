@@ -1,7 +1,7 @@
 import { TILE } from "./world.js";
 
 export function getNearbyEntity(px, py, room, interactRadius) {
-    const r = interactRadius || 40;
+    const r = interactRadius || 44;
     let closest = null;
     let closestDist = Infinity;
 
@@ -48,23 +48,44 @@ export function interactWith(entity, gameState, player) {
                 if (entity.collected) return { type: "already_interacted", message: "Já coletado." };
                 entity.collected = true;
                 if (entity.color === "#ff4444") {
-                    player.hp = Math.min(player.maxHp, player.hp + 30);
-                    return { type: "potion", message: "+30 HP!" };
+                    return { type: "potion", message: "+30 HP!", heal: 30 };
                 } else if (entity.color === "#4488ff") {
-                    player.mana = Math.min(player.maxMana, player.mana + 30);
-                    return { type: "potion", message: "+30 MP!" };
+                    return { type: "potion", message: "+30 MP!", mana: 30 };
                 }
                 return { type: "potion", message: "Poção coletada!" };
 
             case "book":
                 return { type: "book", entity, title: entity.title, text: entity.text };
 
+            case "monument":
+                return { type: "monument", entity };
+
+            case "altar":
+                return { type: "altar", entity };
+
+            case "ancient_stone":
+                return { type: "ancient_stone", entity };
+
+            case "plant":
+                if (entity.collected) return { type: "already_interacted", message: "Já coletado." };
+                entity.collected = true;
+                return { type: "plant", message: "Erva mágica coletada!" };
+
+            case "portal":
+                return { type: "portal", entity };
+
             case "lever":
                 entity.activated = !entity.activated;
                 return { type: "lever", entity, activated: entity.activated };
 
-            case "monument":
-                return { type: "monument", entity };
+            case "fireplace":
+                return { type: "already_interacted", message: "O fogo crepita suavemente, aquecendo a alma cansada." };
+
+            case "table":
+                return { type: "already_interacted", message: "Uma mesa simples de carvalho, marcada pelo tempo." };
+
+            case "rest_bench":
+                return { type: "rest", message: "Você descansa por um momento. Forças renovadas." };
 
             default:
                 return null;
@@ -85,20 +106,7 @@ export function checkDoorExits(room, px, py, playerW, playerH) {
         const eh = exit.h * TILE;
 
         if (px - hw < ex + ew && px + hw > ex && py - hh < ey + eh && py + hh > ey) {
-            if (exit.requires_fragments && (!window._historyState || window._historyState.memoryFragments.length < exit.requires_fragments)) {
-                return { blocked: true, message: "Precisa de " + exit.requires_fragments + " fragmentos de memória." };
-            }
-            if (exit.requires) {
-                const reqs = Array.isArray(exit.requires) ? exit.requires : [exit.requires];
-                const allMet = reqs.every(reqId => {
-                    const obj = room.objects.find(o => o.id === reqId);
-                    return obj && obj.activated;
-                });
-                if (!allMet) {
-                    return { blocked: true, message: "Alguns mecanismos ainda estão inativos." };
-                }
-            }
-            return { exit };
+            return { exit, tx: exit.tx, ty: exit.ty };
         }
     }
     return null;

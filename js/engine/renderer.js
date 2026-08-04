@@ -1,13 +1,7 @@
-/**
- * renderer.js
- * Viewport-clamped tilemap and player rendering using dynamic asset dimensions.
- * Uses AssetLoader + MapManager for tileset processing and ID validation.
- * Camera positions are Math.floor()-ed to prevent pixel bleeding.
- */
-
 import { TILE, T } from "./world.js";
-import { createAssetLoader } from "./AssetLoader.js";
+import { createHistoryTileLoader } from "./HistoryTileLoader.js";
 import { createMapManager } from "./MapManager.js";
+import { calculateAutoTileIndex, drawAutoTile } from "./AutoTileRenderer.js";
 
 if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, radii) {
@@ -19,7 +13,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
         this.arcTo(x + w, y + h, x + w - r, y + h, r);
         this.lineTo(x + r, y + h);
         this.arcTo(x, y + h, x, y + h - r, r);
-        this.lineTo(x, y + r);
+        this.lineTo(x + r, y);
         this.arcTo(x, y, x + r, y, r);
         this.closePath();
     };
@@ -130,43 +124,61 @@ function generateCrystalFloorProcedural(ctx, sx, sy, tw, th, tx, ty, time) {
 
 function drawProceduralTile(ctx, tile, sx, sy, tw, th, tx, ty, time) {
     switch (tile) {
-        case T.GRASS:
-        case T.TALL_GRASS:
-            generateGrassProcedural(ctx, sx, sy, tw, th, tx, ty);
-            break;
+        case T.GRASS: case T.TALL_GRASS:
+            generateGrassProcedural(ctx, sx, sy, tw, th, tx, ty); break;
         case T.TREE:
-            generateTreeProcedural(ctx, sx, sy, tw, th);
-            break;
+            generateTreeProcedural(ctx, sx, sy, tw, th); break;
         case T.ROCK:
-            generateRockProcedural(ctx, sx, sy, tw, th);
-            break;
+            generateRockProcedural(ctx, sx, sy, tw, th); break;
         case T.WATER:
-            generateWaterProcedural(ctx, sx, sy, tw, th, tx, ty, time);
-            break;
+            generateWaterProcedural(ctx, sx, sy, tw, th, tx, ty, time); break;
         case T.BUSH:
-            generateBushProcedural(ctx, sx, sy, tw, th);
-            break;
+            generateBushProcedural(ctx, sx, sy, tw, th); break;
         case T.BOOKSHELF:
-            generateBookshelfProcedural(ctx, sx, sy, tw, th);
-            break;
+            generateBookshelfProcedural(ctx, sx, sy, tw, th); break;
         case T.PILLAR:
-            generatePillarProcedural(ctx, sx, sy, tw, th);
-            break;
+            generatePillarProcedural(ctx, sx, sy, tw, th); break;
         case T.WALL:
-            generateWallProcedural(ctx, sx, sy, tw, th, false);
-            break;
+            generateWallProcedural(ctx, sx, sy, tw, th, false); break;
         case T.DARK_WALL:
-            generateWallProcedural(ctx, sx, sy, tw, th, true);
-            break;
+            generateWallProcedural(ctx, sx, sy, tw, th, true); break;
         case T.RUIN:
-            generateRuinProcedural(ctx, sx, sy, tw, th);
-            break;
+            generateRuinProcedural(ctx, sx, sy, tw, th); break;
         case T.CRYSTAL_FLOOR:
-            generateCrystalFloorProcedural(ctx, sx, sy, tw, th, tx, ty, time);
-            break;
+            generateCrystalFloorProcedural(ctx, sx, sy, tw, th, tx, ty, time); break;
         default:
-            generateGrassProcedural(ctx, sx, sy, tw, th, tx, ty);
-            break;
+            generateGrassProcedural(ctx, sx, sy, tw, th, tx, ty); break;
+    }
+}
+
+const backgroundCache = {};
+
+function loadBackgroundImage(src) {
+    if (!src) return Promise.resolve(null);
+    if (backgroundCache[src]) return Promise.resolve(backgroundCache[src]);
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => { backgroundCache[src] = img; resolve(img); };
+        img.onerror = () => { backgroundCache[src] = null; resolve(null); };
+        img.src = src;
+    });
+}
+
+function drawAtmosphericBackground(ctx, colors, w, h, time) {
+    if (!colors || colors.length < 2) return;
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, colors[0]);
+    grad.addColorStop(0.5, colors[1] || colors[0]);
+    grad.addColorStop(1, colors[2] || colors[0]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    for (let i = 0; i < 30; i++) {
+        const sx = (i * 137.5 + time * 2) % w;
+        const sy = (i * 97.3 + Math.sin(time + i)) % h;
+        const ss = 0.5 + Math.sin(time * 2 + i) * 0.5;
+        ctx.fillRect(sx, sy, ss, ss);
     }
 }
 
@@ -175,19 +187,23 @@ export function createRenderer(canvas, width, height) {
     canvas.width = width;
     canvas.height = height;
 
-    const assetLoader = createAssetLoader();
+    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingQuality = "low";
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+
+    const tileLoader = createHistoryTileLoader();
     const mapManager = createMapManager();
     let assetsReady = false;
     let loadPromise = null;
+    let currentBgImage = null;
+    let currentBgSrc = "";
+    let bgLoadAttempted = false;
 
     function ensureAssets() {
         if (assetsReady) return Promise.resolve();
         if (loadPromise) return loadPromise;
-        loadPromise = assetLoader.load().then(() => {
-            const meta = assetLoader.getTilesetMeta();
-            if (meta) {
-                mapManager.invalidateCache();
-            }
+        loadPromise = tileLoader.load().then(() => {
             assetsReady = true;
         }).catch(() => {
             assetsReady = true;
@@ -197,24 +213,49 @@ export function createRenderer(canvas, width, height) {
 
     ensureAssets();
 
-    function resize(containerW, containerH) {
-        const scale = Math.min(containerW / width, containerH / height);
-        canvas.style.width = (width * scale) + "px";
-        canvas.style.height = (height * scale) + "px";
+    function loadRoomBackground(room) {
+        if (!room || !room.bg) {
+            currentBgImage = null;
+            currentBgSrc = "";
+            bgLoadAttempted = false;
+            return;
+        }
+        if (room.bg !== currentBgSrc || !bgLoadAttempted) {
+            currentBgSrc = room.bg;
+            bgLoadAttempted = true;
+            loadBackgroundImage(room.bg).then(img => { currentBgImage = img; });
+        }
     }
 
-    function clear(color) {
-        ctx.fillStyle = color || "#050508";
-        ctx.fillRect(0, 0, width, height);
+    function drawBackground(room, time) {
+        if (currentBgImage) {
+            try { ctx.drawImage(currentBgImage, 0, 0, width, height); return; } catch (e) {}
+        }
+        if (room && room.bgGradient) {
+            drawAtmosphericBackground(ctx, room.bgGradient, width, height, time);
+        } else if (room && room.bgColor) {
+            ctx.fillStyle = room.bgColor;
+            ctx.fillRect(0, 0, width, height);
+        } else {
+            ctx.fillStyle = "#050508";
+            ctx.fillRect(0, 0, width, height);
+        }
+    }
+
+    function clear(room, time) {
+        if (!room) {
+            ctx.fillStyle = "#050508";
+            ctx.fillRect(0, 0, width, height);
+            return;
+        }
+        loadRoomBackground(room);
+        drawBackground(room, time);
     }
 
     function drawRoom(room, camX, camY, time) {
-        const tw = assetLoader.getTileSize();
+        if (!room || !room.tileMap) return;
+        const tw = tileLoader.getTileSize();
         const th = tw;
-        const tilesetCols = assetLoader.getTilesetCols();
-        const tilesetRows = assetLoader.getTilesetRows();
-        const tilesetImg = assetLoader.getTilesetImage();
-
         const camIX = Math.floor(camX);
         const camIY = Math.floor(camY);
 
@@ -225,37 +266,37 @@ export function createRenderer(canvas, width, height) {
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
                 if (ty < 0 || ty >= room.height || tx < 0 || tx >= room.width) continue;
-
                 const rawTile = room.tileMap[ty][tx];
-                const tile = mapManager.validateTileId(rawTile, tilesetCols, tilesetRows);
-
+                const tile = mapManager.validateTileId(rawTile, 999, 999);
                 const sx = tx * tw - camIX;
                 const sy = ty * th - camIY;
+                const dx = Math.floor(sx);
+                const dy = Math.floor(sy);
 
-                const pos = mapManager.getTilePosition(tile, tilesetCols, tilesetRows);
-                const canTileset = assetsReady && assetLoader.isTilesetReady() && tilesetImg && pos !== null;
-
-                if (canTileset) {
-                    const srcSX = pos.col * tw;
-                    const srcSY = pos.row * th;
-
-                    if (srcSX + tw <= tilesetImg.naturalWidth && srcSY + th <= tilesetImg.naturalHeight) {
-                        ctx.drawImage(
-                            tilesetImg,
-                            srcSX, srcSY, tw, th,
-                            Math.floor(sx), Math.floor(sy), tw, th
+                if (assetsReady && tileLoader.hasSpritesheet(tile)) {
+                    const sheet = tileLoader.getSpritesheet(tile);
+                    if (sheet) {
+                        const idx = calculateAutoTileIndex(
+                            room.tileMap, tx, ty, tile, room.width, room.height
                         );
+                        drawAutoTile(ctx, sheet, idx, dx, dy, tw);
                         continue;
                     }
                 }
 
-                drawProceduralTile(ctx, tile, Math.floor(sx), Math.floor(sy), tw, th, tx, ty, time);
+                const tileImg = assetsReady ? tileLoader.getTileImage(tile) : null;
+                if (tileImg) {
+                    ctx.drawImage(tileImg, dx, dy, tw, th);
+                    continue;
+                }
+
+                drawProceduralTile(ctx, tile, dx, dy, tw, th, tx, ty, time);
             }
         }
     }
 
     function drawObject(ctx, obj, camX, camY, time) {
-        const tw = assetLoader.getTileSize();
+        const tw = tileLoader.getTileSize();
         const sx = obj.x * tw + tw / 2 - camX;
         const sy = obj.y * tw + tw / 2 - camY;
 
@@ -363,9 +404,8 @@ export function createRenderer(canvas, width, height) {
         }
 
         if (obj.type === "door") {
-            const tw2 = assetLoader.getTileSize();
             ctx.fillStyle = obj.locked ? "#3a3a3a" : "#1a1a1a";
-            ctx.fillRect(obj.x * tw2 + 2, obj.y * tw2, tw2 - 4, tw2);
+            ctx.fillRect(obj.x * tw + 2, obj.y * tw, tw - 4, tw);
             if (obj.locked) {
                 ctx.fillStyle = "#cc4444";
                 ctx.beginPath();
@@ -373,7 +413,7 @@ export function createRenderer(canvas, width, height) {
                 ctx.fill();
             } else {
                 ctx.fillStyle = "rgba(100,200,100,0.2)";
-                ctx.fillRect(obj.x * tw2 + 2, obj.y * tw2, tw2 - 4, tw2);
+                ctx.fillRect(obj.x * tw + 2, obj.y * tw, tw - 4, tw);
             }
         }
 
@@ -394,18 +434,136 @@ export function createRenderer(canvas, width, height) {
         }
 
         if (obj.type === "bookshelf") {
-            const tw3 = assetLoader.getTileSize();
             ctx.fillStyle = "#4a3020";
-            ctx.fillRect(obj.x * tw3 + 1, obj.y * tw3 + 2, tw3 - 2, tw3 - 2);
+            ctx.fillRect(obj.x * tw + 1, obj.y * tw + 2, tw - 2, tw - 2);
             ctx.fillStyle = "#2a1a0a";
             for (let i = 0; i < 3; i++) {
-                ctx.fillRect(obj.x * tw3 + 3, obj.y * tw3 + 4 + i * 9, tw3 - 6, 2);
+                ctx.fillRect(obj.x * tw + 3, obj.y * tw + 4 + i * 9, tw - 6, 2);
             }
+        }
+
+        if (obj.type === "portal") {
+            const pulse = Math.sin(time * 2) * 4;
+            const grad = ctx.createRadialGradient(sx, sy, 2, sx, sy, 18 + pulse);
+            grad.addColorStop(0, "rgba(74, 127, 212, 0.6)");
+            grad.addColorStop(0.4, "rgba(74, 127, 212, 0.2)");
+            grad.addColorStop(1, "rgba(74, 127, 212, 0)");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 18 + pulse, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(201, 168, 76, 0.6)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 8 + pulse * 0.5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = "#4a7fd4";
+            ctx.font = "9px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(obj.label || "Portal", sx, sy + 28);
+            ctx.textAlign = "start";
+        }
+
+        if (obj.type === "altar") {
+            ctx.fillStyle = "#5a4a3a";
+            ctx.fillRect(sx - 14, sy - 4, 28, 10);
+            ctx.fillStyle = "#6a5a4a";
+            ctx.fillRect(sx - 12, sy - 10, 24, 8);
+            ctx.fillStyle = "#c9a84c";
+            ctx.font = "10px serif";
+            ctx.textAlign = "center";
+            ctx.fillText("\u2726", sx, sy - 2);
+            ctx.textAlign = "start";
+            ctx.fillStyle = "rgba(201,168,76,0.08)";
+            ctx.beginPath();
+            ctx.arc(sx, sy, 22 + Math.sin(time * 1.5) * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        if (obj.type === "ancient_stone") {
+            ctx.fillStyle = "#4a4a5a";
+            ctx.beginPath();
+            ctx.moveTo(sx - 8, sy + 6);
+            ctx.lineTo(sx - 6, sy - 12);
+            ctx.lineTo(sx + 2, sy - 14);
+            ctx.lineTo(sx + 8, sy - 8);
+            ctx.lineTo(sx + 10, sy + 6);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = "#5a5a6a";
+            ctx.beginPath();
+            ctx.moveTo(sx - 4, sy - 10);
+            ctx.lineTo(sx, sy - 12);
+            ctx.lineTo(sx + 4, sy - 8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = "rgba(150,150,180,0.3)";
+            ctx.font = "7px serif";
+            ctx.textAlign = "center";
+            ctx.fillText("\u2234", sx, sy + 2);
+            ctx.textAlign = "start";
+        }
+
+        if (obj.type === "plant") {
+            const sway = Math.sin(time * 1.5 + obj.x * 0.5) * 2;
+            ctx.fillStyle = obj.color || "#44aa44";
+            ctx.beginPath();
+            ctx.ellipse(sx + sway, sy - 2, 5, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#2a6a2a";
+            ctx.fillRect(sx - 1, sy + 4, 2, 6);
+            ctx.fillStyle = "rgba(255,255,255,0.2)";
+            ctx.beginPath();
+            ctx.arc(sx + sway - 1, sy - 4, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        if (obj.type === "fireplace") {
+            ctx.fillStyle = "#3a2a1a";
+            ctx.fillRect(sx - 12, sy - 10, 24, 22);
+            ctx.fillStyle = "#2a1a0a";
+            ctx.fillRect(sx - 8, sy - 6, 16, 14);
+            if (obj.lit) {
+                const flicker = Math.sin(time * 8) * 2;
+                const grad2 = ctx.createRadialGradient(sx, sy - 2, 0, sx, sy - 2, 16 + flicker);
+                grad2.addColorStop(0, "rgba(255, 160, 40, 0.3)");
+                grad2.addColorStop(1, "rgba(255, 100, 20, 0)");
+                ctx.fillStyle = grad2;
+                ctx.beginPath();
+                ctx.arc(sx, sy - 2, 16 + flicker, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#ff8833";
+                ctx.beginPath();
+                ctx.arc(sx, sy - 4, 4 + flicker * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#ffcc44";
+                ctx.beginPath();
+                ctx.arc(sx, sy - 5, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        if (obj.type === "table") {
+            ctx.fillStyle = "#4a3020";
+            ctx.fillRect(sx - 10, sy - 2, 20, 4);
+            ctx.fillStyle = "#3a2010";
+            ctx.fillRect(sx - 8, sy + 2, 3, 8);
+            ctx.fillRect(sx + 5, sy + 2, 3, 8);
+        }
+
+        if (obj.type === "rest_bench") {
+            ctx.fillStyle = "#5a4030";
+            ctx.fillRect(sx - 12, sy - 4, 24, 8);
+            ctx.fillStyle = "#4a3020";
+            ctx.fillRect(sx - 10, sy - 2, 20, 4);
+            ctx.fillStyle = "#3a2010";
+            ctx.fillRect(sx - 8, sy + 4, 4, 6);
+            ctx.fillRect(sx + 4, sy + 4, 4, 6);
         }
     }
 
     function drawNPC(ctx, npc, camX, camY, time) {
-        const tw = assetLoader.getTileSize();
+        const tw = tileLoader.getTileSize();
         const sx = npc.x * tw + tw / 2 - camX;
         const sy = npc.y * tw + tw / 2 - camY;
         const bob = Math.sin(time * 2) * 1.5;
@@ -450,58 +608,43 @@ export function createRenderer(canvas, width, height) {
 
         ctx.fillStyle = "rgba(8, 6, 18, 0.85)";
         ctx.beginPath();
-        ctx.roundRect(pad, pad, 180, 72, 8);
+        ctx.roundRect(pad, pad, 180, 58, 8);
         ctx.fill();
 
-        ctx.fillStyle = "#888";
-        ctx.font = "9px Inter, sans-serif";
-        ctx.fillText("HP", pad + 8, pad + 14);
-        ctx.fillStyle = "#333";
-        ctx.fillRect(pad + 28, pad + 6, barW, barH);
-        ctx.fillStyle = "#cc4444";
-        ctx.fillRect(pad + 28, pad + 6, barW * (player.hp / player.maxHp), barH);
-
-        ctx.fillStyle = "#888";
-        ctx.fillText("MP", pad + 8, pad + 30);
-        ctx.fillStyle = "#333";
-        ctx.fillRect(pad + 28, pad + 22, barW, barH);
-        ctx.fillStyle = "#4488cc";
-        ctx.fillRect(pad + 28, pad + 22, barW * (player.mana / player.maxMana), barH);
-
         ctx.fillStyle = "#c9a84c";
         ctx.font = "9px Inter, sans-serif";
-        ctx.fillText("LV " + player.level, pad + 8, pad + 48);
-        ctx.fillStyle = "#333";
-        ctx.fillRect(pad + 36, pad + 40, barW - 10, barH);
-        ctx.fillStyle = "#44cc44";
-        const xpNeeded = 50 + player.level * 30;
-        ctx.fillRect(pad + 36, pad + 40, (barW - 10) * (player.xp / xpNeeded), barH);
+        ctx.fillText("LV " + (gameState.level || 1), pad + 8, pad + 14);
 
-        const fragCount = gameState.memoryFragments ? gameState.memoryFragments.length : 0;
         ctx.fillStyle = "#c9a84c";
-        ctx.font = "9px Inter, sans-serif";
-        ctx.fillText("\u2B50 " + fragCount + "/8", pad + 8, pad + 64);
+        ctx.fillText("\u2B50 Fragmentos: " + (gameState.memoryFragments ? gameState.memoryFragments.length : 0), pad + 8, pad + 30);
+
+        ctx.fillStyle = "#888";
+        ctx.fillText("Cap\u00EDtulos: " + (gameState.chaptersCompleted ? gameState.chaptersCompleted.length : 0) + "/3", pad + 8, pad + 44);
 
         if (gameState.currentRoom) {
             ctx.fillStyle = "rgba(8, 6, 18, 0.7)";
             ctx.beginPath();
-            ctx.roundRect(gameWidth - 130, pad, 120, 22, 6);
+            ctx.roundRect(gameWidth - 140, pad, 130, 36, 6);
             ctx.fill();
             ctx.fillStyle = "#c9a84c";
             ctx.font = "10px Inter, sans-serif";
             ctx.textAlign = "right";
             ctx.fillText(gameState.roomName || "", gameWidth - pad - 8, pad + 15);
+            const ch = gameState.chapter || 1;
+            ctx.fillStyle = "#888";
+            ctx.font = "8px Inter, sans-serif";
+            ctx.fillText("CAP\u00CDTULO " + ch, gameWidth - pad - 8, pad + 30);
             ctx.textAlign = "start";
         }
 
         ctx.fillStyle = "rgba(8, 6, 18, 0.7)";
         ctx.beginPath();
-        ctx.roundRect(gameWidth - 130, pad + 28, 120, 16, 6);
+        ctx.roundRect(gameWidth - 140, pad + 42, 130, 18, 6);
         ctx.fill();
         ctx.fillStyle = "#888";
-        ctx.font = "9px Inter, sans-serif";
+        ctx.font = "8px Inter, sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText("E: Ação  K: Magia  WASD: Mover", gameWidth - pad - 8, pad + 40);
+        ctx.fillText("WASD: Mover  E: A\u00E7\u00E3o", gameWidth - pad - 8, pad + 54);
         ctx.textAlign = "start";
     }
 
@@ -511,49 +654,44 @@ export function createRenderer(canvas, width, height) {
         ctx.fillRect(0, 0, w, h);
     }
 
-    function drawMinimap(ctx, rooms, currentRoom, playerX, playerY, gameWidth) {
-        const tw = assetLoader.getTileSize();
+    function drawMinimap(ctx, phases, currentPhase, gameWidth) {
         const mmX = gameWidth - 90;
         const mmY = 100;
         const mmW = 80;
-        const mmH = 60;
+        const mmH = 50;
 
         ctx.fillStyle = "rgba(8, 6, 18, 0.8)";
         ctx.beginPath();
         ctx.roundRect(mmX - 4, mmY - 4, mmW + 8, mmH + 8, 6);
         ctx.fill();
 
-        const roomPositions = {
-            forest_clearing: { x: 0, y: 1 },
-            whispering_woods: { x: 1, y: 1 },
-            crystal_grotto: { x: 1, y: 2 },
-            ruins_of_asterion: { x: 2, y: 1 },
-            old_library: { x: 2, y: 2 },
-            shadow_temple: { x: 3, y: 1 },
+        const phasePositions = {
+            floresta_arcana: { x: 0, label: "F" },
+            ruinas_antigas: { x: 1, label: "R" },
+            entrada_masmorra: { x: 2, label: "M" },
         };
 
-        const cellW = 16;
-        const cellH = 16;
+        const cellW = 22;
+        const cellH = 30;
         const offsetX = mmX + 4;
-        const offsetY = mmY + 4;
+        const offsetY = mmY + 8;
 
-        for (const [key, pos] of Object.entries(roomPositions)) {
+        for (const [key, pos] of Object.entries(phasePositions)) {
             const rx = offsetX + pos.x * (cellW + 4);
-            const ry = offsetY + pos.y * (cellH + 4);
-            ctx.fillStyle = key === currentRoom ? "#c9a84c" : "#333";
+            const ry = offsetY;
+            ctx.fillStyle = key === currentPhase ? "#c9a84c" : "#333";
             ctx.fillRect(rx, ry, cellW, cellH);
-            if (key === currentRoom) {
-                ctx.fillStyle = "#fff";
-                ctx.beginPath();
-                ctx.arc(rx + cellW / 2, ry + cellH / 2, 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            ctx.fillStyle = key === currentPhase ? "#fff" : "#888";
+            ctx.font = "10px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(pos.label, rx + cellW / 2, ry + cellH / 2 + 4);
+            ctx.textAlign = "start";
         }
     }
 
     return {
         ctx, clear, drawRoom, drawObject, drawNPC, drawHUD,
-        drawTransition, drawMinimap, resize, width, height,
-        ensureAssets, assetLoader, mapManager,
+        drawTransition, drawMinimap, width, height,
+        ensureAssets, tileLoader, mapManager,
     };
 }
