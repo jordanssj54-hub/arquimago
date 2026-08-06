@@ -15,6 +15,9 @@
         return monday.toISOString().slice(0, 10);
     }
 
+    Arquimago.getTodayKey = todayKey;
+    Arquimago.getWeekKey = weekKey;
+
     Arquimago.loadState = function () {
         var base = JSON.parse(JSON.stringify(Arquimago.DEFAULT_STATE));
         try {
@@ -23,6 +26,7 @@
                 Object.assign(base, JSON.parse(raw));
             }
         } catch (e) {}
+        if (Arquimago.normalizeState) Arquimago.normalizeState(base);
         return Arquimago.syncDates(base);
     };
 
@@ -36,6 +40,8 @@
         var today = todayKey();
         var week = weekKey();
 
+        if (Arquimago.normalizeState) Arquimago.normalizeState(state);
+
         if (state.dailyDate !== today) {
             state.dailyDate = today;
             state.dailyDone = [];
@@ -45,7 +51,18 @@
         if (state.weeklyDate !== week) {
             state.weeklyDate = week;
             state.weeklyDone = [];
+            state.bossDamageEvents = [];
+            if (Arquimago.createWeeklyBoss) state.weeklyBoss = Arquimago.createWeeklyBoss(week);
+        } else if (Arquimago.ensureWeeklyBoss) {
+            Arquimago.ensureWeeklyBoss(state, week);
         }
+
+        if (state.lastUsageDate !== today) {
+            state.lastUsageDate = today;
+            state.daysUsingApp = Math.max(0, Number(state.daysUsingApp) || 0) + 1;
+        }
+
+        if (Arquimago.updateDailyRank) Arquimago.updateDailyRank(state);
 
         return state;
     };

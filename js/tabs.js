@@ -14,7 +14,7 @@
         var order = [];
         var nav = getNav();
         if (!nav) return order;
-        var referenceOrder = ["missions", "grimoire", "home", "history", "map", "profile"];
+        var referenceOrder = ["home", "missions", "attributes", "profile", "history", "map", "grimoire"];
         var available = {};
         nav.querySelectorAll(".tab").forEach(function (tab) {
             if (tab.dataset.screen) available[tab.dataset.screen] = true;

@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="css/grimoire.css">
 <link rel="stylesheet" href="css/avatar.css">
 <link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/progression.css">
 <link rel="stylesheet" href="css/history.css">
 <link rel="stylesheet" href="css/history-intro.css">
 <link rel="stylesheet" href="css/overlays.css">
@@ -95,6 +96,10 @@
 <span>NÍVEL</span>
 <strong id="topPlayerLevel">1</strong>
 </div>
+<div class="top-rank-badge" aria-label="Rank de hoje">
+<span>RANK</span>
+<strong id="topDailyRank">D</strong>
+</div>
 <div class="xp-bar xp-bar--top">
 <div class="xp-fill" style="width:0"></div>
 <img class="xp-frame" src="assets/frames/xp_frame.png" alt="">
@@ -131,6 +136,11 @@
 <img class="tab-icon" src="assets/ui/icons/icon-missoes.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/texts/txt_missoes.png" alt="" aria-hidden="true">
 </button>
+<button class="tab" data-screen="attributes" aria-label="Atributos">
+<span class="tab-glow" aria-hidden="true"></span>
+<span class="tab-fallback-icon" aria-hidden="true">✦</span>
+<span class="tab-fallback-text">Atributos</span>
+</button>
 <button class="tab" data-screen="grimoire" aria-label="Grimório">
 <span class="tab-glow" aria-hidden="true"></span>
 <img class="tab-icon" src="assets/ui/icons/icon-grimorio.png" alt="" aria-hidden="true">
@@ -149,6 +159,7 @@
 <section id="history" class="screen"></section>
 <section id="map" class="screen"></section>
 <section id="missions" class="screen"></section>
+<section id="attributes" class="screen"></section>
 <section id="grimoire" class="screen"></section>
 <section id="profile" class="screen"></section>
 </main>
@@ -157,11 +168,13 @@
 
 <script src="js/config.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/progression.js"></script>
 <script src="js/themes.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/effects.js"></script>
 <script src="js/xp.js"></script>
 <script src="js/missions.js"></script>
+<script src="js/attributes.js"></script>
 <script src="js/map.js"></script>
 <script src="js/grimoire.js"></script>
 <script src="js/profile.js"></script>

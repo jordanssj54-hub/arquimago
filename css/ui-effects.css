@@ -107,6 +107,13 @@
     box-shadow: var(--fx-shadow), var(--fx-glow-strong), var(--fx-inset-strong);
 }
 
+/* A lista de missões é um checklist linear, não uma pilha de cards. */
+.missions-list .mission-item,
+.missions-list .mission-item:hover,
+.missions-list .mission-item:focus-within {
+    box-shadow: none;
+}
+
 /* ══ Atmosfera Global — Camadas de profundidade ══
    Usa os pseudo-elementos livres do container global #game.
    z-index negativo mantém ambas as camadas atrás da interface.

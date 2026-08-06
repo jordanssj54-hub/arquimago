@@ -4,10 +4,10 @@
     var Arquimago = global.Arquimago || {};
 
     var ATTR_NAMES = {
-        discipline: "Disciplina",
-        wisdom: "Sabedoria",
-        determination: "Determinação",
-        consistency: "Constância"
+        strength: "Força",
+        intelligence: "Inteligência",
+        vitality: "Vitalidade",
+        spirit: "Espírito"
     };
 
     var FREQ_MAP = {
@@ -22,16 +22,36 @@
 
     var customFormOpen = false;
     var iconPickerOpen = false;
+    var missionSettingsOpen = false;
+    var missionManagementMode = null;
+    var selectedMissionIds = {};
+    var ACTIVE_MISSIONS_HIDDEN_KEY = "arquimago_active_missions_hidden_v1";
+    var activeMissionsHidden = loadActiveMissionsHidden();
+
+    function loadActiveMissionsHidden() {
+        try {
+            return localStorage.getItem(ACTIVE_MISSIONS_HIDDEN_KEY) === "true";
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function saveActiveMissionsHidden() {
+        try {
+            localStorage.setItem(ACTIVE_MISSIONS_HIDDEN_KEY, String(activeMissionsHidden));
+        } catch (error) {}
+    }
 
     var formCache = {
         name: "",
-        xp: "25",
+        xp: "4",
         freq: "daily",
         objective: "",
-        icon: "🎯"
+        icon: "🎯",
+        attribute: "vitality"
     };
 
-    var FORM_FIELD_IDS = ["customName", "customXp", "customFreq", "customObjective"];
+    var FORM_FIELD_IDS = ["customName", "customXp", "customFreq", "customObjective", "customAttribute"];
 
     function escapeHtml(str) {
         return String(str == null ? "" : str)
@@ -48,10 +68,12 @@
         var xp = form.querySelector("#customXp");
         var freq = form.querySelector("#customFreq");
         var objective = form.querySelector("#customObjective");
+        var attribute = form.querySelector("#customAttribute");
         if (name) formCache.name = name.value;
         if (xp) formCache.xp = xp.value;
         if (freq) formCache.freq = freq.value;
         if (objective) formCache.objective = objective.value;
+        if (attribute) formCache.attribute = attribute.value;
     }
 
     function focusedFormFieldId() {
@@ -94,6 +116,35 @@
     function setCollapsed(id, collapsed) {
         collapsedSections[id] = !!collapsed;
         saveCollapsedSections();
+    }
+
+    var MISSION_DETAILS_KEY = "arquimago_mission_details_expanded_v1";
+    var expandedMissionDetails = loadExpandedMissionDetails();
+
+    function loadExpandedMissionDetails() {
+        try {
+            var raw = localStorage.getItem(MISSION_DETAILS_KEY);
+            var obj = raw ? JSON.parse(raw) : null;
+            return (obj && typeof obj === "object") ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveExpandedMissionDetails() {
+        try {
+            localStorage.setItem(MISSION_DETAILS_KEY, JSON.stringify(expandedMissionDetails));
+        } catch (e) {}
+    }
+
+    function isMissionDetailsExpanded(id) {
+        return !!expandedMissionDetails[id];
+    }
+
+    function setMissionDetailsExpanded(id, expanded) {
+        if (expanded) expandedMissionDetails[id] = true;
+        else delete expandedMissionDetails[id];
+        saveExpandedMissionDetails();
     }
 
     function markCompleted(state, mission, type) {
@@ -143,9 +194,11 @@
         return null;
     }
 
+    Arquimago.findMission = findMission;
+
     function anchorItem(anchor) {
         if (!anchor || !anchor.closest) return null;
-        return anchor.closest(".mission-item") || anchor.closest(".mission-card");
+        return anchor.closest(".mission-item") || anchor.closest(".mission-card") || anchor.closest(".home-mission-row");
     }
 
     /* ============================================================
@@ -162,13 +215,22 @@
             markCompleted(state, mission, type);
             state.missionsCompleted += 1;
 
-            if (mission.attribute && state.attributes[mission.attribute] !== undefined) {
-                state.attributes[mission.attribute] = Math.min(100, state.attributes[mission.attribute] + 3);
-            }
+            var progression = Arquimago.applyMissionProgress ? Arquimago.applyMissionProgress(state, mission) : null;
 
             Arquimago.updateStreak(state);
             Arquimago.checkAchievements(state);
             Arquimago.playMissionComplete();
+
+            if (progression && progression.attribute && progression.attribute.levelUp) {
+                var attr = Arquimago.ATTRIBUTE_DEFINITIONS[mission.attribute];
+                if (attr) Arquimago.showNotification(attr.name + " alcançou o nível " + progression.attribute.data.level, "xp");
+            }
+            if (progression && progression.boss && progression.boss.damage) {
+                Arquimago.showNotification("-" + progression.boss.damage + " HP no Boss" + (progression.boss.weakness ? " · fraqueza explorada" : ""), "boss");
+            }
+            if (progression && progression.boss && progression.boss.defeated) {
+                Arquimago.showNotification("Boss derrotado · troféu registrado", "boss");
+            }
 
             if (item) {
                 item.classList.add("completed");
@@ -185,16 +247,15 @@
             unmarkCompleted(state, mission, type);
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
 
-            if (mission.attribute && state.attributes[mission.attribute] !== undefined) {
-                state.attributes[mission.attribute] = Math.max(0, state.attributes[mission.attribute] - 3);
-            }
+            if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
 
             if (item) {
                 item.classList.remove("completed", "completing");
             }
 
             Arquimago.saveState(state);
-            Arquimago.renderMissions();
+            if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+            else Arquimago.renderMissions();
         }
     };
 
@@ -232,10 +293,12 @@
         var mission = {
             id: "custom_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
             name: String(opts.name || "").trim(),
-            xp: Math.max(1, Math.min(1000, parseInt(opts.xp, 10) || 0)),
+            xp: Math.max(2, Math.min(8, parseInt(opts.xp, 10) || 4)),
             frequency: opts.frequency === "daily" || opts.frequency === "weekly" ? opts.frequency : "free",
             objective: String(opts.objective || "").trim(),
             icon: String(opts.icon || "🎯"),
+            attribute: Arquimago.ATTRIBUTE_DEFINITIONS[opts.attribute] ? opts.attribute : "vitality",
+            bossDamage: Math.max(5, Math.min(35, parseInt(opts.bossDamage, 10) || 10)),
             category: "Personalizada",
             createdAt: Date.now()
         };
@@ -247,7 +310,7 @@
         return mission;
     };
 
-    Arquimago.deleteCustomMission = function (id) {
+    Arquimago.deleteCustomMission = function (id, options) {
         var state = Arquimago.state;
         var customs = state.customMissions || [];
         var mission = null;
@@ -262,20 +325,27 @@
         if (!mission) return;
 
         customs.splice(idx, 1);
+        state.hiddenMissionIds = (state.hiddenMissionIds || []).filter(function (missionId) { return missionId !== id; });
+        state.deletedMissionIds = (state.deletedMissionIds || []).filter(function (missionId) { return missionId !== id; });
         var type = Arquimago.getCustomTypeForFrequency(mission.frequency);
         if (isDone(state, mission, type)) {
             unmarkCompleted(state, mission, type);
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
+            if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
         }
 
         Arquimago.saveState(state);
-        Arquimago.renderMissions();
+        if (!options || options.skipRefresh !== true) {
+            if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+            else Arquimago.renderMissions();
+        }
     };
 
     function missionItemHtml(state, mission, type, freq, descText) {
         var done = isDone(state, mission, type);
-        var isCustom = mission.id.indexOf("custom_") === 0;
         var attrName = mission.attribute ? (ATTR_NAMES[mission.attribute] || mission.attribute) : "";
+        var detailsExpanded = isMissionDetailsExpanded(mission.id);
+        var detailsId = "mission-details-" + mission.id;
 
         var html = '<div class="mission-item' + (done ? " completed" : "") + '" data-id="' + mission.id + '" data-type="' + type + '">';
 
@@ -289,25 +359,27 @@
         html += '<span class="mission-icon" aria-hidden="true">' + Arquimago.getMissionIcon(mission) + '</span>';
         html += '<span class="mission-item__name">' + escapeHtml(mission.name) + '</span>';
         html += '<span class="mission-item__freq mission-item__freq--' + freq.css + '">' + freq.label + '</span>';
+        html += '<span class="mission-item__xp">' + mission.xp + ' XP</span>';
+        html += '<div class="mission-item__actions">';
+        html += '<button type="button" class="mission-item__details-toggle" data-toggle-mission-details="' + escapeHtml(mission.id) + '" aria-expanded="' + String(detailsExpanded) + '" aria-controls="' + escapeHtml(detailsId) + '" aria-label="' + (detailsExpanded ? "Ocultar informações de " : "Mostrar informações de ") + escapeHtml(mission.name) + '" title="' + (detailsExpanded ? "Ocultar informações" : "Mostrar informações") + '"><span class="mission-item__details-arrow" aria-hidden="true">&#9662;</span></button>';
         html += '</div>';
+        html += '</div>';
+        html += '<div class="mission-item__details' + (detailsExpanded ? "" : " is-collapsed") + '" id="' + escapeHtml(detailsId) + '"><div class="mission-item__details-inner">';
         html += '<p class="mission-item__desc">' + escapeHtml(descText == null ? mission.desc : descText) + '</p>';
         html += '<div class="mission-item__meta">';
         if (mission.objective) {
             html += '<span class="mission-item__objective">&#127919; ' + escapeHtml(mission.objective) + '</span>';
         }
         if (attrName) {
-            html += '<span class="mission-item__reward">&#127942; +3 ' + attrName + '</span>';
+            html += '<span class="mission-item__reward">&#127942; +1 ' + attrName + '</span>';
+        }
+        if (mission.bossDamage) {
+            html += '<span class="mission-item__damage">&#9876; -' + mission.bossDamage + ' Boss</span>';
         }
         html += '</div>';
-        html += '</div>';
+        html += '</div></div>';
 
-        html += '<div class="mission-item__aside">';
-        html += '<span class="mission-item__xp">+' + mission.xp + ' XP</span>';
-        if (isCustom) {
-            html += '<button type="button" class="mission-item__delete" data-delete-custom="' + mission.id + '" title="Excluir missão">&#10005;</button>';
-        }
         html += '</div>';
-
         html += '</div>';
         return html;
     }
@@ -370,10 +442,10 @@
             '<label for="customName">Nome</label>' +
             '<input type="text" id="customName" maxlength="60" autocomplete="off" spellcheck="false" value="' + escapeHtml(formCache.name) + '" placeholder="Ex.: Beber 2L de água" required>' +
             '</div>' +
-            '<div class="missions-form__field">' +
-            '<label for="customXp">XP</label>' +
-            '<input type="number" id="customXp" min="1" max="1000" inputmode="numeric" value="' + escapeHtml(formCache.xp) + '" required>' +
-            '</div>' +
+             '<div class="missions-form__field">' +
+             '<label for="customXp">XP</label>' +
+             '<input type="number" id="customXp" min="2" max="8" inputmode="numeric" value="' + escapeHtml(formCache.xp) + '" required>' +
+             '</div>' +
             '<div class="missions-form__field">' +
             '<label for="customFreq">Frequência</label>' +
             '<select id="customFreq">' +
@@ -382,11 +454,20 @@
             '<option value="free"' + (formCache.freq === "free" ? " selected" : "") + '>Livre</option>' +
             '</select>' +
             '</div>' +
-            '<div class="missions-form__field missions-form__field--full">' +
-            '<label for="customObjective">Objetivo (opcional)</label>' +
-            '<input type="text" id="customObjective" maxlength="120" autocomplete="off" spellcheck="false" value="' + escapeHtml(formCache.objective) + '" placeholder="Ex.: Registrar no diário ao concluir">' +
-            '</div>' +
-            iconPickerHtml() +
+             '<div class="missions-form__field missions-form__field--full">' +
+             '<label for="customObjective">Objetivo (opcional)</label>' +
+             '<input type="text" id="customObjective" maxlength="120" autocomplete="off" spellcheck="false" value="' + escapeHtml(formCache.objective) + '" placeholder="Ex.: Registrar no diário ao concluir">' +
+             '</div>' +
+             '<div class="missions-form__field">' +
+             '<label for="customAttribute">Atributo</label>' +
+             '<select id="customAttribute">' +
+             Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS).map(function (key) {
+                 var definition = Arquimago.ATTRIBUTE_DEFINITIONS[key];
+                 return '<option value="' + key + '"' + (formCache.attribute === key ? ' selected' : '') + '>' + definition.name + '</option>';
+             }).join("") +
+             '</select>' +
+             '</div>' +
+             iconPickerHtml() +
             '<div class="missions-form__actions">' +
             '<button type="submit" class="btn-primary compact">Criar Missão</button>' +
             '<button type="button" class="btn-secondary compact" id="cancelCustomMission">Cancelar</button>' +
@@ -396,14 +477,16 @@
 
     function activeMissionsHtml(state) {
         var html = '<div class="missions-section missions-active">';
-        html += '<h2 class="missions-section__title">Missões Ativas</h2>';
-        html += '<p class="missions-section__sub">Tudo o que você pode realizar agora. Marque para ganhar XP.</p>';
-        html += '<div class="missions-list">';
+        html += '<div class="missions-section__head"><div><h2 class="missions-section__title">Missões Ativas</h2>';
+        html += '<p class="missions-section__sub">Tudo o que você pode realizar agora. Cada conclusão gera XP, dano e progresso de atributo.</p></div>';
+        html += '<button type="button" class="btn-secondary compact missions-active-toggle" id="toggleActiveMissions">' + (activeMissionsHidden ? "Mostrar" : "Ocultar") + '</button></div>';
+        html += '<div class="missions-list' + (activeMissionsHidden ? " is-hidden" : "") + '">';
 
         var count = 0;
         ["main", "daily", "weekly", "habits"].forEach(function (key) {
             var freq = FREQ_MAP[key];
             Arquimago.MISSIONS[key].forEach(function (m) {
+                if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
                 if (isDone(state, m, key)) return;
                 html += missionItemHtml(state, m, key, freq, m.desc);
                 count++;
@@ -413,16 +496,19 @@
         Arquimago.getCustomMissions().forEach(function (m) {
             var type = Arquimago.getCustomTypeForFrequency(m.frequency);
             var freq = FREQ_MAP[type];
+            if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
             if (isDone(state, m, type)) return;
             html += missionItemHtml(state, m, type, freq, m.objective || m.desc);
             count++;
         });
 
-        if (!count) {
+        if (!count && !activeMissionsHidden) {
             html += '<div class="missions-empty">Todas as missões foram concluídas. Volte mais tarde ou crie uma nova missão personalizada.</div>';
         }
 
-        html += '</div></div>';
+        html += '</div>';
+        if (activeMissionsHidden) html += '<p class="missions-hidden-note">As missões ativas estão ocultas.</p>';
+        html += '</div>';
         return html;
     }
 
@@ -439,6 +525,7 @@
         Arquimago.getCustomMissions().forEach(function (m) {
             var type = Arquimago.getCustomTypeForFrequency(m.frequency);
             var freq = FREQ_MAP[type];
+            if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
             if (!isDone(state, m, type)) return;
             body += missionItemHtml(state, m, type, freq, m.objective || m.desc);
             completed++;
@@ -457,6 +544,7 @@
         ["main", "daily", "weekly", "habits"].forEach(function (key) {
             var freq = FREQ_MAP[key];
             Arquimago.MISSIONS[key].forEach(function (m) {
+                if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
                 if (!isDone(state, m, key)) return;
                 html += missionItemHtml(state, m, key, freq, m.desc);
                 count++;
@@ -471,14 +559,101 @@
         var entries = [];
         ["main", "daily", "weekly", "habits"].forEach(function (key) {
             Arquimago.MISSIONS[key].forEach(function (mission) {
+                if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mission.id)) return;
                 if (isDone(state, mission, key)) entries.push({ mission: mission, type: key });
             });
         });
         Arquimago.getCustomMissions().forEach(function (mission) {
             var type = Arquimago.getCustomTypeForFrequency(mission.frequency);
+            if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mission.id)) return;
             if (isDone(state, mission, type)) entries.push({ mission: mission, type: type });
         });
         return entries;
+    }
+
+    function hiddenMissionsHtml(state) {
+        var entries = Arquimago.getAllMissionEntries(Arquimago.state, true).filter(function (entry) {
+            return Arquimago.isMissionHidden && Arquimago.isMissionHidden(state, entry.mission.id) &&
+                !(Arquimago.isMissionDeleted && Arquimago.isMissionDeleted(state, entry.mission.id));
+        });
+        if (!entries.length) return "";
+
+        var body = '<div class="missions-hidden-list">';
+        entries.forEach(function (entry) {
+            var mission = entry.mission;
+            body += '<div class="mission-hidden-item"><span class="mission-icon" aria-hidden="true">' + Arquimago.getMissionIcon(mission) + '</span><div class="mission-hidden-item__copy"><strong>' + escapeHtml(mission.name) + '</strong><small>' + escapeHtml(mission.desc || mission.name) + '</small></div>';
+            body += '<button type="button" class="btn-secondary compact" data-restore-mission="' + escapeHtml(mission.id) + '">Mostrar</button>';
+            body += '</div>';
+        });
+        body += '</div>';
+        return collapsibleSectionHtml("hidden", "Missões Ocultas", "Ficam fora da Home e do Rank Diário até você escolher mostrar novamente.", body);
+    }
+
+    function missionManagementEntries(state) {
+        return Arquimago.getAllMissionEntries(state, true).filter(function (entry) {
+            if (Arquimago.isMissionDeleted && Arquimago.isMissionDeleted(state, entry.mission.id)) return false;
+            if (missionManagementMode === "hide" && Arquimago.isMissionHidden && Arquimago.isMissionHidden(state, entry.mission.id)) return false;
+            return true;
+        });
+    }
+
+    function missionManagementHtml(state) {
+        if (!missionManagementMode) return "";
+
+        var deleting = missionManagementMode === "delete";
+        var entries = missionManagementEntries(state);
+        var selectedCount = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; }).length;
+        var html = '<section class="missions-management" aria-labelledby="missions-management-title">';
+        html += '<div class="missions-management__head"><div><span class="section-label">Checklist de gerenciamento</span><h2 id="missions-management-title">' + (deleting ? "Excluir missões" : "Ocultar missões") + '</h2>';
+        html += '<p>' + (deleting ? "Selecione as missões que deseja retirar permanentemente. O histórico de progresso será preservado." : "Selecione as missões que deseja retirar da Home e do rank diário.") + '</p></div>';
+        html += '<button type="button" class="btn-secondary compact" data-cancel-mission-management>Cancelar</button></div>';
+        html += '<div class="missions-management__list">';
+
+        entries.forEach(function (entry) {
+            var mission = entry.mission;
+            var freq = FREQ_MAP[entry.type] || { label: "Missão" };
+            var isHidden = Arquimago.isMissionHidden && Arquimago.isMissionHidden(state, mission.id);
+            html += '<label class="missions-management__item' + (isHidden ? " is-hidden" : "") + '">';
+            html += '<input type="checkbox" data-manage-mission="' + escapeHtml(mission.id) + '"' + (selectedMissionIds[mission.id] ? " checked" : "") + '>';
+            html += '<span class="missions-management__check" aria-hidden="true"></span>';
+            html += '<span class="mission-icon" aria-hidden="true">' + Arquimago.getMissionIcon(mission) + '</span>';
+            html += '<span class="missions-management__copy"><strong>' + escapeHtml(mission.name) + '</strong><small>' + escapeHtml(freq.label + (isHidden ? " · Oculta" : "")) + '</small></span>';
+            html += '</label>';
+        });
+
+        if (!entries.length) {
+            html += '<p class="missions-management__empty">Não há missões disponíveis para esta ação.</p>';
+        }
+        html += '</div>';
+        html += '<div class="missions-management__actions">';
+        html += '<span>' + selectedCount + ' selecionada' + (selectedCount === 1 ? "" : "s") + '</span>';
+        html += '<button type="button" class="btn-primary compact' + (deleting ? " missions-management__delete" : "") + '" data-submit-mission-management' + (selectedCount ? "" : " disabled") + '>' + (deleting ? "Excluir selecionadas" : "Ocultar selecionadas") + '</button>';
+        html += '</div></section>';
+        return html;
+    }
+
+    function missionsToolbarHtml(canClear) {
+        var html = '<div class="missions-toolbar"><div class="missions-settings">';
+        html += '<button type="button" class="missions-settings__button" id="missionsSettingsButton" aria-expanded="' + String(missionSettingsOpen) + '" aria-controls="missions-settings-menu" aria-label="Opções das missões" title="Opções das missões"><img src="assets/ui/icons/icon_settings.png?v=2" alt=""></button>';
+        if (missionSettingsOpen) {
+            html += '<div class="missions-settings__menu" id="missions-settings-menu" role="menu">';
+            html += '<button type="button" role="menuitem" id="clearCompletedMissions"' + (canClear ? "" : " disabled") + '>Desmarcar todas as concluídas</button>';
+            html += '<button type="button" role="menuitem" id="resetProgressButton">Restaurar XP e nível inicial</button>';
+            html += '<span class="missions-settings__separator" aria-hidden="true"></span>';
+            html += '<button type="button" role="menuitem" data-start-mission-management="hide">Ocultar missões</button>';
+            html += '<button type="button" role="menuitem" class="is-danger" data-start-mission-management="delete">Excluir missões</button>';
+            html += '</div>';
+        }
+        html += '</div></div>';
+        return html;
+    }
+
+    function deleteMissionForManagement(id) {
+        if (id.indexOf("custom_") === 0) {
+            Arquimago.deleteCustomMission(id, { skipRefresh: true });
+        } else {
+            Arquimago.deleteNativeMission(Arquimago.state, id);
+        }
     }
 
     function clearCompletedMissions(state) {
@@ -487,9 +662,7 @@
 
         entries.forEach(function (entry) {
             unmarkCompleted(state, entry.mission, entry.type);
-            if (entry.mission.attribute && state.attributes[entry.mission.attribute] !== undefined) {
-                state.attributes[entry.mission.attribute] = Math.max(0, state.attributes[entry.mission.attribute] - 3);
-            }
+            if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, entry.mission);
         });
         state.missionsCompleted = Math.max(0, state.missionsCompleted - entries.length);
         Arquimago.saveState(state);
@@ -536,6 +709,7 @@
         var state = Arquimago.state;
         var mains = Arquimago.MISSIONS.main;
         for (var i = 0; i < mains.length; i++) {
+            if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mains[i].id)) continue;
             if (state.completedIds.indexOf(mains[i].id) === -1) return mains[i];
         }
         return mains[mains.length - 1];
@@ -551,9 +725,8 @@
 
         var canClear = completedMissionEntries(state).length > 0;
         var html = '<div class="missions-page">';
-        html += '<div class="missions-toolbar"><button type="button" class="btn-secondary compact" id="clearCompletedMissions"' +
-            (canClear ? "" : " disabled") + '>Desmarcar todas as concluídas</button></div>';
-        html += '<div class="missions-toolbar missions-toolbar--reset"><button type="button" class="btn-secondary compact missions-reset-button" id="resetProgressButton">Restaurar XP e nível inicial</button></div>';
+        html += missionsToolbarHtml(canClear);
+        html += missionManagementHtml(state);
 
         html += activeMissionsHtml(state);
         html += customSectionHtml(state);
@@ -563,15 +736,31 @@
             html += collapsibleSectionHtml("completed", "Missões Concluídas", "Missões que você já cumpriu. Desmarque para reativar.", completedHtml);
         }
 
+        html += hiddenMissionsHtml(state);
+
         html += '</div>';
         container.innerHTML = html;
         bindMissionToggles(container);
+        bindMissionDetailsToggles(container);
+        bindMissionSettings(container);
+        bindMissionSelection(container);
         bindCustomControls(container);
+        bindMissionManagement(container);
         bindCollapsibleToggles(container);
+        var activeToggle = container.querySelector("#toggleActiveMissions");
+        if (activeToggle) {
+            activeToggle.addEventListener("click", function () {
+                Arquimago.playClick();
+                activeMissionsHidden = !activeMissionsHidden;
+                saveActiveMissionsHidden();
+                Arquimago.renderMissions();
+            });
+        }
         var clearButton = container.querySelector("#clearCompletedMissions");
         if (clearButton) {
             clearButton.addEventListener("click", function () {
                 if (!clearCompletedMissions(Arquimago.state)) return;
+                missionSettingsOpen = false;
                 Arquimago.playClick();
                 Arquimago.renderMissions();
             });
@@ -579,7 +768,9 @@
         var resetButton = container.querySelector("#resetProgressButton");
         if (resetButton) {
             resetButton.addEventListener("click", function () {
+                missionSettingsOpen = false;
                 Arquimago.playClick();
+                Arquimago.renderMissions();
                 openResetProgressConfirm();
             });
         }
@@ -610,6 +801,112 @@
 
                 Arquimago.playClick();
                 Arquimago.setMissionComplete(mission, type, input.checked, input);
+            });
+        });
+    }
+
+    function bindMissionDetailsToggles(container) {
+        container.querySelectorAll("[data-toggle-mission-details]").forEach(function (button) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                var missionId = button.getAttribute("data-toggle-mission-details");
+                var expanded = !isMissionDetailsExpanded(missionId);
+                setMissionDetailsExpanded(missionId, expanded);
+
+                var details = document.getElementById(button.getAttribute("aria-controls"));
+                if (details) details.classList.toggle("is-collapsed", !expanded);
+                button.setAttribute("aria-expanded", String(expanded));
+                button.setAttribute("aria-label", (expanded ? "Ocultar informações de " : "Mostrar informações de ") + (button.closest(".mission-item").querySelector(".mission-item__name").textContent || "missão"));
+                button.setAttribute("title", expanded ? "Ocultar informações" : "Mostrar informações");
+                Arquimago.playClick();
+            });
+        });
+    }
+
+    function bindMissionSettings(container) {
+        var settingsButton = container.querySelector("#missionsSettingsButton");
+        if (settingsButton) {
+            settingsButton.addEventListener("click", function () {
+                Arquimago.playClick();
+                missionSettingsOpen = !missionSettingsOpen;
+                Arquimago.renderMissions();
+            });
+        }
+
+        container.querySelectorAll("[data-start-mission-management]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                Arquimago.playClick();
+                missionSettingsOpen = false;
+                missionManagementMode = button.getAttribute("data-start-mission-management");
+                selectedMissionIds = {};
+                Arquimago.renderMissions();
+            });
+        });
+    }
+
+    function bindMissionSelection(container) {
+        var selectionInputs = container.querySelectorAll("[data-manage-mission]");
+        if (!selectionInputs.length) return;
+
+        var submitButton = container.querySelector("[data-submit-mission-management]");
+        var refreshSubmitState = function () {
+            var selectedCount = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; }).length;
+            if (submitButton) submitButton.disabled = selectedCount === 0;
+            var countLabel = container.querySelector(".missions-management__actions > span");
+            if (countLabel) countLabel.textContent = selectedCount + " selecionada" + (selectedCount === 1 ? "" : "s");
+        };
+
+        selectionInputs.forEach(function (input) {
+            input.addEventListener("change", function () {
+                var id = input.getAttribute("data-manage-mission");
+                if (input.checked) selectedMissionIds[id] = true;
+                else delete selectedMissionIds[id];
+                refreshSubmitState();
+            });
+        });
+
+        var cancelButton = container.querySelector("[data-cancel-mission-management]");
+        if (cancelButton) {
+            cancelButton.addEventListener("click", function () {
+                Arquimago.playClick();
+                missionManagementMode = null;
+                selectedMissionIds = {};
+                Arquimago.renderMissions();
+            });
+        }
+
+        if (submitButton) {
+            submitButton.addEventListener("click", function () {
+                var ids = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; });
+                if (!ids.length) return;
+                if (missionManagementMode === "delete" && !confirm("Excluir as " + ids.length + " missões selecionadas permanentemente? O histórico de progresso será preservado.")) return;
+
+                ids.forEach(function (id) {
+                    if (missionManagementMode === "delete") deleteMissionForManagement(id);
+                    else Arquimago.hideMission(Arquimago.state, id);
+                });
+
+                Arquimago.saveState(Arquimago.state);
+                missionManagementMode = null;
+                selectedMissionIds = {};
+                Arquimago.playClick();
+                if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+                else Arquimago.renderMissions();
+            });
+        }
+    }
+
+    function bindMissionManagement(container) {
+        container.querySelectorAll("[data-restore-mission]").forEach(function (button) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                Arquimago.playClick();
+                Arquimago.restoreMission(Arquimago.state, button.getAttribute("data-restore-mission"));
+                if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+                else Arquimago.renderMissions();
             });
         });
     }
@@ -651,6 +948,7 @@
                 formCache.name = "";
                 formCache.objective = "";
                 formCache.icon = "🎯";
+                formCache.attribute = "vitality";
                 Arquimago.renderMissions();
             });
         }
@@ -673,7 +971,8 @@
                     xp: formCache.xp,
                     frequency: formCache.freq,
                     objective: formCache.objective,
-                    icon: formCache.icon
+                    icon: formCache.icon,
+                    attribute: formCache.attribute
                 });
 
                 if (!mission) {
@@ -688,6 +987,7 @@
                 formCache.name = "";
                 formCache.objective = "";
                 formCache.icon = "🎯";
+                formCache.attribute = "vitality";
                 Arquimago.renderMissions();
             });
         }
@@ -718,15 +1018,6 @@
             });
         });
 
-        container.querySelectorAll("[data-delete-custom]").forEach(function (btn) {
-            btn.addEventListener("click", function (e) {
-                e.stopPropagation();
-                Arquimago.playClick();
-                if (confirm("Excluir esta missão personalizada?")) {
-                    Arquimago.deleteCustomMission(btn.getAttribute("data-delete-custom"));
-                }
-            });
-        });
     }
 
     global.Arquimago = Arquimago;

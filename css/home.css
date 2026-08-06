@@ -840,6 +840,8 @@
     .active-spells-grid { grid-template-columns: 1fr; }
     .top-level-badge { width: 58px; height: 58px; margin-right: 8px; }
     .top-level-badge strong { font-size: 1.25rem; }
+    .top-rank-badge { width: 48px; height: 58px; margin-right: 8px; }
+    .top-rank-badge strong { font-size: 1.2rem; }
     .character-signature { align-items: flex-start; flex-direction: column; gap: 16px; }
     .elemental { width: 38px; height: 38px; font-size: 1.1rem; }
 }

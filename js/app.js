@@ -246,6 +246,7 @@
         Arquimago.state = Arquimago.loadState();
         Arquimago.state.title = Arquimago.getTitleForLevel(Arquimago.state.level);
         Arquimago.state.chapter = Arquimago.getChapterForLevel(Arquimago.state.level).id;
+        Arquimago.saveState(Arquimago.state);
 
         Arquimago.runIntro(function () {
             Arquimago.enterGame();
