@@ -2,7 +2,7 @@
     "use strict";
 
     var Arquimago = global.Arquimago || {};
-    var STORAGE_KEY = "arquimago_tab_order_v1";
+    var STORAGE_KEY = "arquimago_tab_order_v2";
 
     Arquimago.TABS = [];
 
@@ -14,7 +14,7 @@
         var order = [];
         var nav = getNav();
         if (!nav) return order;
-        var referenceOrder = ["home", "missions", "attributes", "profile", "history", "map", "grimoire"];
+        var referenceOrder = ["missions", "grimoire", "home", "history", "map", "profile", "attributes"];
         var available = {};
         nav.querySelectorAll(".tab").forEach(function (tab) {
             if (tab.dataset.screen) available[tab.dataset.screen] = true;

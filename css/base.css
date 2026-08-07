@@ -25,7 +25,7 @@
     --transition: 0.3s var(--ease);
 
     --nav-scale: 1;
-    --nav-tab-h: calc(101px * var(--nav-scale));
+    --nav-tab-h: calc(87px * var(--nav-scale));
     --nav-tab-w: calc(240px * var(--nav-scale));
     --nav-tab-min-w: calc(96px * var(--nav-scale));
     --nav-icon: calc(34px * var(--nav-scale));
@@ -613,14 +613,14 @@ body.intro-active { overflow: hidden; }
     min-height: 0;
     display: flex;
     flex-direction: column;
-    --frame-b: min(18vmin, 190px);
-    --frame-s: min(7vmin, 82px);
+    --frame-b: clamp(28px, 3.4vmin, 42px);
+    --frame-s: clamp(24px, 2.8vmin, 36px);
     border-width: var(--frame-b) var(--frame-s);
     border-style: solid;
     border-color: transparent;
     background-color: transparent;
-    border-image-source: url("../assets/frames/main_frame.png");
-    border-image-slice: 216 90 206 90 fill;
+    border-image-source: url("../assets/frames/main_frame_reference.png");
+    border-image-slice: 35 24 30 35 fill;
     border-image-width: var(--frame-b) var(--frame-s);
     border-image-repeat: stretch;
 }

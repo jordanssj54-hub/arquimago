@@ -90,8 +90,9 @@
 
     function rankCardHtml(rank) {
         var nextText = rank.nextRank ? "Faltam " + rank.missionsToNext + " missões para Rank " + rank.nextRank : "Rank máximo alcançado";
-        return '<button type="button" class="home-rank-card" id="dailyRankCard">' +
-            '<span class="home-rank-card__medal" aria-hidden="true">🏅</span>' +
+        var isS = rank.rank === "S";
+        return '<button type="button" class="home-rank-card' + (isS ? " is-rank-s" : "") + '" id="dailyRankCard">' +
+            '<span class="home-rank-card__medal" aria-hidden="true">' + escapeHtml(rank.rank) + '</span>' +
             '<span class="home-rank-card__copy"><small>Rank de Hoje</small><strong>Rank ' + rank.rank + '</strong><span>' + rank.completed + ' / ' + rank.total + ' Missões · ' + rank.percent + '%</span></span>' +
             '<span class="home-rank-card__next">' + nextText + ' <b aria-hidden="true">›</b></span>' +
             '</button>';
@@ -109,6 +110,7 @@
         var dailyEntries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
 
         container.innerHTML = '<div class="home-page home-page--focused">' +
+            rankCardHtml(rank) +
             '<section class="panel home-xp-panel">' +
             '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +
             '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (animateXp ? 0 : xpFillWidth(xpPct)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + state.xp + ' / ' + xpNeed + ' XP</div></div>' +
@@ -120,7 +122,6 @@
             (homeMissionsHidden ? '<p class="home-missions-hidden-note">As missões de hoje estão ocultas.</p>' : "") +
             '<button type="button" class="btn-secondary compact home-all-missions" id="openAllMissions">Ver todas as missões</button>' +
             '</section>' +
-            rankCardHtml(rank) +
             '</div>';
 
         var topLevel = document.getElementById("topPlayerLevel");

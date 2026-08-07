@@ -1,11 +1,27 @@
 /* =========================================================================
    Shared UI Frame — Main Frame & Card Frame
    Single source of truth for the reusable layout assets.
-   - main_frame.png    -> container principal (App)
+   - main_frame_reference.png -> container principal (App)
    - card_frame_lg.png -> componente padrão de card (informação dentro da Main Frame)
    - modal_frame.png   -> reservado para modais
    Carregado por ÚLTIMO para padronizar a UI sem editar os estilos de tela.
    ========================================================================= */
+
+/* --------------------------------------------------------------------------
+   Main Frame extraído de projeto/reference-ui.png
+   O centro do PNG é transparente; somente a moldura externa é reutilizada.
+   ------------------------------------------------------------------------- */
+
+.main-frame {
+    --frame-b: clamp(28px, 3.4vmin, 42px);
+    --frame-s: clamp(24px, 2.8vmin, 36px);
+    border-width: var(--frame-b) var(--frame-s);
+    border-image-source: url("../assets/frames/main_frame_reference.png");
+    border-image-slice: 35 24 30 35 fill;
+    border-image-width: var(--frame-b) var(--frame-s);
+    border-image-repeat: stretch;
+    background-color: rgba(5, 11, 18, 0.84);
+}
 
 /* --------------------------------------------------------------------------
    Card Frame (componente reutilizável) — .card-frame
@@ -150,4 +166,195 @@
     .missions-list .mission-item {
         padding: 10px 4px;
     }
+}
+
+/* --------------------------------------------------------------------------
+   Reference navigation assets
+   The visual layers are extracted from projeto/reference-ui.png. CSS only
+   positions the PNG layers and keeps the existing buttons interactive.
+   ------------------------------------------------------------------------- */
+
+#game .main-tabs {
+    align-items: stretch;
+    background: transparent;
+}
+
+#game .tab-bar-bg {
+    display: none;
+}
+
+#game .tab {
+    --reference-tab-flex: 215;
+    position: relative;
+    flex: var(--reference-tab-flex) 1 0;
+    min-width: var(--nav-tab-min-w);
+    height: var(--nav-tab-h);
+    padding: 0;
+    overflow: hidden;
+    display: block;
+    background-color: #050b12;
+    background-image: url("../assets/ui/tabs/reference/frame-center.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+#game .tab:first-of-type {
+    background-image: url("../assets/ui/tabs/reference/frame-left.png");
+}
+
+#game .tab:last-of-type {
+    background-image: url("../assets/ui/tabs/reference/frame-right.png");
+}
+
+#game .tab.active[data-screen="home"] {
+    background-image: url("../assets/ui/tabs/reference/frame-active-home.png");
+}
+
+#game .tab.active[data-screen="home"] .tab-icon,
+#game .tab.active[data-screen="home"] .tab-txt {
+    visibility: hidden;
+}
+
+#game .tab.active:not([data-screen="home"]) {
+    background-image: url("../assets/ui/tabs/reference/frame-center.png");
+}
+
+#game .tab.active:not([data-screen="home"]):first-of-type {
+    background-image: url("../assets/ui/tabs/reference/frame-left.png");
+}
+
+#game .tab.active:not([data-screen="home"]):last-of-type {
+    background-image: url("../assets/ui/tabs/reference/frame-right.png");
+}
+
+#game .tab::before,
+#game .tab-glow {
+    display: none;
+}
+
+#game .tab-icon,
+#game .tab-txt {
+    position: absolute;
+    z-index: 3;
+    display: block;
+    margin: 0;
+    padding: 0;
+    object-fit: fill;
+    pointer-events: none;
+    -webkit-user-drag: none;
+}
+
+#game .tab-icon {
+    left: var(--reference-icon-left, 20%);
+    top: var(--reference-icon-top, 20%);
+    width: var(--reference-icon-width, 24%);
+    height: var(--reference-icon-height, 60%);
+}
+
+#game .tab-txt {
+    left: var(--reference-text-left, 42%);
+    top: var(--reference-text-top, 20%);
+    width: var(--reference-text-width, 40%);
+    height: var(--reference-text-height, 56%);
+}
+
+#game .tab[data-screen="missions"] {
+    --reference-tab-flex: 281;
+    --reference-icon-left: 31.316%;
+    --reference-icon-top: 20.69%;
+    --reference-icon-width: 17.794%;
+    --reference-icon-height: 59.77%;
+    --reference-text-left: 47.687%;
+    --reference-text-top: 21.839%;
+    --reference-text-width: 40.925%;
+    --reference-text-height: 55.172%;
+}
+
+#game .tab[data-screen="grimoire"] {
+    --reference-tab-flex: 285;
+    --reference-icon-left: 16.842%;
+    --reference-icon-top: 20.69%;
+    --reference-icon-width: 18.596%;
+    --reference-icon-height: 60.92%;
+    --reference-text-left: 36.14%;
+    --reference-text-top: 20.69%;
+    --reference-text-width: 57.895%;
+    --reference-text-height: 57.47%;
+}
+
+#game .tab[data-screen="home"] {
+    --reference-tab-flex: 215;
+    --reference-icon-left: 13.953%;
+    --reference-icon-top: 9.195%;
+    --reference-icon-width: 33.953%;
+    --reference-icon-height: 82.759%;
+    --reference-text-left: 52.093%;
+    --reference-text-top: 26.437%;
+    --reference-text-width: 32.558%;
+    --reference-text-height: 40.23%;
+}
+
+#game .tab[data-screen="history"] {
+    --reference-tab-flex: 235;
+    --reference-icon-left: 20.426%;
+    --reference-icon-top: 20.69%;
+    --reference-icon-width: 21.277%;
+    --reference-icon-height: 59.77%;
+    --reference-text-left: 42.553%;
+    --reference-text-top: 21.839%;
+    --reference-text-width: 51.915%;
+    --reference-text-height: 54.023%;
+}
+
+#game .tab[data-screen="map"] {
+    --reference-tab-flex: 215;
+    --reference-icon-left: 19.535%;
+    --reference-icon-top: 20.69%;
+    --reference-icon-width: 24.186%;
+    --reference-icon-height: 59.77%;
+    --reference-text-left: 43.721%;
+    --reference-text-top: 21.839%;
+    --reference-text-width: 38.14%;
+    --reference-text-height: 54.023%;
+}
+
+#game .tab[data-screen="profile"] {
+    --reference-tab-flex: 243;
+    --reference-icon-left: 15.227%;
+    --reference-icon-top: 19.54%;
+    --reference-icon-width: 21.811%;
+    --reference-icon-height: 60.92%;
+    --reference-text-left: 37.037%;
+    --reference-text-top: 20.69%;
+    --reference-text-width: 38.272%;
+    --reference-text-height: 55.172%;
+}
+
+#game .tab[data-screen="attributes"] {
+    --reference-tab-flex: 215;
+}
+
+#game .tab[data-screen="home"]:not(.active) .tab-icon,
+#game .tab[data-screen="home"]:not(.active) .tab-txt {
+    filter: brightness(0.7) saturate(0.75);
+}
+
+#game .tab-fallback-icon,
+#game .tab-fallback-text {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#game .tab-fallback-icon {
+    top: 22%;
+}
+
+#game .tab-fallback-text {
+    top: 58%;
+    white-space: nowrap;
 }
