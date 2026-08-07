@@ -94,7 +94,7 @@
         var rankFiles = { D: "rank_D", C: "rank_C", B: "rank_B", A: "rank_A", S: "rank_S" };
         var medals = rankIds.map(function (id) {
             var active = id === rank.rank;
-            return '<span class="home-rank-card__gem' + (active ? " is-active" : "") + (id === "S" ? " is-rank-s" : "") + '" title="Rank ' + id + '"><img src="assets/ranks/' + rankFiles[id] + '.png" alt="Rank ' + id + '"><b>' + id + '</b></span>';
+            return '<span class="home-rank-card__gem' + (active ? " is-active" : "") + (id === "S" ? " is-rank-s" : "") + '" title="Rank ' + id + '"><img src="assets/ranks/' + rankFiles[id] + '.png" alt="Rank ' + id + '">' + (active ? '<b>' + id + '</b>' : '') + '</span>';
         }).join("");
         return '<button type="button" class="home-rank-card' + (rank.rank === "S" ? " is-rank-s" : "") + '" id="dailyRankCard">' +
             '<span class="home-rank-card__medals" aria-hidden="true">' + medals + '</span>' +

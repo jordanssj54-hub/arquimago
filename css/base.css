@@ -52,7 +52,11 @@ html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
 
 body {
     background-color: var(--bg-deep);
-    background-image: var(--wallpaper-image), var(--fx-bg-backdrop);
+    background-image: var(--wallpaper-image), url("../assets/frames/background_reference.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     color: var(--text);
     font-family: var(--font-body);
     font-size: 15px;
@@ -63,7 +67,11 @@ body {
 }
 
 body[data-wallpaper]:not([data-wallpaper="auto"]) {
-    background-image: var(--wallpaper-image), var(--fx-bg-backdrop);
+    background-image: var(--wallpaper-image), url("../assets/frames/background_reference.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 body[data-theme="light"] {

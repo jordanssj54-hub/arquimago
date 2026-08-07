@@ -368,28 +368,28 @@
     border-image-slice: 35 24 30 35;
     border-image-width: 30px 24px;
     border-image-repeat: stretch;
-    background-color: rgba(5, 11, 18, 0.6);
+    background-color: transparent;
     color: var(--text);
 }
 
 .home-rank-card.is-rank-s {
-    background-color: rgba(30, 8, 8, 0.8);
+    background-color: transparent;
 }
 
 .home-rank-card__medals {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .home-rank-card__gem {
     position: relative;
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
-    filter: grayscale(1) brightness(0.45);
+    width: 52px;
+    height: 52px;
+    filter: none;
     transition: filter var(--transition), transform var(--transition);
 }
 
@@ -405,15 +405,14 @@
     position: relative;
     z-index: 1;
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--text);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .home-rank-card__gem.is-active {
-    filter: none;
-    transform: scale(1.12);
+    transform: scale(1.15);
 }
 
 .home-rank-card__gem.is-rank-s.is-active b {
