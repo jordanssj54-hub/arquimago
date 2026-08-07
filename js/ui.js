@@ -90,9 +90,14 @@
 
     function rankCardHtml(rank) {
         var nextText = rank.nextRank ? "Faltam " + rank.missionsToNext + " missões para Rank " + rank.nextRank : "Rank máximo alcançado";
-        var isS = rank.rank === "S";
-        return '<button type="button" class="home-rank-card' + (isS ? " is-rank-s" : "") + '" id="dailyRankCard">' +
-            '<span class="home-rank-card__medal" aria-hidden="true">' + escapeHtml(rank.rank) + '</span>' +
+        var rankIds = ["D", "C", "B", "A", "S"];
+        var rankFiles = { D: "rank_D", C: "rank_C", B: "rank_B", A: "rank_A", S: "rank_S" };
+        var medals = rankIds.map(function (id) {
+            var active = id === rank.rank;
+            return '<span class="home-rank-card__gem' + (active ? " is-active" : "") + (id === "S" ? " is-rank-s" : "") + '" title="Rank ' + id + '"><img src="assets/ranks/' + rankFiles[id] + '.png" alt="Rank ' + id + '"><b>' + id + '</b></span>';
+        }).join("");
+        return '<button type="button" class="home-rank-card' + (rank.rank === "S" ? " is-rank-s" : "") + '" id="dailyRankCard">' +
+            '<span class="home-rank-card__medals" aria-hidden="true">' + medals + '</span>' +
             '<span class="home-rank-card__copy"><small>Rank de Hoje</small><strong>Rank ' + rank.rank + '</strong><span>' + rank.completed + ' / ' + rank.total + ' Missões · ' + rank.percent + '%</span></span>' +
             '<span class="home-rank-card__next">' + nextText + ' <b aria-hidden="true">›</b></span>' +
             '</button>';
@@ -110,11 +115,6 @@
         var dailyEntries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
 
         container.innerHTML = '<div class="home-page home-page--focused">' +
-            '<div class="home-blue-banner" aria-hidden="true">' +
-            '<img class="home-blue-banner__panel" src="assets/frames/blue_panel_top.png" alt="">' +
-            '<span class="home-blue-banner__caption">' + escapeHtml((Arquimago.getChapterForLevel(state.level) || {}).title || "Entrada da Masmorra") + '</span>' +
-            '<img class="home-blue-banner__text" src="assets/frames/blue_text_phrase.png" alt="">' +
-            '</div>' +
             rankCardHtml(rank) +
             '<section class="panel home-xp-panel">' +
             '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +

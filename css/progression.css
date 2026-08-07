@@ -376,26 +376,48 @@
     background-color: rgba(30, 8, 8, 0.8);
 }
 
-.home-rank-card__medal {
-    display: grid;
+.home-rank-card__medals {
+    display: flex;
     flex-shrink: 0;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    border: 1px solid rgba(201, 168, 76, 0.35);
-    border-radius: 14px;
-    background: rgba(0, 0, 0, 0.4);
-    font-size: 1.1rem;
-    font-family: var(--font-display);
-    font-weight: 700;
-    color: var(--gold-light);
+    align-items: center;
+    gap: 6px;
 }
 
-.home-rank-card.is-rank-s .home-rank-card__medal {
-    border-color: rgba(232, 64, 64, 0.6);
-    color: #ff4a4a;
-    background: rgba(40, 10, 10, 0.6);
-    box-shadow: 0 0 12px rgba(232, 64, 64, 0.4);
+.home-rank-card__gem {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    filter: grayscale(1) brightness(0.45);
+    transition: filter var(--transition), transform var(--transition);
+}
+
+.home-rank-card__gem img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.home-rank-card__gem b {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.home-rank-card__gem.is-active {
+    filter: none;
+    transform: scale(1.12);
+}
+
+.home-rank-card__gem.is-rank-s.is-active b {
+    color: #ffd7d7;
 }
 
 .home-rank-card__copy {
@@ -433,64 +455,7 @@
     font-weight: 400;
 }
 
-/* --------------------------------------------------------------------------
-   Home blue banner — camadas extraídas de projeto/reference-ui.png
-   (painel azul maior, legenda e frase) reutilizadas sem alterar conteúdo.
-   ------------------------------------------------------------------------- */
-
-.home-blue-banner {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    min-height: 112px;
-    padding: 18px 22px;
-    overflow: hidden;
-    background:
-        linear-gradient(180deg, rgba(74, 127, 212, 0.18), rgba(5, 11, 18, 0.45)),
-        url("../assets/frames/blue_panel_caption.png") center / cover no-repeat;
-    border: 1px solid rgba(74, 127, 212, 0.28);
-    border-radius: 0;
-}
-
-.home-blue-banner__panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.45;
-    pointer-events: none;
-}
-
-.home-blue-banner__caption {
-    position: relative;
-    z-index: 1;
-    color: var(--magic);
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-}
-
-.home-blue-banner__text {
-    position: relative;
-    z-index: 1;
-    width: min(100%, 300px);
-    max-height: 42px;
-    object-fit: contain;
-    pointer-events: none;
-}
-
-@media (max-width: 700px) {
-    .home-blue-banner {
-        min-height: 96px;
-        padding: 14px 16px;
-    }
-}
+/* Attributes */
 
 /* Attributes */
 .attributes-page {
