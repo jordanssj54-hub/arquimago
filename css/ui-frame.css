@@ -20,7 +20,7 @@
     border-image-slice: 35 24 30 35 fill;
     border-image-width: var(--frame-b) var(--frame-s);
     border-image-repeat: stretch;
-    background-color: rgba(5, 11, 18, 0.84);
+    background-color: transparent;
 }
 
 /* --------------------------------------------------------------------------
