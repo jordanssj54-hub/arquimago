@@ -110,6 +110,11 @@
         var dailyEntries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
 
         container.innerHTML = '<div class="home-page home-page--focused">' +
+            '<div class="home-blue-banner" aria-hidden="true">' +
+            '<img class="home-blue-banner__panel" src="assets/frames/blue_panel_top.png" alt="">' +
+            '<span class="home-blue-banner__caption">' + escapeHtml((Arquimago.getChapterForLevel(state.level) || {}).title || "Entrada da Masmorra") + '</span>' +
+            '<img class="home-blue-banner__text" src="assets/frames/blue_text_phrase.png" alt="">' +
+            '</div>' +
             rankCardHtml(rank) +
             '<section class="panel home-xp-panel">' +
             '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +

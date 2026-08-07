@@ -359,14 +359,21 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 16px 20px;
-    background: url("../assets/frames/panel_orecomeco.png") center / 100% 100% no-repeat, linear-gradient(135deg, rgba(201, 168, 76, 0.12), rgba(74, 127, 212, 0.06));
-    border-color: rgba(201, 168, 76, 0.24);
+    padding: 18px 24px;
+    border-radius: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-width: 30px 24px;
+    border-image-source: url("../assets/frames/main_frame_reference.png");
+    border-image-slice: 35 24 30 35;
+    border-image-width: 30px 24px;
+    border-image-repeat: stretch;
+    background-color: rgba(5, 11, 18, 0.6);
+    color: var(--text);
 }
 
 .home-rank-card.is-rank-s {
-    border-color: rgba(232, 64, 64, 0.5);
-    background: url("../assets/frames/panel_orecomeco.png") center / 100% 100% no-repeat, linear-gradient(135deg, rgba(232, 64, 64, 0.15), rgba(201, 168, 76, 0.08));
+    background-color: rgba(30, 8, 8, 0.8);
 }
 
 .home-rank-card__medal {
@@ -424,6 +431,65 @@
     color: var(--gold);
     font-size: 1.1rem;
     font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Home blue banner — camadas extraídas de projeto/reference-ui.png
+   (painel azul maior, legenda e frase) reutilizadas sem alterar conteúdo.
+   ------------------------------------------------------------------------- */
+
+.home-blue-banner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 112px;
+    padding: 18px 22px;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(74, 127, 212, 0.18), rgba(5, 11, 18, 0.45)),
+        url("../assets/frames/blue_panel_caption.png") center / cover no-repeat;
+    border: 1px solid rgba(74, 127, 212, 0.28);
+    border-radius: 0;
+}
+
+.home-blue-banner__panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.home-blue-banner__caption {
+    position: relative;
+    z-index: 1;
+    color: var(--magic);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.home-blue-banner__text {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 300px);
+    max-height: 42px;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+@media (max-width: 700px) {
+    .home-blue-banner {
+        min-height: 96px;
+        padding: 14px 16px;
+    }
 }
 
 /* Attributes */
