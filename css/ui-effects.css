@@ -122,9 +122,10 @@
    Plano 3 → separador de profundidade (#game::after)
    Plano 4 → interface */
 
-/* Camada 2 — luz ambiente dourada, atrás da área principal da interface */
+/* Camada 2 — luz ambiente dourada, atrás da área principal da interface.
+   Desativada para manter o fundo fiel à referência (sem glow extra). */
 #game::before {
-    content: "";
+    content: none;
     position: fixed;
     inset: 0;
     z-index: -1;
@@ -133,9 +134,10 @@
     filter: blur(var(--fx-bg-blur));
 }
 
-/* Camada 3 — separador de profundidade: vinheta suave + gradiente de apoio */
+/* Camada 3 — separador de profundidade: vinheta suave + gradiente de apoio.
+   Desativada para manter o fundo fiel à referência (sem vinheta extra). */
 #game::after {
-    content: "";
+    content: none;
     position: fixed;
     inset: 0;
     z-index: -1;
