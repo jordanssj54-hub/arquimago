@@ -1,0 +1,650 @@
+/* ============================================================
+   Finanças — identidade visual do Arquimago
+   ============================================================ */
+
+.tab[data-screen="financas"] {
+    --icon-size: var(--nav-icon);
+}
+
+.tab[data-screen="financas"] .tab-fallback-icon {
+    font-size: calc(28px * var(--nav-scale));
+    filter: drop-shadow(0 0 8px rgba(201, 168, 76, 0.35));
+}
+
+.financas-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 2px 0 18px;
+}
+
+/* ── Indicadores de topo (Saldo / Guardado) ── */
+.financas-balances {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.financas-balance {
+    background:
+        linear-gradient(180deg, rgba(201, 168, 76, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%),
+        rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.financas-balance::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(201, 168, 76, 0.06) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.financas-balance:hover {
+    border-color: rgba(201, 168, 76, 0.45);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        0 0 16px var(--fx-gold-soft);
+}
+
+.financas-balance__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.financas-balance__icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(201, 168, 76, 0.4));
+}
+
+.financas-balance__head .section-label {
+    margin-bottom: 0;
+    color: var(--gold-dark);
+}
+
+.financas-balance__value {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    color: var(--gold-light);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 20px rgba(201, 168, 76, 0.25);
+    margin-bottom: 14px;
+    word-break: break-word;
+}
+
+.financas-balance__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.financas-balance__actions .btn-secondary {
+    padding: 6px 12px;
+    font-size: 0.76rem;
+    border-radius: var(--radius-sm);
+}
+
+/* ── Toolbar ── */
+.financas-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.financas-month {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    padding: 6px 8px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.financas-month__btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gold);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.financas-month__btn:hover {
+    border-color: var(--gold);
+    background: rgba(201, 168, 76, 0.1);
+    box-shadow: 0 0 14px var(--fx-gold-soft);
+}
+
+.financas-month__label {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    color: var(--text);
+    letter-spacing: 0.06em;
+    min-width: 132px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.financas-toolbar__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Resumo do mês ── */
+.financas-summary {
+    padding: 22px 24px;
+}
+
+.financas-summary__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.financas-summary__item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.financas-summary__item span {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.financas-summary__item strong {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    color: var(--text);
+    word-break: break-word;
+}
+
+.financas-summary__item strong.is-positivo {
+    color: #6fbf7f;
+}
+
+.financas-summary__item strong.is-negativo {
+    color: #d88484;
+}
+
+.financas-summary__item.is-destaque {
+    border-color: var(--border-gold);
+    background:
+        linear-gradient(180deg, rgba(201, 168, 76, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%),
+        rgba(255, 255, 255, 0.02);
+}
+
+.financas-summary__item.is-destaque strong {
+    color: var(--gold-light);
+}
+
+/* ── Tabela de despesas ── */
+.financas-despesas {
+    padding: 22px 24px;
+}
+
+.financas-despesas__note {
+    margin-top: 14px;
+    font-size: 0.74rem;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+}
+
+.fin-table {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fin-row {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 118px 150px auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: var(--transition);
+}
+
+.fin-row:hover {
+    border-color: var(--border-gold);
+}
+
+.fin-row--head {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    padding: 4px 14px;
+}
+
+.fin-row--head span {
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.fin-row__dia {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--gold);
+    text-align: center;
+    padding: 8px 0;
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius-sm);
+    background: rgba(201, 168, 76, 0.07);
+}
+
+.fin-row__nome {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.fin-row__nome strong {
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.fin-row__nome small {
+    color: var(--text-muted);
+    font-size: 0.74rem;
+}
+
+.fin-row__parcela {
+    color: var(--magic);
+    font-weight: 600;
+}
+
+.fin-row__valor {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.fin-row__status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.fin-row__status.is-pago { color: #6fbf7f; }
+.fin-row__status.is-proximo { color: #d9b45f; }
+.fin-row__status.is-vencido { color: #d88484; }
+.fin-row__status.is-futuro { color: var(--text-muted); }
+
+.fin-row__acoes {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.fin-action {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.74rem;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.fin-action:hover {
+    border-color: var(--border-gold);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fin-action.is-pay {
+    border-color: rgba(111, 191, 127, 0.35);
+    color: #6fbf7f;
+}
+
+.fin-action.is-pay:hover {
+    border-color: rgba(111, 191, 127, 0.7);
+    background: rgba(111, 191, 127, 0.08);
+    box-shadow: 0 0 12px rgba(111, 191, 127, 0.15);
+}
+
+.fin-action.is-undo {
+    border-color: rgba(217, 180, 95, 0.35);
+    color: #d9b45f;
+}
+
+.fin-action.is-danger:hover {
+    border-color: rgba(216, 132, 132, 0.6);
+    color: #d88484;
+    background: rgba(216, 132, 132, 0.08);
+}
+
+.financas-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+}
+
+/* ── Histórico ── */
+.financas-historico {
+    padding: 22px 24px;
+}
+
+.fin-historico {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fin-hist {
+    display: grid;
+    grid-template-columns: 58px 30px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: var(--transition);
+}
+
+.fin-hist:hover {
+    border-color: var(--border-gold);
+}
+
+.fin-hist__data {
+    font-family: var(--font-display);
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.fin-hist__icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.fin-hist__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.fin-hist__copy strong {
+    color: var(--text);
+    font-size: 0.9rem;
+    word-break: break-word;
+}
+
+.fin-hist__copy small {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.fin-hist__valor {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.fin-hist__valor.is-entrada { color: #6fbf7f; }
+.fin-hist__valor.is-saida { color: #d88484; }
+.fin-hist__valor.is-transferencia { color: #7ca9e8; }
+.fin-hist__valor.is-guardado { color: var(--gold-light); }
+
+.fin-hist__apos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+}
+
+.fin-hist__apos small {
+    font-size: 0.66rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.fin-hist__apos strong {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* ── Modal ── */
+.financas-modal-panel h3 {
+    margin-bottom: 18px;
+}
+
+.fin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.fin-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.fin-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fin-form__field label {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+}
+
+.fin-form__field input,
+.fin-form__field select,
+.fin-form__field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.1) 100%),
+        var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    transition: var(--transition);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.02),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.fin-form__field input:focus,
+.fin-form__field select:focus,
+.fin-form__field textarea:focus {
+    outline: none;
+    border-color: var(--border-gold);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+        0 0 0 1px var(--border-gold),
+        0 0 12px var(--fx-gold-soft);
+}
+
+.fin-form__field input:disabled,
+.fin-form__field select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.fin-form__hint {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+.fin-form__actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.btn-primary.is-danger {
+    background: linear-gradient(135deg, #7a1f1f, #d88484);
+    color: #fff;
+}
+
+/* Confirmações */
+.financas-confirm__text {
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.financas-confirm__value {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--gold-light);
+    text-align: center;
+    padding: 14px;
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius-md);
+    background: rgba(201, 168, 76, 0.06);
+    margin-bottom: 10px;
+}
+
+.financas-confirm__parcela {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-bottom: 10px;
+}
+
+.financas-confirm__note {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    margin-bottom: 14px;
+}
+
+.financas-confirm__actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+/* ── Responsividade ── */
+@media (max-width: 720px) {
+    .financas-balances {
+        grid-template-columns: 1fr;
+    }
+
+    .financas-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .financas-month {
+        justify-content: space-between;
+    }
+
+    .financas-toolbar__actions {
+        justify-content: stretch;
+    }
+
+    .financas-toolbar__actions .btn-primary,
+    .financas-toolbar__actions .btn-secondary {
+        flex: 1;
+        text-align: center;
+    }
+
+    /* tabela → cards */
+    .fin-row--head {
+        display: none;
+    }
+
+    .fin-row {
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "dia nome valor"
+            "dia status acoes";
+        gap: 8px 12px;
+        padding: 12px;
+    }
+
+    .fin-row__dia { grid-area: dia; }
+    .fin-row__nome { grid-area: nome; }
+    .fin-row__valor { grid-area: valor; justify-self: end; }
+    .fin-row__status { grid-area: status; }
+    .fin-row__acoes { grid-area: acoes; justify-content: flex-end; }
+
+    .fin-hist {
+        grid-template-columns: 52px 26px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "data icon valor"
+            "data copy apos";
+        gap: 4px 10px;
+        padding: 10px 12px;
+    }
+
+    .fin-hist__data { grid-area: data; align-self: center; }
+    .fin-hist__icon { grid-area: icon; align-self: center; }
+    .fin-hist__copy { grid-area: copy; }
+    .fin-hist__valor { grid-area: valor; justify-self: end; }
+    .fin-hist__apos { grid-area: apos; align-items: flex-start; }
+}

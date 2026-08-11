@@ -104,6 +104,8 @@
         chapter: 1,
         completedIds: [],
         missionsCompleted: 0,
+        missionsCompletedForLevel: 0,
+        xpCompletedForLevel: 0,
         playTimeSeconds: 0,
         introSeen: false,
         soundEnabled: true,
@@ -134,7 +136,15 @@
         bestDailyRank: "D",
         bestDailyRankPercent: 0,
         daysUsingApp: 0,
-        lastUsageDate: ""
+        lastUsageDate: "",
+        financas: {
+            saldo: 0,
+            guardado: 0,
+            saldoInicial: 0,
+            guardadoInicial: 0,
+            despesas: [],
+            transacoes: []
+        }
     };
 
     Arquimago.CHAPTERS = [
@@ -246,7 +256,8 @@
         "arcane-crystal": { name: "Crystal Teal", accent: "#2dd4bf" },
         "arcane-druid": { name: "Druid Moss", accent: "#84cc16" },
         "arcane-library": { name: "Library Candle", accent: "#e2c184" },
-        "arcane-sanctuary": { name: "Sanctuary Light", accent: "#e0e7ff" }
+        "arcane-sanctuary": { name: "Sanctuary Light", accent: "#e0e7ff" },
+        "template-2": { name: "Template 2 · Magia Arcano", accent: "#b9a7ff" }
     };
 
     Arquimago.TEMPLATES = {
@@ -262,7 +273,8 @@
         "arcane-crystal": { id: "arcane-crystal", name: "Arcane Crystal", officialTheme: "arcane-crystal", desc: "Cristais mágicos, energia e brilho azul-esverdeado." },
         "arcane-druid": { id: "arcane-druid", name: "Arcane Druid", officialTheme: "arcane-druid", desc: "Natureza, madeira, raízes, pedras e magia elemental." },
         "arcane-library": { id: "arcane-library", name: "Arcane Library", officialTheme: "arcane-library", desc: "Biblioteca mágica, pergaminhos, livros, velas e mapas." },
-        "arcane-sanctuary": { id: "arcane-sanctuary", name: "Arcane Sanctuary", officialTheme: "arcane-sanctuary", desc: "Templos antigos, mármore, colunas e símbolos sagrados." }
+        "arcane-sanctuary": { id: "arcane-sanctuary", name: "Arcane Sanctuary", officialTheme: "arcane-sanctuary", desc: "Templos antigos, mármore, colunas e símbolos sagrados." },
+        "template-2": { id: "template-2", name: "Template 2", officialTheme: "template-2", desc: "Magia Arcano — visual extraído de reference-ui-template-2." }
     };
 
     Arquimago.TYPOGRAPHY = {

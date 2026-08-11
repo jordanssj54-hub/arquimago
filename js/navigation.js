@@ -21,6 +21,7 @@
             if (id === "history") Arquimago.renderHistory && Arquimago.renderHistory();
             if (id === "map") Arquimago.renderMap();
             if (id === "missions") Arquimago.renderMissions();
+            if (id === "financas") Arquimago.renderFinancas();
             if (id === "attributes") Arquimago.renderAttributes();
             if (id === "grimoire") Arquimago.renderGrimoire();
             if (id === "profile") Arquimago.renderProfile();

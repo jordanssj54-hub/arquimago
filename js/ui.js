@@ -108,8 +108,10 @@
         if (!container || !Arquimago.state) return;
 
         var state = Arquimago.state;
-        var xpNeed = Arquimago.getXpToNext(state);
-        var xpPct = Arquimago.getXpPercent(state);
+        var xpProgress = Arquimago.getMissionXPProgress ? Arquimago.getMissionXPProgress(state) : { earned: 0, required: 100, percent: 0 };
+        var xpNeed = xpProgress.required;
+        var xpCurrent = xpProgress.earned;
+        var xpPct = xpProgress.percent;
         var boss = Arquimago.getWeeklyBoss ? Arquimago.getWeeklyBoss(state) : { name: "Boss da Semana", hp: 0, maxHp: 1, icon: "👹", defeated: false };
         var rank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D", completed: 0, total: 0, percent: 0, nextRank: "C", missionsToNext: 0 };
         var dailyEntries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
@@ -118,8 +120,8 @@
             rankCardHtml(rank) +
             '<section class="panel home-xp-panel">' +
             '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +
-            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (animateXp ? 0 : xpFillWidth(xpPct)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + state.xp + ' / ' + xpNeed + ' XP</div></div>' +
-            '<div class="home-xp-panel__meta"><span>' + state.xp + ' XP acumulados neste nível</span><strong>Faltam ' + Math.max(0, xpNeed - state.xp) + ' XP</strong></div>' +
+            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (animateXp ? 0 : xpFillWidth(xpPct)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + xpCurrent + ' / ' + xpNeed + ' XP</div></div>' +
+            '<div class="home-xp-panel__meta"><span>' + xpCurrent + ' XP acumulados neste nível</span><strong>Faltam ' + Math.max(0, xpNeed - xpCurrent) + ' XP</strong></div>' +
             '</section>' +
             bossCardHtml(boss) +
             '<section class="panel home-missions-panel"><div class="home-panel-heading"><div><span class="section-label">Hoje</span><h2>Missões</h2></div><div class="home-panel-heading__actions"><span>' + rank.completed + ' / ' + rank.total + ' concluídas</span><button type="button" class="btn-secondary compact home-missions-toggle" id="toggleHomeMissionsButton">' + (homeMissionsHidden ? "Mostrar" : "Ocultar") + '</button></div></div>' +
@@ -134,7 +136,7 @@
         var topRank = document.getElementById("topDailyRank");
         if (topRank) topRank.textContent = rank.rank;
         document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) { fill.style.width = xpFillWidth(xpPct); });
-        document.querySelectorAll(".xp-bar--top .xp-text").forEach(function (text) { text.innerText = state.xp + " / " + xpNeed + " XP"; });
+        document.querySelectorAll(".xp-bar--top .xp-text").forEach(function (text) { text.innerText = xpCurrent + " / " + xpNeed + " XP"; });
 
         if (animateXp) {
             requestAnimationFrame(function () {
@@ -267,6 +269,7 @@
         if (Arquimago.renderHistory) Arquimago.renderHistory();
         Arquimago.renderMap();
         Arquimago.renderMissions();
+        if (Arquimago.renderFinancas) Arquimago.renderFinancas();
         Arquimago.renderGrimoire();
         Arquimago.renderProfile();
         if (Arquimago.renderAttributes) Arquimago.renderAttributes();

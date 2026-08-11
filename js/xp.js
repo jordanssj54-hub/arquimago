@@ -12,33 +12,24 @@
         return need <= 0 ? 100 : Math.min(100, (state.xp / need) * 100);
     };
 
-    Arquimago.gainXP = function (amount, anchorEl) {
+    Arquimago.checkMissionLevelUp = function (anchorEl) {
         var state = Arquimago.state;
-        var bonus = Math.round(amount * Arquimago.getEventBonus());
-        var total = amount + bonus;
-        var levelUps = [];
         var prevLevel = state.level;
+        var progress = Arquimago.getMissionXPProgress ? Arquimago.getMissionXPProgress(state) : null;
 
-        state.totalXP += total;
-        state.xp += total;
+        if (!progress || !progress.isMet) return false;
 
-        Arquimago.showXpPopup(total, anchorEl);
-        Arquimago.playXp();
-        Arquimago.showNotification("+" + total + " XP" + (bonus ? " (evento ativo)" : ""), "xp");
+        state.level += 1;
+        state.title = Arquimago.getTitleForLevel(state.level);
+        state.chapter = Arquimago.getChapterForLevel(state.level).id;
+        state.missionsCompletedForLevel = 0;
+        state.xpCompletedForLevel = 0;
 
-        while (state.xp >= Arquimago.getXpToNext(state)) {
-            state.xp -= Arquimago.getXpToNext(state);
-            state.level += 1;
-            levelUps.push(state.level);
-            state.title = Arquimago.getTitleForLevel(state.level);
-            state.chapter = Arquimago.getChapterForLevel(state.level).id;
-
-            Arquimago.SPELLS.forEach(function (spell) {
-                if (state.level >= spell.level && state.unlockedSpells.indexOf(spell.id) === -1) {
-                    state.unlockedSpells.push(spell.id);
-                }
-            });
-        }
+        Arquimago.SPELLS.forEach(function (spell) {
+            if (state.level >= spell.level && state.unlockedSpells.indexOf(spell.id) === -1) {
+                state.unlockedSpells.push(spell.id);
+            }
+        });
 
         var unlockedRewards = [];
         if (Arquimago.getGrimoireRewards) {
@@ -51,32 +42,33 @@
 
         Arquimago.saveState(state);
 
-        if (levelUps.length) {
-            var idx = 0;
-            function nextLevelUp() {
-                if (idx >= levelUps.length) {
-                    if (unlockedRewards.length && Arquimago.showRewardUnlock) {
-                        Arquimago.showRewardUnlock(unlockedRewards, function () {
-                            Arquimago.refreshAll();
-                        });
-                    } else {
-                        Arquimago.refreshAll();
-                    }
-                    return;
-                }
-                Arquimago.showLevelUp(levelUps[idx], function () {
-                    idx++;
-                    nextLevelUp();
+        Arquimago.showLevelUp(state.level, function () {
+            if (unlockedRewards.length && Arquimago.showRewardUnlock) {
+                Arquimago.showRewardUnlock(unlockedRewards, function () {
+                    Arquimago.refreshAll();
                 });
+            } else {
+                Arquimago.refreshAll();
             }
-            nextLevelUp();
-        } else if (unlockedRewards.length && Arquimago.showRewardUnlock) {
-            Arquimago.showRewardUnlock(unlockedRewards, function () {
-                Arquimago.refreshAll(true);
-            });
-        } else {
-            Arquimago.refreshAll(true);
-        }
+        });
+
+        return true;
+    };
+
+    Arquimago.gainXP = function (amount, anchorEl) {
+        var state = Arquimago.state;
+        var bonus = Math.round(amount * Arquimago.getEventBonus());
+        var total = amount + bonus;
+
+        state.totalXP += total;
+        state.xp += total;
+
+        Arquimago.showXpPopup(total, anchorEl);
+        Arquimago.playXp();
+        Arquimago.showNotification("+" + total + " XP" + (bonus ? " (evento ativo)" : ""), "xp");
+
+        Arquimago.saveState(state);
+        Arquimago.refreshAll(true);
 
         return total;
     };

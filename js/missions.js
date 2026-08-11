@@ -214,6 +214,8 @@
             if (isDone(state, mission, type)) return;
             markCompleted(state, mission, type);
             state.missionsCompleted += 1;
+            state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) + 1);
+            state.xpCompletedForLevel = Math.max(0, (state.xpCompletedForLevel || 0) + (Number(mission.xp) || 0));
 
             var progression = Arquimago.applyMissionProgress ? Arquimago.applyMissionProgress(state, mission) : null;
 
@@ -241,11 +243,17 @@
 
             setTimeout(function () {
                 Arquimago.gainXP(mission.xp, anchor);
+
+                if (Arquimago.checkMissionLevelUp) {
+                    Arquimago.checkMissionLevelUp(anchor);
+                }
             }, 350);
         } else {
             if (!isDone(state, mission, type)) return;
             unmarkCompleted(state, mission, type);
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
+            state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) - 1);
+            state.xpCompletedForLevel = Math.max(0, (state.xpCompletedForLevel || 0) - (Number(mission.xp) || 0));
 
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
 
@@ -665,6 +673,8 @@
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, entry.mission);
         });
         state.missionsCompleted = Math.max(0, state.missionsCompleted - entries.length);
+        state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) - entries.length);
+        state.xpCompletedForLevel = 0;
         Arquimago.saveState(state);
         return true;
     }
@@ -675,6 +685,8 @@
         state.totalXP = Arquimago.DEFAULT_STATE.totalXP;
         state.chapter = Arquimago.DEFAULT_STATE.chapter;
         state.title = Arquimago.DEFAULT_STATE.title;
+        state.missionsCompletedForLevel = 0;
+        state.xpCompletedForLevel = 0;
         Arquimago.saveState(state);
     }
 

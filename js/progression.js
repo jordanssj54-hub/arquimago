@@ -236,6 +236,65 @@
         return Number(state && state.missionCompletionCounts && state.missionCompletionCounts[missionId]) || 0;
     };
 
+    /* ============================================================
+       Progressão de nível baseada em missões (60% das disponíveis)
+       ============================================================ */
+    Arquimago.getAvailableMissionCount = function (state) {
+        return Arquimago.getAllMissionEntries(state).length;
+    };
+
+    Arquimago.getTotalAvailableMissionXP = function (state) {
+        var entries = Arquimago.getAllMissionEntries(state);
+        var total = 0;
+        entries.forEach(function (entry) {
+            total += Number(entry.mission.xp) || 0;
+        });
+        return total;
+    };
+
+    Arquimago.getMissionLevelRequirement = function (state) {
+        var total = Arquimago.getAvailableMissionCount(state);
+        return Math.ceil(total * 0.6);
+    };
+
+    Arquimago.getMissionXPRequirement = function (state) {
+        var totalXP = Arquimago.getTotalAvailableMissionXP(state);
+        return Math.ceil(totalXP * 0.6);
+    };
+
+    Arquimago.getCompletedAvailableMissions = function (state) {
+        var entries = Arquimago.getAllMissionEntries(state);
+        var completed = 0;
+        entries.forEach(function (entry) {
+            if (isDoneInType(state, entry.mission, entry.type)) completed++;
+        });
+        return completed;
+    };
+
+    Arquimago.getMissionLevelProgress = function (state) {
+        var required = Arquimago.getMissionLevelRequirement(state);
+        var completed = Arquimago.getCompletedAvailableMissions(state);
+        var percent = required > 0 ? Math.min(100, Math.round((completed / required) * 100)) : 0;
+        return {
+            completed: completed,
+            required: required,
+            percent: percent,
+            isMet: completed >= required && required > 0
+        };
+    };
+
+    Arquimago.getMissionXPProgress = function (state) {
+        var requiredXP = Arquimago.getMissionXPRequirement(state);
+        var earnedXP = Number(state.xpCompletedForLevel) || 0;
+        var percent = requiredXP > 0 ? Math.min(100, Math.round((earnedXP / requiredXP) * 100)) : 0;
+        return {
+            earned: earnedXP,
+            required: requiredXP,
+            percent: percent,
+            isMet: earnedXP >= requiredXP && requiredXP > 0
+        };
+    };
+
     Arquimago.changeAttributeProgress = function (state, mission, delta) {
         if (!state || !mission || !validAttribute(mission.attribute)) return { levelUp: false, data: null };
         if (!state.attributes) state.attributes = {};
@@ -402,6 +461,9 @@
         if (typeof state.xp !== "number" || state.xp < 0) state.xp = 0;
         if (typeof state.totalXP !== "number" || state.totalXP < 0) state.totalXP = 0;
         if (typeof state.missionsCompleted !== "number" || state.missionsCompleted < 0) state.missionsCompleted = 0;
+        if (typeof state.missionsCompletedForLevel !== "number" || state.missionsCompletedForLevel < 0) state.missionsCompletedForLevel = 0;
+        if (typeof state.xpCompletedForLevel !== "number" || state.xpCompletedForLevel < 0) state.xpCompletedForLevel = 0;
+        if (Arquimago.normalizeFinancas) Arquimago.normalizeFinancas(state);
         return state;
     };
 

@@ -29,7 +29,8 @@
 
         var state = Arquimago.state;
         var chapter = Arquimago.getChapterForLevel(state.level);
-        var xpNeed = Arquimago.getXpToNext(state);
+        var xpProgress = Arquimago.getMissionXPProgress ? Arquimago.getMissionXPProgress(state) : { earned: 0, required: 100 };
+        var xpNeed = xpProgress.required;
         var journeyProgress = Math.min(100, Math.round((state.level / 20) * 100));
         var bestRank = state.bestDailyRankPercent > 0 ? "Rank " + state.bestDailyRank : "—";
         var trophies = state.bossTrophies || [];
@@ -56,7 +57,7 @@
         html += '<button type="button" class="btn-primary compact" id="savePlayerName">Salvar</button></div></div>';
 
         html += '<div class="panel"><div class="panel-header"><h3>Progressão</h3><span>' + escapeHtml(chapter.name) + '</span></div><div class="profile-stats">';
-        html += '<div class="profile-stat"><span>XP atual</span><strong>' + state.xp + ' / ' + xpNeed + '</strong></div>';
+        html += '<div class="profile-stat"><span>XP atual</span><strong>' + xpProgress.earned + ' / ' + xpNeed + '</strong></div>';
         html += '<div class="profile-stat"><span>XP total</span><strong>' + Arquimago.formatNumber(state.totalXP) + '</strong></div>';
         html += '<div class="profile-stat"><span>Capítulo</span><strong>' + chapter.id + '</strong></div>';
         html += '<div class="profile-stat"><span>Tempo jogado</span><strong>' + Arquimago.formatTime(state.playTimeSeconds) + '</strong></div>';

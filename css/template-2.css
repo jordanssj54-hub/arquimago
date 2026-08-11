@@ -1,0 +1,221 @@
+/* ============================================================
+   Template 2 — visual extraído de projeto/reference-ui-template-2.png
+   Assets: assets/template-2/*
+   Aplicado somente quando body[data-template="template-2"].
+   O Template padrão (default) permanece intacto.
+   ============================================================ */
+
+body[data-template="template-2"] {
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    --t2-violet: #b9a7ff;
+    --t2-violet-glow: rgba(185, 167, 255, 0.55);
+    --t2-magic: #7c5cff;
+
+    background-color: #0a0416;
+}
+
+/* ------------------------------------------------------------------
+   Moldura principal — anel extraído da referência, centro transparente.
+   Envolve toda a interface (topbar + navegação + conteúdo).
+   ------------------------------------------------------------------ */
+body[data-template="template-2"] #game {
+    --t2-frame-t: clamp(16px, 2.2vmin, 30px);
+    --t2-frame-b: clamp(16px, 2.2vmin, 28px);
+    --t2-frame-s: clamp(22px, 3vmin, 42px);
+    border-style: solid;
+    border-color: transparent;
+    border-width: var(--t2-frame-t) var(--t2-frame-s) var(--t2-frame-b) var(--t2-frame-s);
+    border-image-source: url("../assets/template-2/frames/main-frame.png");
+    border-image-slice: 27 44 26 39 fill;
+    border-image-width: var(--t2-frame-t) var(--t2-frame-s) var(--t2-frame-b) var(--t2-frame-s);
+    border-image-repeat: stretch;
+}
+
+/* O frame da estrutura antiga deixa de existir; a área interna flutua sobre o anel. */
+body[data-template="template-2"] #game .main-frame {
+    border: none;
+    background: rgba(11, 5, 22, 0.35);
+}
+
+/* ------------------------------------------------------------------
+   Topbar — logo extraído e divisor ornamental.
+   ------------------------------------------------------------------ */
+body[data-template="template-2"] .logo-container {
+    position: relative;
+    width: auto;
+    height: clamp(36px, 6vmin, 56px);
+    min-width: clamp(180px, 24vw, 280px);
+    justify-content: flex-start;
+    background: url("../assets/template-2/branding/logo.png") no-repeat left center;
+    background-size: auto 100%;
+}
+
+body[data-template="template-2"] .logo-container > * {
+    display: none;
+}
+
+body[data-template="template-2"] .topbar {
+    border-bottom: 1px solid rgba(185, 167, 255, 0.16);
+    background: rgba(10, 4, 22, 0.35);
+}
+
+body[data-template="template-2"] .topbar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: clamp(8px, 1.4vmin, 16px);
+    background: url("../assets/template-2/effects/divider.png") no-repeat center;
+    background-size: 100% 100%;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+body[data-template="template-2"] .top-level-badge,
+body[data-template="template-2"] .top-rank-badge {
+    border-color: rgba(185, 167, 255, 0.5);
+    background: linear-gradient(145deg, rgba(185, 167, 255, 0.14), rgba(7, 3, 16, 0.92));
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 18px rgba(185, 167, 255, 0.1);
+}
+
+body[data-template="template-2"] .top-level-badge strong,
+body[data-template="template-2"] .top-rank-badge strong {
+    color: var(--t2-violet);
+}
+
+/* ------------------------------------------------------------------
+   Navegação — barra de abas extraída da referência (labels embutidos).
+   Os botões continuam funcionais; apenas a arte vem do asset.
+   ------------------------------------------------------------------ */
+body[data-template="template-2"] #game .tab-bar-bg {
+    display: none;
+}
+
+body[data-template="template-2"] #game .main-tabs {
+    background: url("../assets/template-2/navigation/nav-bar.png") no-repeat center;
+    background-size: 100% 100%;
+    border-bottom: none;
+}
+
+body[data-template="template-2"] #game .tab,
+body[data-template="template-2"] #game .tab:hover,
+body[data-template="template-2"] #game .tab:active {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    text-shadow: none;
+    color: var(--text-dim);
+}
+
+body[data-template="template-2"] #game .tab::before,
+body[data-template="template-2"] #game .tab-glow {
+    display: none;
+}
+
+body[data-template="template-2"] #game .tab-icon,
+body[data-template="template-2"] #game .tab-txt,
+body[data-template="template-2"] #game .tab-fallback-icon,
+body[data-template="template-2"] #game .tab-fallback-text {
+    display: none;
+}
+
+body[data-template="template-2"] .tab.min-width-zero {
+    min-width: 0;
+}
+
+body[data-template="template-2"] #game[data-nav-position="left"] .main-tabs {
+    width: auto;
+}
+
+body[data-template="template-2"] #game .tab.active {
+    filter: drop-shadow(0 0 12px var(--t2-violet-glow));
+}
+
+/* ------------------------------------------------------------------
+   Cartões e painéis — fundo translúcido em tons de magia.
+   Dados dinâmicos continuam sendo HTML funcional sobre a moldura.
+   ------------------------------------------------------------------ */
+body[data-template="template-2"] .panel,
+body[data-template="template-2"] .hero-panel,
+body[data-template="template-2"] .character-panel,
+body[data-template="template-2"] .status-card,
+body[data-template="template-2"] .spell-card,
+body[data-template="template-2"] .achievement,
+body[data-template="template-2"] .objective-card,
+body[data-template="template-2"] .event-card,
+body[data-template="template-2"] .xp-card,
+body[data-template="template-2"] .mission-highlight,
+body[data-template="template-2"] .mission-item,
+body[data-template="template-2"] .reward-card,
+body[data-template="template-2"] .grimoire-card,
+body[data-template="template-2"] .chapter-card,
+body[data-template="template-2"] .item-card,
+body[data-template="template-2"] .mage-card {
+    border: 1px solid rgba(185, 167, 255, 0.16);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.08) 100%), rgba(13, 8, 26, 0.72);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border-image: none;
+}
+
+body[data-template="template-2"] .mage-card__avatar,
+body[data-template="template-2"] .chapter-brief {
+    border-image: none;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(185, 167, 255, 0.2);
+    border-radius: var(--radius-md);
+    background-color: rgba(13, 8, 26, 0.6);
+}
+
+body[data-template="template-2"] .hero-badge {
+    background: rgba(13, 8, 26, 0.6);
+    border: 1px solid rgba(185, 167, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--t2-magic);
+}
+
+body[data-template="template-2"] .hero-badge strong {
+    color: var(--t2-violet);
+}
+
+body[data-template="template-2"] .panel-header h3 {
+    color: var(--t2-violet);
+}
+
+body[data-template="template-2"] .btn-primary {
+    background: linear-gradient(135deg, #6f5bd6, #b9a7ff);
+    box-shadow: 0 6px 22px rgba(124, 92, 255, 0.35);
+}
+
+body[data-template="template-2"] .xp-fill,
+body[data-template="template-2"] .objective-bar div,
+body[data-template="template-2"] .overall-progress__bar div {
+    background-image: linear-gradient(90deg, #5b3fd6, #7c5cff, #b9a7ff);
+    box-shadow: 0 0 12px rgba(124, 92, 255, 0.5);
+}
+
+body[data-template="template-2"] .mission-type,
+body[data-template="template-2"] .event-tag,
+body[data-template="template-2"] .character-badge,
+body[data-template="template-2"] .character-chip {
+    background: rgba(124, 92, 255, 0.16);
+    border-color: rgba(124, 92, 255, 0.34);
+    color: var(--t2-violet);
+}
+
+/* Cor dela active da navegação e dos checkboxes. */
+body[data-template="template-2"] .mission-check input:checked + .mission-check__box {
+    box-shadow: 0 0 14px var(--t2-violet-glow);
+    border-color: var(--t2-violet);
+}
+
+body[data-template="template-2"] .segmented__btn.active {
+    border-color: var(--t2-violet);
+    color: var(--t2-violet);
+    background: rgba(185, 167, 255, 0.1);
+    box-shadow: inset 0 0 0 1px var(--t2-violet);
+}

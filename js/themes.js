@@ -255,6 +255,18 @@
             "--gold-glow": "rgba(224, 231, 255, 0.26)",
             "--magic": "#67e8f9",
             "--magic-glow": "rgba(103, 232, 249, 0.28)"
+        },
+        "template-2": {
+            "--bg-deep": "#0a0416",
+            "--bg-app": "#110a20",
+            "--bg-card": "#171029",
+            "--bg-elevated": "#1e1438",
+            "--gold": "#b9a7ff",
+            "--gold-light": "#e0d6ff",
+            "--gold-dark": "#6f5bd6",
+            "--gold-glow": "rgba(185, 167, 255, 0.32)",
+            "--magic": "#7c5cff",
+            "--magic-glow": "rgba(124, 92, 255, 0.35)"
         }
     };
 
