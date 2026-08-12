@@ -297,4 +297,9 @@
         grid-column-end: span 1;
         grid-row-end: span 1;
     }
+
+    .home-widget--medium .home-widget__body { min-height: 200px; }
+    .home-widget--large  .home-widget__body { min-height: 320px; }
+    .home-widget--wide   .home-widget__body { min-height: 260px; }
+    .home-widget--full   .home-widget__body { min-height: 400px; }
 }
