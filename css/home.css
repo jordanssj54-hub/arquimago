@@ -626,7 +626,6 @@
 .elemental-arcane { color: var(--gold-light); }
 .elemental-nature { color: #8bc34a; }
 .elemental-flame { color: #f06445; }
-}
 
 .dashboard {
     display: grid;
