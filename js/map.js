@@ -66,28 +66,5 @@
         container.innerHTML = html;
     };
 
-    Arquimago.renderMiniMap = function () {
-        var el = document.getElementById("miniMapContainer");
-        if (!el) return;
-
-        var state = Arquimago.state;
-        var chapters = Arquimago.CHAPTERS;
-        var html = '<div class="mini-map">';
-
-        chapters.forEach(function (ch, i) {
-            var unlocked = state.level >= ch.minLevel;
-            var current = Arquimago.getChapterForLevel(state.level).id === ch.id;
-            html += '<div class="mini-node' + (unlocked ? "" : " locked") + (current ? " current" : "") + '">';
-            html += '<div class="mini-node__dot"></div>';
-            html += '<span>' + ch.name + '</span></div>';
-            if (i < chapters.length - 1) {
-                html += '<div class="mini-line' + (state.level >= chapters[i + 1].minLevel ? " active" : "") + '"></div>';
-            }
-        });
-
-        html += '</div>';
-        el.innerHTML = html;
-    };
-
     global.Arquimago = Arquimago;
 })(typeof window !== "undefined" ? window : this);

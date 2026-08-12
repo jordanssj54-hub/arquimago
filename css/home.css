@@ -779,8 +779,6 @@
 .active-spell:hover { border-color: var(--magic); color: var(--magic); }
 .active-spell.empty { color: var(--text-dim); opacity: 0.4; }
 
-.mini-map { display: flex; flex-direction: column; gap: 0; }
-
 .lore-snippet {
     display: flex;
     align-items: flex-start;
@@ -842,53 +840,7 @@
     .top-rank-badge { width: 48px; height: 58px; margin-right: 8px; }
     .top-rank-badge strong { font-size: 1.2rem; }
     .character-signature { align-items: flex-start; flex-direction: column; gap: 16px; }
-    .elemental { width: 38px; height: 38px; font-size: 1.1rem; }
-}
-
-.mini-node {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 8px 0;
-}
-
-.mini-node__dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 2px solid var(--text-dim);
-    flex-shrink: 0;
-}
-
-.mini-node.current .mini-node__dot {
-    background: var(--gold);
-    border-color: var(--gold-light);
-    box-shadow: 0 0 16px var(--fx-gold-strong);
-    animation: pulse 2s infinite;
-}
-
-.mini-node.completed .mini-node__dot {
-    background: var(--gold-dark);
-    border-color: var(--gold);
-}
-
-.mini-node.locked { opacity: 0.35; }
-.mini-node span { font-size: 0.85rem; color: var(--text-muted); }
-.mini-node.current span { color: var(--gold-light); }
-
-.mini-line {
-    width: 2px;
-    height: 16px;
-    margin-left: 6px;
-    background: var(--text-dim);
-    opacity: 0.3;
-}
-
-.mini-line.active {
-    background: linear-gradient(var(--gold-dark), var(--gold));
-    opacity: 1;
-    box-shadow: 0 0 8px var(--fx-gold-mid);
+.elemental { width: 38px; height: 38px; font-size: 1.1rem; }
 }
 
 @keyframes pulse {
