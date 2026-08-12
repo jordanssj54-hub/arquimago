@@ -414,7 +414,7 @@ body.intro-active { overflow: hidden; }
     width: 42px;
     height: 42px;
     border-radius: 14px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    background: transparent;
     color: var(--text-muted);
     cursor: pointer;
     display: flex;
@@ -423,8 +423,10 @@ body.intro-active { overflow: hidden; }
     flex-shrink: 0;
     overflow: hidden;
     margin-left: auto;
+    border: none;
+    box-shadow: none;
+    outline: none;
     transition: var(--transition);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .icon-button:hover {
@@ -433,8 +435,8 @@ body.intro-active { overflow: hidden; }
 }
 
 .icon-button-icon {
-    width: 57px;
-    height: 57px;
+    width: 52px;
+    height: 52px;
     flex-shrink: 0;
     object-fit: contain;
     object-position: center;
