@@ -234,11 +234,13 @@
 }
 
 .fin-row {
+    position: relative;
     display: grid;
-    grid-template-columns: 56px minmax(0, 1fr) 118px 150px auto;
+    grid-template-columns: minmax(0, 1fr) 128px 160px;
     align-items: center;
     gap: 14px;
     padding: 12px 14px;
+    padding-right: 96px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.02);
@@ -255,6 +257,7 @@
     background: transparent;
     box-shadow: none;
     padding: 4px 14px;
+    padding-right: 14px;
 }
 
 .fin-row--head span {
@@ -264,32 +267,87 @@
     color: var(--text-dim);
 }
 
-.fin-row__dia {
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    color: var(--gold);
-    text-align: center;
-    padding: 8px 0;
+.fin-row__head-check {
+    display: inline-block;
+    width: 34px;
+}
+
+/* ── Checkbox de pagamento ── */
+.fin-check {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.fin-check__input {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    width: 22px;
+    height: 22px;
     border: 1px solid var(--border-gold);
-    border-radius: var(--radius-sm);
-    background: rgba(201, 168, 76, 0.07);
+    border-radius: 6px;
+    background: rgba(201, 168, 76, 0.06);
+    cursor: pointer;
+    position: relative;
+    flex: 0 0 auto;
+    transition: var(--transition);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.fin-check__input:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px var(--fx-gold-soft);
+}
+
+.fin-check__input:checked {
+    background: linear-gradient(135deg, rgba(111, 191, 127, 0.22), rgba(111, 191, 127, 0.06));
+    border-color: rgba(111, 191, 127, 0.75);
+}
+
+.fin-check__input:checked::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6fbf7f;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.fin-check__input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--gold), 0 0 14px var(--fx-gold-soft);
 }
 
 .fin-row__nome {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.fin-row__nome-text {
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
 }
 
-.fin-row__nome strong {
+.fin-row__nome-text strong {
     color: var(--text);
     font-size: 0.92rem;
     line-height: 1.3;
     word-break: break-word;
 }
 
-.fin-row__nome small {
+.fin-row__nome-text small {
     color: var(--text-muted);
     font-size: 0.74rem;
 }
@@ -297,6 +355,104 @@
 .fin-row__parcela {
     color: var(--magic);
     font-weight: 600;
+}
+
+.fin-row__banco {
+    margin-right: 5px;
+    font-size: 0.9em;
+    filter: drop-shadow(0 0 4px rgba(201, 168, 76, 0.25));
+}
+
+/* ── Cristais do topo (saldo / poupança) ── */
+.top-crystals {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 2px;
+}
+
+.top-crystal {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    transition: var(--transition);
+}
+
+.top-crystal:hover {
+    border-color: var(--border-gold);
+}
+
+.top-crystal__gem {
+    width: 22px;
+    height: 26px;
+    flex: 0 0 auto;
+    position: relative;
+    clip-path: polygon(50% 0%, 92% 24%, 80% 78%, 50% 100%, 20% 78%, 8% 24%);
+}
+
+.top-crystal.is-emerald .top-crystal__gem {
+    background: linear-gradient(135deg, #d3ffe4 0%, #3fbf7f 45%, #14724a 100%);
+    box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5), 0 0 10px rgba(63, 191, 127, 0.45);
+}
+
+.top-crystal.is-emerald .top-crystal__gem::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    width: 6px;
+    height: 10px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    opacity: 0.9;
+}
+
+.top-crystal.is-sapphire .top-crystal__gem {
+    background: linear-gradient(135deg, #d6e6ff 0%, #4f8fdd 45%, #144a8c 100%);
+    box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5), 0 0 10px rgba(79, 143, 221, 0.45);
+}
+
+.top-crystal.is-sapphire .top-crystal__gem::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    width: 6px;
+    height: 10px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    opacity: 0.9;
+}
+
+.top-crystal__label {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.top-crystal__value {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.top-crystal.is-emerald .top-crystal__value {
+    color: #6fbf7f;
+    text-shadow: 0 0 12px rgba(111, 191, 127, 0.35);
+}
+
+.top-crystal.is-sapphire .top-crystal__value {
+    color: #7ca9e8;
+    text-shadow: 0 0 12px rgba(124, 169, 232, 0.35);
 }
 
 .fin-row__valor {
@@ -318,19 +474,29 @@
 .fin-row__status.is-futuro { color: var(--text-muted); }
 
 .fin-row__acoes {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
-    gap: 6px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    gap: 4px;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.fin-row:hover .fin-row__acoes,
+.fin-row:focus-within .fin-row__acoes {
+    opacity: 1;
 }
 
 .fin-action {
-    border: 1px solid var(--border);
+    border: none;
     background: transparent;
     color: var(--text-muted);
     font-family: var(--font-body);
-    font-size: 0.74rem;
-    padding: 5px 10px;
+    font-size: 0.98rem;
+    line-height: 1;
+    padding: 5px 6px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: var(--transition);
@@ -338,29 +504,11 @@
 }
 
 .fin-action:hover {
-    border-color: var(--border-gold);
     color: var(--text);
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.fin-action.is-pay {
-    border-color: rgba(111, 191, 127, 0.35);
-    color: #6fbf7f;
-}
-
-.fin-action.is-pay:hover {
-    border-color: rgba(111, 191, 127, 0.7);
-    background: rgba(111, 191, 127, 0.08);
-    box-shadow: 0 0 12px rgba(111, 191, 127, 0.15);
-}
-
-.fin-action.is-undo {
-    border-color: rgba(217, 180, 95, 0.35);
-    color: #d9b45f;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .fin-action.is-danger:hover {
-    border-color: rgba(216, 132, 132, 0.6);
     color: #d88484;
     background: rgba(216, 132, 132, 0.08);
 }
@@ -594,6 +742,10 @@
         grid-template-columns: 1fr;
     }
 
+    .top-crystal__label {
+        display: none;
+    }
+
     .financas-toolbar {
         flex-direction: column;
         align-items: stretch;
@@ -619,19 +771,27 @@
     }
 
     .fin-row {
-        grid-template-columns: 48px minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
-            "dia nome valor"
-            "dia status acoes";
+            "nome valor"
+            "nome status";
         gap: 8px 12px;
         padding: 12px;
+        padding-bottom: 42px;
     }
 
-    .fin-row__dia { grid-area: dia; }
     .fin-row__nome { grid-area: nome; }
     .fin-row__valor { grid-area: valor; justify-self: end; }
     .fin-row__status { grid-area: status; }
-    .fin-row__acoes { grid-area: acoes; justify-content: flex-end; }
+
+    .fin-row__acoes {
+        position: absolute;
+        right: 12px;
+        bottom: 10px;
+        top: auto;
+        transform: none;
+        opacity: 1;
+    }
 
     .fin-hist {
         grid-template-columns: 52px 26px minmax(0, 1fr) auto;

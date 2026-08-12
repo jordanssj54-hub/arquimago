@@ -5,7 +5,7 @@
 
     var MES_KEY = "arquimago_financas_mes_v1";
 
-    var CATEGORIAS = ["Moradia", "Energia", "Internet", "Assinaturas", "Alimentação", "Transporte", "Cartão", "Academia", "Compras", "Outros"];
+    var CATEGORIAS = ["Moradia", "Energia", "Internet", "Assinaturas", "Alimentação", "Transporte", "Cartão", "Banco", "Academia", "Compras", "Outros"];
 
     var MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     var MESES_ABR = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
@@ -280,11 +280,11 @@
     }
 
     function estadoItem(inst) {
-        if (inst.paga) return { cls: "pago", text: "🟢 Pago" };
+        if (inst.paga) return { cls: "pago", text: "✓ Pago" };
         var est = estadoDeVencimento(inst.mes, inst.dia);
-        if (est === "vencido") return { cls: "vencido", text: "⚠️ Vencida" };
-        if (est === "proximo") return { cls: "proximo", text: "🟡 Próximo do vencimento" };
-        return { cls: "futuro", text: "⚪ Futuro" };
+        if (est === "vencido") return { cls: "vencido", text: "⚠ Atrasado" };
+        if (est === "proximo") return { cls: "proximo", text: "Próximo do vencimento" };
+        return { cls: "futuro", text: "Pendente" };
     }
 
     function resumoMes(mes) {
@@ -513,6 +513,42 @@
         return { ok: true };
     };
 
+    Arquimago.zerarFinancas = function () {
+        var state = Arquimago.state;
+        var fin = getFin(state);
+        fin.saldoInicial = 0;
+        fin.guardadoInicial = 0;
+        fin.transacoes = [];
+        fin.despesas.forEach(function (d) {
+            if (d.tipo === "unica") {
+                d.pago = false;
+                d.transacaoId = null;
+                d.pagoMes = null;
+                d.pagoEm = null;
+            } else if (d.tipo === "recorrente") {
+                d.pagamentos = [];
+            } else if (d.tipo === "parcelada") {
+                (d.parcelas || []).forEach(function (p) {
+                    p.status = "pendente";
+                    p.transacaoId = null;
+                    p.pagoEm = null;
+                });
+                d.concluida = false;
+            }
+        });
+        recalcBalances(state);
+        Arquimago.saveState(state);
+        return true;
+    };
+
+    Arquimago.updateTopCrystals = function () {
+        var fin = getFin(Arquimago.state);
+        var saldoEl = document.getElementById("topCrystalSaldo");
+        var guardadoEl = document.getElementById("topCrystalGuardado");
+        if (saldoEl) saldoEl.textContent = formatMoney(fin.saldo);
+        if (guardadoEl) guardadoEl.textContent = formatMoney(fin.guardado);
+    };
+
     /* ============================================================
        Modais
        ============================================================ */
@@ -697,37 +733,6 @@
         });
     }
 
-    function openConfirmPagamento(id, mes) {
-        var fin = getFin(Arquimago.state);
-        var d = findDespesaById(Arquimago.state, id);
-        if (!d) return;
-        var inst = getInstancia(d, mes);
-        if (!inst) return;
-
-        var html =
-            '<p class="financas-confirm__text">Confirmar pagamento de <strong>' + esc(inst.nome) + '</strong>?</p>' +
-            '<div class="financas-confirm__value">' + formatMoney(inst.valor) + '</div>' +
-            (inst.parcelaNumero ? '<p class="financas-confirm__parcela">Parcela ' + inst.parcelaNumero + ' de ' + inst.parcelaTotal + '</p>' : "") +
-            '<div class="financas-confirm__actions">' +
-            '<button type="button" class="btn-primary compact" data-confirm-fin-pagar>Confirmar pagamento</button>' +
-            '<button type="button" class="btn-secondary compact" data-close-fin-modal>Cancelar</button>' +
-            '</div>';
-
-        openFinModal("Confirmar pagamento", html, function (modal, close) {
-            modal.querySelector("[data-confirm-fin-pagar]").addEventListener("click", function () {
-                var ok = Arquimago.pagarDespesa(id, mes);
-                close();
-                if (ok) {
-                    Arquimago.showNotification("Pagamento registrado: " + inst.nome, "xp");
-                    Arquimago.spawnBurst && Arquimago.spawnBurst(document.body, 8);
-                } else {
-                    Arquimago.showNotification("Esta despesa já foi paga.", "boss");
-                }
-                Arquimago.renderFinancas();
-            });
-        });
-    }
-
     function openConfirmDesfazer(id, mes) {
         var d = findDespesaById(Arquimago.state, id);
         if (!d) return;
@@ -775,6 +780,25 @@
         });
     }
 
+    function openConfirmZerar() {
+        var html =
+            '<p class="financas-confirm__text">Apagar todo o <strong>histórico financeiro</strong> e zerar o <strong>saldo</strong> e a <strong>poupança</strong>?</p>' +
+            '<p class="financas-confirm__note">Os pagamentos de despesas serão desfeitos. As despesas cadastradas permanecem. Esta ação não pode ser desfeita.</p>' +
+            '<div class="financas-confirm__actions">' +
+            '<button type="button" class="btn-primary compact is-danger" data-confirm-fin-zerar>Zerar finanças</button>' +
+            '<button type="button" class="btn-secondary compact" data-close-fin-modal>Cancelar</button>' +
+            '</div>';
+
+        openFinModal("Zerar finanças", html, function (modal, close) {
+            modal.querySelector("[data-confirm-fin-zerar]").addEventListener("click", function () {
+                Arquimago.zerarFinancas();
+                close();
+                Arquimago.showNotification("Finanças zeradas.", "xp");
+                Arquimago.renderFinancas();
+            });
+        });
+    }
+
     /* ============================================================
        Renderização
        ============================================================ */
@@ -783,19 +807,21 @@
         var parc = inst.parcelaNumero ? '<span class="fin-row__parcela">' + inst.parcelaNumero + '/' + inst.parcelaTotal + '</span>' : "";
         var tipoLabel = TIPO_LABEL[inst.tipo] || inst.tipo;
 
-        var actions;
-        if (inst.paga) {
-            actions = '<button type="button" class="fin-action is-undo" data-fin-desfazer="' + esc(inst.id) + '" data-fin-mes="' + esc(inst.mes) + '" title="Desfazer pagamento">↺ Desfazer</button>';
-        } else {
-            actions = '<button type="button" class="fin-action is-pay" data-fin-pagar="' + esc(inst.id) + '" data-fin-mes="' + esc(inst.mes) + '" title="Pagar">✓ Pagar</button>';
-        }
-        actions += '<button type="button" class="fin-action" data-fin-editar="' + esc(inst.id) + '" title="Editar">✎ Editar</button>';
-        actions += '<button type="button" class="fin-action is-danger" data-fin-excluir="' + esc(inst.id) + '" title="Excluir">🗑</button>';
+        var check = '<label class="fin-check" title="' + (inst.paga ? "Desfazer pagamento" : "Marcar como paga") + '">' +
+            '<input type="checkbox" class="fin-check__input"' + (inst.paga ? " checked" : "") +
+            ' data-fin-check="' + esc(inst.id) + '" data-fin-mes="' + esc(inst.mes) + '"' +
+            ' aria-label="Marcar ' + esc(inst.nome) + ' como paga">' +
+            '</label>';
+
+        var actions =
+            '<button type="button" class="fin-action" data-fin-editar="' + esc(inst.id) + '" title="Editar">✎</button>' +
+            '<button type="button" class="fin-action is-danger" data-fin-excluir="' + esc(inst.id) + '" title="Excluir">🗑</button>';
 
         return '<div class="fin-row is-' + est.cls + '">' +
-            '<div class="fin-row__dia">' + pad2(inst.dia) + '</div>' +
-            '<div class="fin-row__nome"><strong>' + esc(inst.nome) + '</strong>' +
+            '<div class="fin-row__nome">' + check +
+            '<div class="fin-row__nome-text"><strong>' + (inst.categoria === "Banco" ? '<span class="fin-row__banco" title="Despesa de banco">🏦</span>' : "") + esc(inst.nome) + '</strong>' +
             '<small>' + esc(inst.categoria) + ' · ' + esc(tipoLabel) + parc + '</small></div>' +
+            '</div>' +
             '<div class="fin-row__valor">' + formatMoney(inst.valor) + '</div>' +
             '<div class="fin-row__status is-' + est.cls + '">' + est.text + '</div>' +
             '<div class="fin-row__acoes">' + actions + '</div>' +
@@ -808,7 +834,11 @@
             return '<div class="financas-empty">Nenhuma despesa para ' + mesLabel(mes) + '.</div>';
         }
         var html = '<div class="fin-table" role="table" aria-label="Despesas de ' + mesLabel(mes) + '">';
-        html += '<div class="fin-row fin-row--head" role="row"><span>Dia</span><span>Despesa</span><span>Valor</span><span>Status</span><span>Ações</span></div>';
+        html += '<div class="fin-row fin-row--head" role="row">' +
+            '<span><i class="fin-row__head-check" aria-hidden="true"></i>Despesa</span>' +
+            '<span>Valor</span>' +
+            '<span>Status</span>' +
+            '</div>';
         inst.forEach(function (i) {
             html += despesaRowHtml(i);
         });
@@ -881,17 +911,34 @@
                 openMovimentacaoModal(null);
             });
         }
-
-        container.querySelectorAll("[data-fin-pagar]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
+        var finZerar = container.querySelector("#finZerar");
+        if (finZerar) {
+            finZerar.addEventListener("click", function () {
                 Arquimago.playClick();
-                openConfirmPagamento(btn.getAttribute("data-fin-pagar"), btn.getAttribute("data-fin-mes"));
+                openConfirmZerar();
             });
-        });
-        container.querySelectorAll("[data-fin-desfazer]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                Arquimago.playClick();
-                openConfirmDesfazer(btn.getAttribute("data-fin-desfazer"), btn.getAttribute("data-fin-mes"));
+        }
+
+        container.querySelectorAll("[data-fin-check]").forEach(function (input) {
+            input.addEventListener("change", function () {
+                var id = input.getAttribute("data-fin-check");
+                var mes = input.getAttribute("data-fin-mes");
+                if (input.checked) {
+                    Arquimago.playClick();
+                    var ok = Arquimago.pagarDespesa(id, mes);
+                    if (ok) {
+                        Arquimago.showNotification("Pagamento registrado.", "xp");
+                        Arquimago.spawnBurst && Arquimago.spawnBurst(document.body, 6);
+                    } else {
+                        input.checked = false;
+                        Arquimago.showNotification("Não foi possível pagar.", "boss");
+                    }
+                    Arquimago.renderFinancas();
+                } else {
+                    input.checked = true;
+                    Arquimago.playClick();
+                    openConfirmDesfazer(id, mes);
+                }
             });
         });
         container.querySelectorAll("[data-fin-editar]").forEach(function (btn) {
@@ -959,6 +1006,7 @@
             '<div class="financas-toolbar__actions">' +
             '<button type="button" class="btn-primary compact" id="finNovaDespesa">＋ Nova despesa</button>' +
             '<button type="button" class="btn-secondary compact" id="finNovaMovimentacao">＋ Movimentação</button>' +
+            '<button type="button" class="btn-secondary compact" id="finZerar">⟲ Zerar finanças</button>' +
             '</div>' +
             '</div>';
 
@@ -976,7 +1024,7 @@
         html += '<section class="panel financas-despesas">' +
             '<div class="panel-header"><h3>Despesas de ' + mesLabel(selectedMes) + '</h3><span>' + despesasDoMes(selectedMes).length + ' registro(s)</span></div>' +
             despesasTableHtml(selectedMes) +
-            '<p class="financas-despesas__note">Despesas pendentes ou vencidas não descontam do saldo. O desconto acontece apenas ao confirmar o pagamento.</p>' +
+            '<p class="financas-despesas__note">Despesas pendentes ou atrasadas não descontam do saldo. O desconto acontece apenas ao marcar o checkbox de pagamento.</p>' +
             '</section>';
 
         html += '<section class="panel financas-historico">' +
@@ -988,6 +1036,7 @@
 
         container.innerHTML = html;
         bindFinancas(container);
+        Arquimago.updateTopCrystals();
     };
 
     global.Arquimago = Arquimago;
