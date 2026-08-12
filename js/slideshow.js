@@ -27,6 +27,7 @@
 
     var currentIndex = loadIndex();
     var timer = null;
+    var currentCard = null;
 
     function loadIndex() {
         try {
@@ -106,9 +107,21 @@
         }, SLIDE_INTERVAL);
     }
 
+    function onVisibilityChange() {
+        if (document.hidden) {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        } else if (currentCard) {
+            restart(currentCard);
+        }
+    }
+
     Arquimago.initSlideshow = function () {
         var card = document.querySelector(".home-slideshow");
         if (!card) return;
+        currentCard = card;
         if (timer) clearInterval(timer);
         timer = null;
 
@@ -122,8 +135,10 @@
             });
         });
 
-        restart(card);
+        if (!document.hidden) restart(card);
     };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     global.Arquimago = Arquimago;
 })(typeof window !== "undefined" ? window : this);
