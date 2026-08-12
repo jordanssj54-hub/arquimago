@@ -124,6 +124,7 @@
             '<div class="home-xp-panel__meta"><span>' + xpCurrent + ' XP acumulados neste nível</span><strong>Faltam ' + Math.max(0, xpNeed - xpCurrent) + ' XP</strong></div>' +
             '</section>' +
             bossCardHtml(boss) +
+            (Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : "") +
             '<section class="panel home-missions-panel"><div class="home-panel-heading"><div><span class="section-label">Hoje</span><h2>Missões</h2></div><div class="home-panel-heading__actions"><span>' + rank.completed + ' / ' + rank.total + ' concluídas</span><button type="button" class="btn-secondary compact home-missions-toggle" id="toggleHomeMissionsButton">' + (homeMissionsHidden ? "Mostrar" : "Ocultar") + '</button></div></div>' +
             '<div class="home-mission-list' + (homeMissionsHidden ? " is-hidden" : "") + '">' + (dailyEntries.length ? dailyEntries.map(function (entry) { return homeMissionRow(state, entry); }).join("") : '<p class="home-empty">Nenhuma missão diária disponível.</p>') + '</div>' +
             (homeMissionsHidden ? '<p class="home-missions-hidden-note">As missões de hoje estão ocultas.</p>' : "") +
@@ -198,6 +199,8 @@
             var tab = document.querySelector('.tab[data-screen="missions"]');
             if (tab) tab.click();
         });
+
+        if (Arquimago.initSlideshow) Arquimago.initSlideshow();
     };
 
     function openProgressionModal(title, content, modifier) {

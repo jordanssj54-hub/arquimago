@@ -1,0 +1,156 @@
+/* ============================================================
+   Slideshow — Ilustração e Frase do Dia (HOME)
+   ============================================================ */
+
+.home-slideshow {
+    padding: 14px;
+}
+
+.home-slideshow__stage {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 14px 40px rgba(0, 0, 0, 0.32);
+    aspect-ratio: 16 / 6.5;
+    background: rgba(8, 10, 15, 0.5);
+}
+
+.home-slides__track {
+    position: absolute;
+    inset: 0;
+}
+
+.home-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.1s ease;
+    pointer-events: none;
+}
+
+.home-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+.home-slide__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.home-slide.is-active .home-slide__img {
+    animation: homeSlideZoom 7s ease-out forwards;
+}
+
+@keyframes homeSlideZoom {
+    from { transform: scale(1); }
+    to { transform: scale(1.07); }
+}
+
+.home-slide__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(8, 10, 15, 0.04) 28%, rgba(8, 10, 15, 0.22) 62%, rgba(8, 10, 15, 0.6) 100%);
+    pointer-events: none;
+}
+
+.home-slide__copy {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 18px 22px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.home-slide__label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    opacity: 0.9;
+}
+
+.home-slide__quote {
+    margin: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+    line-height: 1.45;
+    color: #f4efe2;
+    max-width: 60ch;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
+}
+
+.home-slide__place {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.home-slideshow__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 0 4px;
+}
+
+.home-slideshow__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border-gold);
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: var(--transition);
+}
+
+.home-slideshow__dot:hover {
+    opacity: 1;
+    box-shadow: 0 0 10px var(--fx-gold-soft);
+}
+
+.home-slideshow__dot.is-active {
+    background: var(--gold);
+    border-color: var(--gold-light);
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 12px var(--fx-gold-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-slide.is-active .home-slide__img {
+        animation: none;
+    }
+
+    .home-slide {
+        transition: opacity 0.4s ease;
+    }
+}
+
+@media (max-width: 720px) {
+    .home-slideshow__stage {
+        aspect-ratio: 4 / 3;
+    }
+
+    .home-slide__copy {
+        padding: 12px 14px;
+    }
+
+    .home-slide__quote {
+        font-size: 0.92rem;
+    }
+}
