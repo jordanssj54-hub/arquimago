@@ -134,6 +134,7 @@
         customMissions: [],
         hiddenMissionIds: [],
         deletedMissionIds: [],
+        missionOverrides: {},
         unlockedSpells: ["focus"],
         achievements: ["recomeco"],
         grimoireData: [],

@@ -49,7 +49,10 @@
         var result = [];
         ["main", "daily", "weekly", "habits"].forEach(function (type) {
             (Arquimago.MISSIONS[type] || []).forEach(function (mission) {
-                result.push({ mission: mission, type: type });
+                result.push({
+                    mission: Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mission) : mission,
+                    type: type
+                });
             });
         });
         return result;
@@ -90,6 +93,54 @@
         if (!Array.isArray(state.deletedMissionIds)) state.deletedMissionIds = [];
         state.hiddenMissionIds = Array.isArray(state.hiddenMissionIds) ? state.hiddenMissionIds.filter(function (id) { return id !== missionId; }) : [];
         if (state.deletedMissionIds.indexOf(missionId) === -1) state.deletedMissionIds.push(missionId);
+        Arquimago.saveState(state);
+    };
+
+    Arquimago.getMissionOverrides = function (state) {
+        state = state || Arquimago.state;
+        return (state && state.missionOverrides && typeof state.missionOverrides === "object") ? state.missionOverrides : {};
+    };
+
+    Arquimago.clampMissionXp = function (xp) {
+        return Math.max(1, Math.min(10, parseInt(xp, 10) || 4));
+    };
+
+    Arquimago.applyMissionOverrides = function (mission) {
+        if (!mission) return mission;
+        var overrides = Arquimago.getMissionOverrides();
+        var ov = overrides[mission.id];
+        if (!ov) return mission;
+        var merged = {};
+        var key;
+        for (key in mission) {
+            if (Object.prototype.hasOwnProperty.call(mission, key)) merged[key] = mission[key];
+        }
+        if (ov.xp !== undefined && ov.xp !== null && isFinite(ov.xp)) {
+            merged.xp = Arquimago.clampMissionXp(ov.xp);
+        }
+        if (ov.icon) merged.icon = String(ov.icon);
+        return merged;
+    };
+
+    Arquimago.saveMissionOverride = function (missionId, patch) {
+        var state = Arquimago.state;
+        if (!state || !missionId) return;
+        if (!state.missionOverrides || typeof state.missionOverrides !== "object") state.missionOverrides = {};
+        var ov = state.missionOverrides[missionId] || {};
+        if (patch && patch.xp !== undefined && patch.xp !== null) {
+            ov.xp = Arquimago.clampMissionXp(patch.xp);
+        }
+        if (patch && patch.icon) ov.icon = String(patch.icon);
+        state.missionOverrides[missionId] = ov;
+        Arquimago.saveState(state);
+    };
+
+    Arquimago.clearMissionOverride = function (missionId) {
+        var state = Arquimago.state;
+        if (!state || !missionId) return;
+        if (state.missionOverrides && typeof state.missionOverrides === "object") {
+            delete state.missionOverrides[missionId];
+        }
         Arquimago.saveState(state);
     };
 
@@ -416,6 +467,7 @@
         state.customMissions = Array.isArray(state.customMissions) ? state.customMissions : [];
         state.hiddenMissionIds = Array.isArray(state.hiddenMissionIds) ? state.hiddenMissionIds : [];
         state.deletedMissionIds = Array.isArray(state.deletedMissionIds) ? state.deletedMissionIds : [];
+        state.missionOverrides = state.missionOverrides && typeof state.missionOverrides === "object" ? state.missionOverrides : {};
         state.achievements = Array.isArray(state.achievements) ? state.achievements : ["recomeco"];
         state.unlockedSpells = Array.isArray(state.unlockedSpells) ? state.unlockedSpells : ["focus"];
         state.bossTrophies = Array.isArray(state.bossTrophies) ? state.bossTrophies : [];

@@ -25,6 +25,7 @@
     var missionSettingsOpen = false;
     var missionManagementMode = null;
     var selectedMissionIds = {};
+    var editingMissionId = null;
     var ACTIVE_MISSIONS_HIDDEN_KEY = "arquimago_active_missions_hidden_v1";
     var activeMissionsHidden = loadActiveMissionsHidden();
 
@@ -189,7 +190,7 @@
         var list = Arquimago.MISSIONS[type];
         if (!list) return null;
         for (var j = 0; j < list.length; j++) {
-            if (list[j].id === id) return list[j];
+            if (list[j].id === id) return Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(list[j]) : list[j];
         }
         return null;
     }
@@ -494,6 +495,7 @@
         ["main", "daily", "weekly", "habits"].forEach(function (key) {
             var freq = FREQ_MAP[key];
             Arquimago.MISSIONS[key].forEach(function (m) {
+                m = Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(m) : m;
                 if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
                 if (isDone(state, m, key)) return;
                 html += missionItemHtml(state, m, key, freq, m.desc);
@@ -552,6 +554,7 @@
         ["main", "daily", "weekly", "habits"].forEach(function (key) {
             var freq = FREQ_MAP[key];
             Arquimago.MISSIONS[key].forEach(function (m) {
+                m = Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(m) : m;
                 if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
                 if (!isDone(state, m, key)) return;
                 html += missionItemHtml(state, m, key, freq, m.desc);
@@ -567,6 +570,7 @@
         var entries = [];
         ["main", "daily", "weekly", "habits"].forEach(function (key) {
             Arquimago.MISSIONS[key].forEach(function (mission) {
+                mission = Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mission) : mission;
                 if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mission.id)) return;
                 if (isDone(state, mission, key)) entries.push({ mission: mission, type: key });
             });
@@ -608,6 +612,10 @@
     function missionManagementHtml(state) {
         if (!missionManagementMode) return "";
 
+        if (missionManagementMode === "edit") {
+            return missionEditHtml(state);
+        }
+
         var deleting = missionManagementMode === "delete";
         var entries = missionManagementEntries(state);
         var selectedCount = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; }).length;
@@ -640,6 +648,39 @@
         return html;
     }
 
+    function missionEditHtml(state) {
+        var entries = missionManagementEntries(state).filter(function (entry) {
+            return entry.mission.id.indexOf("custom_") !== 0;
+        });
+        var html = '<section class="missions-management" aria-labelledby="missions-management-title">';
+        html += '<div class="missions-management__head"><div><span class="section-label">Checklist de edição</span><h2 id="missions-management-title">Editar missões nativas</h2>';
+        html += '<p>Altere o XP ou o ícone de uma missão nativa. A edição vale para a exibição e para novas conclusões.</p></div>';
+        html += '<button type="button" class="btn-secondary compact" data-cancel-mission-management>Cancelar</button></div>';
+        html += '<div class="missions-management__list">';
+
+        entries.forEach(function (entry) {
+            var mission = entry.mission;
+            var freq = FREQ_MAP[entry.type] || { label: "Missão" };
+            var edited = Arquimago.getMissionOverrides ? !!Arquimago.getMissionOverrides(state)[mission.id] : false;
+            html += '<label class="missions-management__item' + (edited ? " is-edited" : "") + '">';
+            html += '<input type="radio" name="mission-edit" data-manage-mission="' + escapeHtml(mission.id) + '"' + (editingMissionId === mission.id ? " checked" : "") + '>';
+            html += '<span class="missions-management__check" aria-hidden="true"></span>';
+            html += '<span class="mission-icon" aria-hidden="true">' + Arquimago.getMissionIcon(mission) + '</span>';
+            html += '<span class="missions-management__copy"><strong>' + escapeHtml(mission.name) + '</strong><small>' + escapeHtml(freq.label + (edited ? " · Editada" : " · Padrão")) + ' · ' + mission.xp + ' XP</small></span>';
+            html += '</label>';
+        });
+
+        if (!entries.length) {
+            html += '<p class="missions-management__empty">Não há missões nativas disponíveis para edição.</p>';
+        }
+        html += '</div>';
+        html += '<div class="missions-management__actions">';
+        html += '<span>' + (editingMissionId ? "1 selecionada" : "Selecione uma missão para editar") + '</span>';
+        html += '<button type="button" class="btn-primary compact" data-submit-mission-management' + (editingMissionId ? "" : " disabled") + '>Editar missão</button>';
+        html += '</div></section>';
+        return html;
+    }
+
     function missionsToolbarHtml(canClear) {
         var html = '<div class="missions-toolbar"><div class="missions-settings">';
         html += '<button type="button" class="missions-settings__button" id="missionsSettingsButton" aria-expanded="' + String(missionSettingsOpen) + '" aria-controls="missions-settings-menu" aria-label="Opções das missões" title="Opções das missões"><img src="assets/ui/icons/icon_settings.png?v=2" alt=""></button>';
@@ -649,6 +690,7 @@
             html += '<button type="button" role="menuitem" id="resetProgressButton">Restaurar XP e nível inicial</button>';
             html += '<span class="missions-settings__separator" aria-hidden="true"></span>';
             html += '<button type="button" role="menuitem" data-start-mission-management="hide">Ocultar missões</button>';
+            html += '<button type="button" role="menuitem" data-start-mission-management="edit">Editar missões</button>';
             html += '<button type="button" role="menuitem" class="is-danger" data-start-mission-management="delete">Excluir missões</button>';
             html += '</div>';
         }
@@ -717,14 +759,141 @@
         });
     }
 
+    function editIconOptionsHtml(selected) {
+        var html = '';
+        Arquimago.MISSION_ICON_CATEGORIES.forEach(function (cat) {
+            html += '<div class="missions-form__icon-cat">' + cat.label + '</div>';
+            html += '<div class="missions-form__icon-grid">';
+            Arquimago.MISSION_ICONS.forEach(function (ic) {
+                if (ic.category !== cat.id) return;
+                html += '<button type="button" class="missions-form__icon-option' + (selected === ic.emoji ? " is-selected" : "") + '" data-edit-icon="' + ic.emoji + '" title="' + escapeHtml(ic.name) + '" aria-label="' + escapeHtml(ic.name) + '">' + ic.emoji + '</button>';
+            });
+            html += '</div>';
+        });
+        return html;
+    }
+
+    function openEditMissionModal(missionId) {
+        var state = Arquimago.state;
+        var mission = null;
+        var entries = Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state, true) : [];
+        for (var i = 0; i < entries.length; i++) {
+            if (entries[i].mission.id === missionId) {
+                mission = entries[i].mission;
+                break;
+            }
+        }
+        if (!mission) return;
+
+        var overrides = Arquimago.getMissionOverrides ? Arquimago.getMissionOverrides(state) : {};
+        var ov = overrides[missionId];
+        var currentXp = ov && ov.xp !== undefined ? ov.xp : mission.xp;
+        var selectedIcon = Arquimago.getMissionIcon ? Arquimago.getMissionIcon(mission) : (mission.icon || "🎯");
+        var hasOverride = !!ov;
+
+        var modal = document.createElement("div");
+        modal.className = "modal missions-confirm-modal missions-edit-modal";
+        modal.innerHTML = '<div class="modal-backdrop"></div>' +
+            '<div class="modal-panel missions-confirm-panel missions-edit-panel">' +
+            '<button type="button" class="modal-close-button" data-close-edit-mission aria-label="Fechar"><img src="assets/ui/icons/icon-close.png" alt=""></button>' +
+            '<h3>Editar · ' + escapeHtml(mission.name) + '</h3>' +
+            '<form id="editMissionForm" autocomplete="off">' +
+            '<div class="missions-form__field">' +
+            '<label for="editMissionXp">XP</label>' +
+            '<input type="number" id="editMissionXp" min="1" max="10" inputmode="numeric" value="' + currentXp + '" required>' +
+            '<small class="missions-edit__hint">Entre 1 e 10 XP por conclusão.</small>' +
+            '</div>' +
+            '<div class="missions-form__field missions-form__field--full">' +
+            '<label for="editMissionIconPreview">Ícone</label>' +
+            '<div class="missions-form__icon">' +
+            '<button type="button" class="missions-form__icon-preview" id="editMissionIconPreview" title="Escolher ícone" aria-label="Ícone escolhido">' + selectedIcon + '</button>' +
+            '<button type="button" class="btn-secondary compact" id="editMissionIconToggle">Escolher ícone</button>' +
+            '</div>' +
+            '<div class="missions-form__icon-picker" id="editMissionIconPicker" hidden>' + editIconOptionsHtml(selectedIcon) + '</div>' +
+            '</div>' +
+            '<div class="missions-form__actions missions-edit__actions">' +
+            '<button type="submit" class="btn-primary compact">Salvar edição</button>' +
+            '<button type="button" class="btn-secondary compact" data-close-edit-mission>Cancelar</button>' +
+            (hasOverride ? '<button type="button" class="btn-secondary compact missions-edit__reset" data-reset-mission-edit="' + escapeHtml(missionId) + '">Voltar ao padrão</button>' : '') +
+            '</div>' +
+            '</form>' +
+            '</div>';
+        document.body.appendChild(modal);
+
+        function close() {
+            modal.remove();
+        }
+
+        modal.querySelectorAll(".modal-backdrop, [data-close-edit-mission]").forEach(function (el) {
+            el.addEventListener("click", close);
+        });
+
+        var picker = modal.querySelector("#editMissionIconPicker");
+        var pickerButton = modal.querySelector("#editMissionIconToggle");
+        function setPickerOpen(open) {
+            if (!picker || !pickerButton) return;
+            picker.hidden = !open;
+            pickerButton.textContent = open ? "Fechar" : "Escolher ícone";
+        }
+        var pickerToggles = [modal.querySelector("#editMissionIconToggle"), modal.querySelector("#editMissionIconPreview")];
+        pickerToggles.forEach(function (btn) {
+            if (!btn) return;
+            btn.addEventListener("click", function () {
+                Arquimago.playClick();
+                setPickerOpen(picker.hidden);
+            });
+        });
+
+        modal.querySelectorAll("[data-edit-icon]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                Arquimago.playClick();
+                selectedIcon = btn.getAttribute("data-edit-icon");
+                var preview = modal.querySelector("#editMissionIconPreview");
+                if (preview) preview.textContent = selectedIcon;
+                modal.querySelectorAll(".missions-form__icon-option").forEach(function (option) {
+                    option.classList.toggle("is-selected", option.getAttribute("data-edit-icon") === selectedIcon);
+                });
+            });
+        });
+
+        var resetButton = modal.querySelector("[data-reset-mission-edit]");
+        if (resetButton) {
+            resetButton.addEventListener("click", function () {
+                Arquimago.playClick();
+                Arquimago.clearMissionOverride(missionId);
+                close();
+                missionManagementMode = null;
+                editingMissionId = null;
+                if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+                else Arquimago.renderMissions();
+            });
+        }
+
+        var form = modal.querySelector("#editMissionForm");
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var xpField = form.querySelector("#editMissionXp");
+                var xp = xpField ? xpField.value : 4;
+                Arquimago.saveMissionOverride(missionId, { xp: xp, icon: selectedIcon });
+                Arquimago.playMissionComplete();
+                close();
+                missionManagementMode = null;
+                editingMissionId = null;
+                if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+                else Arquimago.renderMissions();
+            });
+        }
+    }
+
     Arquimago.getNextMainMission = function () {
         var state = Arquimago.state;
         var mains = Arquimago.MISSIONS.main;
         for (var i = 0; i < mains.length; i++) {
             if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mains[i].id)) continue;
-            if (state.completedIds.indexOf(mains[i].id) === -1) return mains[i];
+            if (state.completedIds.indexOf(mains[i].id) === -1) return Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mains[i]) : mains[i];
         }
-        return mains[mains.length - 1];
+        return Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mains[mains.length - 1]) : mains[mains.length - 1];
     };
 
     Arquimago.renderMissions = function () {
@@ -853,6 +1022,7 @@
                 missionSettingsOpen = false;
                 missionManagementMode = button.getAttribute("data-start-mission-management");
                 selectedMissionIds = {};
+                editingMissionId = null;
                 Arquimago.renderMissions();
             });
         });
@@ -864,6 +1034,12 @@
 
         var submitButton = container.querySelector("[data-submit-mission-management]");
         var refreshSubmitState = function () {
+            if (missionManagementMode === "edit") {
+                if (submitButton) submitButton.disabled = !editingMissionId;
+                var editLabel = container.querySelector(".missions-management__actions > span");
+                if (editLabel) editLabel.textContent = editingMissionId ? "1 selecionada" : "Selecione uma missão para editar";
+                return;
+            }
             var selectedCount = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; }).length;
             if (submitButton) submitButton.disabled = selectedCount === 0;
             var countLabel = container.querySelector(".missions-management__actions > span");
@@ -873,6 +1049,12 @@
         selectionInputs.forEach(function (input) {
             input.addEventListener("change", function () {
                 var id = input.getAttribute("data-manage-mission");
+                if (missionManagementMode === "edit") {
+                    if (input.checked) editingMissionId = id;
+                    else if (editingMissionId === id) editingMissionId = null;
+                    refreshSubmitState();
+                    return;
+                }
                 if (input.checked) selectedMissionIds[id] = true;
                 else delete selectedMissionIds[id];
                 refreshSubmitState();
@@ -885,12 +1067,19 @@
                 Arquimago.playClick();
                 missionManagementMode = null;
                 selectedMissionIds = {};
+                editingMissionId = null;
                 Arquimago.renderMissions();
             });
         }
 
         if (submitButton) {
             submitButton.addEventListener("click", function () {
+                if (missionManagementMode === "edit") {
+                    if (!editingMissionId) return;
+                    Arquimago.playClick();
+                    openEditMissionModal(editingMissionId);
+                    return;
+                }
                 var ids = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; });
                 if (!ids.length) return;
                 if (missionManagementMode === "delete" && !confirm("Excluir as " + ids.length + " missões selecionadas permanentemente? O histórico de progresso será preservado.")) return;

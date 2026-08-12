@@ -107,6 +107,15 @@
     text-align: center;
 }
 
+.missions-edit-panel {
+    text-align: left;
+}
+
+.missions-edit-panel h3 {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
 .missions-confirm-panel p {
     color: var(--text-muted);
     margin-bottom: 22px;
@@ -700,6 +709,32 @@
 
 .missions-management__item:hover .missions-management__copy strong {
     color: var(--gold-light);
+}
+
+.missions-management__item.is-edited .missions-management__copy small {
+    color: #7fd9a2;
+}
+
+.missions-edit__hint {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-dim);
+    font-size: 0.68rem;
+}
+
+.missions-edit__actions {
+    flex-wrap: wrap;
+}
+
+.missions-edit__reset {
+    border-color: rgba(229, 9, 20, 0.35);
+    color: #e8a0a0;
+}
+
+.missions-edit__reset:hover {
+    border-color: rgba(229, 9, 20, 0.65);
+    color: #fff;
+    background: rgba(229, 9, 20, 0.12);
 }
 
 .missions-management__empty {
