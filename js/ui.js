@@ -76,12 +76,83 @@
             '</div>';
     }
 
+    function xpPanelHtml(ctx) {
+        return '<section class="panel home-xp-panel">' +
+            '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + ctx.state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +
+            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (ctx.animateXp ? 0 : xpFillWidth(ctx.xpPct)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + ctx.xpCurrent + ' / ' + ctx.xpNeed + ' XP</div></div>' +
+            '<div class="home-xp-panel__meta"><span>' + ctx.xpCurrent + ' XP acumulados neste nível</span><strong>Faltam ' + Math.max(0, ctx.xpNeed - ctx.xpCurrent) + ' XP</strong></div>' +
+            '</section>';
+    }
+
+    function missionPanelHtml(ctx) {
+        var rank = ctx.rank;
+        var state = ctx.state;
+        return '<section class="panel home-missions-panel"><div class="home-panel-heading"><div><span class="section-label">Hoje</span><h2>Missões</h2></div><div class="home-panel-heading__actions"><span>' + rank.completed + ' / ' + rank.total + ' concluídas</span><button type="button" class="btn-secondary compact home-missions-toggle" id="toggleHomeMissionsButton">' + (homeMissionsHidden ? "Mostrar" : "Ocultar") + '</button></div></div>' +
+            '<div class="home-mission-list' + (homeMissionsHidden ? " is-hidden" : "") + '">' + (ctx.dailyEntries.length ? ctx.dailyEntries.map(function (entry) { return homeMissionRow(state, entry); }).join("") : '<p class="home-empty">Nenhuma missão diária disponível.</p>') + '</div>' +
+            (homeMissionsHidden ? '<p class="home-missions-hidden-note">As missões de hoje estão ocultas.</p>' : "") +
+            '<button type="button" class="btn-secondary compact home-all-missions" id="openAllMissions">Ver todas as missões</button>' +
+            '</section>';
+    }
+
+    function missionPanelBind(ctx, el) {
+        el.querySelectorAll(".home-mission-check input").forEach(function (input) {
+            input.addEventListener("change", function () {
+                var row = input.closest(".home-mission-row");
+                var type = row.getAttribute("data-home-mission-type");
+                var id = row.getAttribute("data-home-mission-id");
+                var mission = Arquimago.findMissionByType ? Arquimago.findMissionByType(type, id) : Arquimago.findMission(type, id);
+                if (!mission) return;
+                Arquimago.playClick();
+                Arquimago.setMissionComplete(mission, type, input.checked, input);
+            });
+        });
+
+        var toggleHomeMissions = el.querySelector("#toggleHomeMissionsButton");
+        if (toggleHomeMissions) toggleHomeMissions.addEventListener("click", function () {
+            Arquimago.playClick();
+            homeMissionsHidden = !homeMissionsHidden;
+            saveHomeMissionsHidden();
+            Arquimago.renderHome(false);
+        });
+
+        el.querySelectorAll("[data-delete-home-custom]").forEach(function (button) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                Arquimago.playClick();
+                if (confirm("Excluir esta missão personalizada?")) {
+                    Arquimago.deleteCustomMission(button.getAttribute("data-delete-home-custom"));
+                }
+            });
+        });
+
+        var allMissionsButton = el.querySelector("#openAllMissions");
+        if (allMissionsButton) allMissionsButton.addEventListener("click", function () {
+            var tab = document.querySelector('.tab[data-screen="missions"]');
+            if (tab) tab.click();
+        });
+    }
+
+    function classWidgetHtml(ctx) {
+        return '<section class="panel home-class-card">' +
+            '<div class="home-class-card__art">' + Arquimago.getMageSVG() + '</div>' +
+            '<div class="home-class-card__info"><span class="section-label">Classe</span><strong>' + escapeHtml(Arquimago.getCharacterClass()) + '</strong><span>' + escapeHtml(Arquimago.getDisplayName()) + '</span></div>' +
+            '</section>';
+    }
+
+    function bossIconHtml(boss) {
+        if (boss.image) {
+            return '<span class="home-boss-card__icon" aria-hidden="true"><img class="home-boss-card__img" src="' + escapeHtml(boss.image) + '" alt="' + escapeHtml(boss.name || "") + '" loading="lazy"></span>';
+        }
+        return '<span class="home-boss-card__icon" aria-hidden="true">' + (boss.icon || "👹") + '</span>';
+    }
+
     function bossCardHtml(boss) {
         var hp = Math.max(0, Number(boss.hp) || 0);
         var maxHp = Math.max(1, Number(boss.maxHp) || 1);
         var percent = Math.round((hp / maxHp) * 100);
         return '<button type="button" class="home-boss-card' + (boss.defeated ? " is-defeated" : "") + '" id="weeklyBossCard">' +
-            '<span class="home-boss-card__top"><span><small>Boss da Semana</small><strong>' + escapeHtml(boss.name) + '</strong></span><span class="home-boss-card__icon" aria-hidden="true">' + boss.icon + '</span></span>' +
+            '<span class="home-boss-card__top"><span><small>Boss da Semana</small><strong>' + escapeHtml(boss.name) + '</strong></span>' + bossIconHtml(boss) + '</span>' +
             '<span class="home-boss-card__bar"><span style="width:' + percent + '%"></span></span>' +
             '<span class="home-boss-card__bottom"><span>' + (boss.defeated ? "Derrotado" : "HP restante") + '</span><strong>' + hp + ' / ' + maxHp + '</strong></span>' +
             '<span class="home-card-link">' + (boss.defeated ? "Troféu conquistado · ver detalhes" : "Ver fraquezas e recompensa") + ' <b aria-hidden="true">›</b></span>' +
@@ -116,21 +187,29 @@
         var rank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D", completed: 0, total: 0, percent: 0, nextRank: "C", missionsToNext: 0 };
         var dailyEntries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
 
-        container.innerHTML = '<div class="home-page home-page--focused">' +
-            rankCardHtml(rank) +
-            '<section class="panel home-xp-panel">' +
-            '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +
-            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (animateXp ? 0 : xpFillWidth(xpPct)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + xpCurrent + ' / ' + xpNeed + ' XP</div></div>' +
-            '<div class="home-xp-panel__meta"><span>' + xpCurrent + ' XP acumulados neste nível</span><strong>Faltam ' + Math.max(0, xpNeed - xpCurrent) + ' XP</strong></div>' +
-            '</section>' +
-            bossCardHtml(boss) +
-            (Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : "") +
-            '<section class="panel home-missions-panel"><div class="home-panel-heading"><div><span class="section-label">Hoje</span><h2>Missões</h2></div><div class="home-panel-heading__actions"><span>' + rank.completed + ' / ' + rank.total + ' concluídas</span><button type="button" class="btn-secondary compact home-missions-toggle" id="toggleHomeMissionsButton">' + (homeMissionsHidden ? "Mostrar" : "Ocultar") + '</button></div></div>' +
-            '<div class="home-mission-list' + (homeMissionsHidden ? " is-hidden" : "") + '">' + (dailyEntries.length ? dailyEntries.map(function (entry) { return homeMissionRow(state, entry); }).join("") : '<p class="home-empty">Nenhuma missão diária disponível.</p>') + '</div>' +
-            (homeMissionsHidden ? '<p class="home-missions-hidden-note">As missões de hoje estão ocultas.</p>' : "") +
-            '<button type="button" class="btn-secondary compact home-all-missions" id="openAllMissions">Ver todas as missões</button>' +
-            '</section>' +
-            '</div>';
+        var ctx = {
+            state: state,
+            xpNeed: xpNeed,
+            xpCurrent: xpCurrent,
+            xpPct: xpPct,
+            boss: boss,
+            rank: rank,
+            dailyEntries: dailyEntries,
+            animateXp: !!animateXp,
+            homeMissionsHidden: homeMissionsHidden
+        };
+
+        if (Arquimago.homeWidgets && Arquimago.homeWidgets.renderHome) {
+            Arquimago.homeWidgets.renderHome(container, ctx);
+        } else {
+            container.innerHTML = '<div class="home-page home-page--focused">' +
+                rankCardHtml(rank) +
+                xpPanelHtml(ctx) +
+                bossCardHtml(boss) +
+                (Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : "") +
+                missionPanelHtml(ctx) +
+                '</div>';
+        }
 
         var topLevel = document.getElementById("topPlayerLevel");
         if (topLevel) topLevel.textContent = state.level;
@@ -138,68 +217,6 @@
         if (topRank) topRank.textContent = rank.rank;
         document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) { fill.style.width = xpFillWidth(xpPct); });
         document.querySelectorAll(".xp-bar--top .xp-text").forEach(function (text) { text.innerText = xpCurrent + " / " + xpNeed + " XP"; });
-
-        if (animateXp) {
-            requestAnimationFrame(function () {
-                requestAnimationFrame(function () {
-                    var fill = document.getElementById("xpFill");
-                    if (!fill) return;
-                    fill.classList.add("xp-animate");
-                    fill.style.width = xpFillWidth(xpPct);
-                    setTimeout(function () { fill.classList.remove("xp-animate"); }, 900);
-                });
-            });
-        }
-
-        container.querySelectorAll(".home-mission-check input").forEach(function (input) {
-            input.addEventListener("change", function () {
-                var row = input.closest(".home-mission-row");
-                var type = row.getAttribute("data-home-mission-type");
-                var id = row.getAttribute("data-home-mission-id");
-                var mission = Arquimago.findMissionByType ? Arquimago.findMissionByType(type, id) : Arquimago.findMission(type, id);
-                if (!mission) return;
-                Arquimago.playClick();
-                Arquimago.setMissionComplete(mission, type, input.checked, input);
-            });
-        });
-
-        var toggleHomeMissions = document.getElementById("toggleHomeMissionsButton");
-        if (toggleHomeMissions) toggleHomeMissions.addEventListener("click", function () {
-            Arquimago.playClick();
-            homeMissionsHidden = !homeMissionsHidden;
-            saveHomeMissionsHidden();
-            Arquimago.renderHome(false);
-        });
-
-        container.querySelectorAll("[data-delete-home-custom]").forEach(function (button) {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                Arquimago.playClick();
-                if (confirm("Excluir esta missão personalizada?")) {
-                    Arquimago.deleteCustomMission(button.getAttribute("data-delete-home-custom"));
-                }
-            });
-        });
-
-        var bossButton = document.getElementById("weeklyBossCard");
-        if (bossButton) bossButton.addEventListener("click", function () {
-            Arquimago.playClick();
-            Arquimago.openWeeklyBossDetails();
-        });
-
-        var rankButton = document.getElementById("dailyRankCard");
-        if (rankButton) rankButton.addEventListener("click", function () {
-            Arquimago.playClick();
-            Arquimago.openDailyRankDetails();
-        });
-
-        var allMissionsButton = document.getElementById("openAllMissions");
-        if (allMissionsButton) allMissionsButton.addEventListener("click", function () {
-            var tab = document.querySelector('.tab[data-screen="missions"]');
-            if (tab) tab.click();
-        });
-
         if (Arquimago.initSlideshow) Arquimago.initSlideshow();
     };
 
@@ -241,7 +258,10 @@
             if (!entry) return "Missão especial";
             return '<li><span>' + Arquimago.getMissionIcon(entry.mission) + '</span><strong>' + escapeHtml(entry.mission.name) + '</strong><small>causa +' + Math.round((entry.mission.bossDamage || 10) * 0.5) + ' dano extra</small></li>';
         }).join("");
-        var content = '<div class="boss-detail__hero"><div class="boss-detail__art">' + boss.icon + '<span aria-hidden="true">✦</span></div><div class="boss-detail__summary"><span class="section-label">Inimigo semanal</span><h3>' + escapeHtml(boss.name) + '</h3><p>' + escapeHtml(boss.description) + '</p></div></div>' +
+        var content = '<div class="boss-detail__hero">' + (boss.image ?
+            '<div class="boss-detail__art is-image"><img class="boss-detail__img" src="' + escapeHtml(boss.image) + '" alt="' + escapeHtml(boss.name) + '" loading="lazy"><span aria-hidden="true">✦</span></div>' :
+            '<div class="boss-detail__art">' + (boss.icon || "👹") + '<span aria-hidden="true">✦</span></div>') +
+            '<div class="boss-detail__summary"><span class="section-label">Inimigo semanal</span><h3>' + escapeHtml(boss.name) + '</h3><p>' + escapeHtml(boss.description) + '</p></div></div>' +
             '<div class="boss-detail__hp"><div><span>HP atual</span><strong>' + hp + ' / ' + maxHp + '</strong></div><div class="boss-detail__bar"><span style="width:' + percent + '%"></span></div></div>' +
             '<div class="boss-detail__columns"><div><h3>Fraquezas</h3><ul class="boss-weaknesses">' + (weaknesses || '<li>Você já conhece todas as fraquezas.</li>') + '</ul></div><div class="boss-reward"><h3>Recompensa</h3><strong>🏆 ' + escapeHtml(boss.reward) + '</strong><p>Derrote o Boss para registrar este troféu. Nenhum XP adicional é concedido.</p></div></div>';
         openProgressionModal("Boss da Semana", content, "progression-modal--boss");
@@ -277,6 +297,84 @@
         Arquimago.renderProfile();
         if (Arquimago.renderAttributes) Arquimago.renderAttributes();
     };
+
+    if (Arquimago.homeWidgets) {
+        Arquimago.homeWidgets.register({
+            id: "rank",
+            title: "Rank de Hoje",
+            defaultSize: "wide",
+            sizes: ["medium", "wide", "full"],
+            render: function (ctx) { return rankCardHtml(ctx.rank); },
+            afterRender: function (ctx, el) {
+                var b = el.querySelector("#dailyRankCard");
+                if (b) b.addEventListener("click", function () {
+                    Arquimago.playClick();
+                    Arquimago.openDailyRankDetails();
+                });
+            }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "xp",
+            title: "Progresso da Jornada",
+            defaultSize: "wide",
+            sizes: ["medium", "wide", "full"],
+            render: function (ctx) { return xpPanelHtml(ctx); },
+            afterRender: function (ctx, el) {
+                if (!ctx.animateXp) return;
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        var fill = el.querySelector("#xpFill");
+                        if (!fill) return;
+                        fill.classList.add("xp-animate");
+                        fill.style.width = xpFillWidth(ctx.xpPct);
+                        setTimeout(function () { fill.classList.remove("xp-animate"); }, 900);
+                    });
+                });
+            }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "boss",
+            title: "Boss da Semana",
+            defaultSize: "wide",
+            sizes: ["medium", "wide", "full"],
+            render: function (ctx) { return bossCardHtml(ctx.boss); },
+            afterRender: function (ctx, el) {
+                var b = el.querySelector("#weeklyBossCard");
+                if (b) b.addEventListener("click", function () {
+                    Arquimago.playClick();
+                    Arquimago.openWeeklyBossDetails();
+                });
+            }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "slides",
+            title: "Slides / Ilustrações",
+            defaultSize: "wide",
+            sizes: ["medium", "large", "wide", "full"],
+            render: function (ctx) { return Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : ""; }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "missions",
+            title: "Missões",
+            defaultSize: "wide",
+            sizes: ["medium", "large", "wide", "full"],
+            render: function (ctx) { return missionPanelHtml(ctx); },
+            afterRender: function (ctx, el) { missionPanelBind(ctx, el); }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "class",
+            title: "Classe",
+            defaultSize: "medium",
+            sizes: ["small", "medium", "wide"],
+            render: function (ctx) { return classWidgetHtml(ctx); },
+            visibleByDefault: false
+        });
+    }
 
     global.Arquimago = Arquimago;
 })(typeof window !== "undefined" ? window : this);

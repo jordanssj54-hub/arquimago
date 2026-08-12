@@ -375,7 +375,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 4px 12px 4px 8px;
+    padding: 4px 10px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: rgba(255, 255, 255, 0.02);
@@ -429,14 +429,6 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
     clip-path: polygon(50% 0, 100% 100%, 0 100%);
     opacity: 0.9;
-}
-
-.top-crystal__label {
-    font-size: 0.58rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    white-space: nowrap;
 }
 
 .top-crystal__value {
@@ -740,10 +732,6 @@
 @media (max-width: 720px) {
     .financas-balances {
         grid-template-columns: 1fr;
-    }
-
-    .top-crystal__label {
-        display: none;
     }
 
     .financas-toolbar {

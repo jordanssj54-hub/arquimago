@@ -316,6 +316,12 @@
 
     Arquimago.applyWallpaper = function (wallpaperKey) {
         var root = document.documentElement;
+        if (wallpaperKey === "custom") {
+            var customSrc = (Arquimago.state && Arquimago.state.customWallpaper) || "";
+            root.style.setProperty("--wallpaper-image", customSrc ? 'url("' + customSrc + '")' : "none");
+            document.body.setAttribute("data-wallpaper", "custom");
+            return;
+        }
         var wallpaper = Arquimago.WALLPAPERS[wallpaperKey] || Arquimago.WALLPAPERS.auto;
         root.style.setProperty("--wallpaper-image", wallpaper.src ? 'url("' + wallpaper.src + '")' : "none");
         document.body.setAttribute("data-wallpaper", wallpaper.id);
@@ -325,6 +331,13 @@
         Arquimago.state.wallpaper = wallpaperKey;
         Arquimago.saveState(Arquimago.state);
         Arquimago.applyWallpaper(wallpaperKey);
+    };
+
+    Arquimago.setCustomWallpaper = function (dataUrl) {
+        Arquimago.state.customWallpaper = dataUrl || "";
+        Arquimago.state.wallpaper = dataUrl ? "custom" : "auto";
+        Arquimago.saveState(Arquimago.state);
+        Arquimago.applyWallpaper(Arquimago.state.wallpaper);
     };
 
     Arquimago.applyAppearance = function () {

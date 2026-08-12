@@ -46,6 +46,7 @@
             id: "preguica",
             name: "Preguiça",
             icon: "👹",
+            image: "assets/boss/preguiça.png",
             maxHp: 300,
             description: "Uma sombra pesada que sussurra para deixar o próximo passo para depois.",
             weaknesses: ["main_treino", "weekly_planejamento", "main_sono"],
@@ -55,6 +56,7 @@
             id: "procrastinacao",
             name: "Procrastinação",
             icon: "🕷️",
+            image: "assets/boss/procrastinação.png",
             maxHp: 300,
             description: "Tece desculpas entre você e aquilo que realmente importa.",
             weaknesses: ["daily_estudo", "daily_leitura", "weekly_projeto"],
@@ -73,6 +75,7 @@
             id: "sedentarismo",
             name: "Sedentarismo",
             icon: "🗿",
+            image: "assets/boss/sedenterismo.png",
             maxHp: 300,
             description: "Pedra antiga que torna cada movimento mais difícil do que deveria ser.",
             weaknesses: ["main_treino", "main_caminhada", "main_alongamento"],
@@ -82,10 +85,21 @@
             id: "desorganizacao",
             name: "Desorganização",
             icon: "🌀",
+            image: "assets/boss/desorganização.png",
             maxHp: 300,
             description: "Mistura caminhos, acumula ruídos e esconde o que merece sua atenção.",
             weaknesses: ["weekly_organizacao", "weekly_planejamento", "daily_diario"],
             reward: "Troféu da Clareza"
+        },
+        {
+            id: "estresse",
+            name: "Estresse",
+            icon: "🔥",
+            image: "assets/boss/estresse.png",
+            maxHp: 300,
+            description: "Uma chama que consome a paz de pequenos gestos ao longo do dia.",
+            weaknesses: ["daily_meditacao", "daily_leitura", "habit_lazer"],
+            reward: "Troféu da Calma Restaurada"
         }
     ];
 
@@ -100,6 +114,7 @@
         theme: "current",
         font: "classica",
         wallpaper: "auto",
+        customWallpaper: "",
         lastActiveDate: "",
         chapter: 1,
         completedIds: [],
@@ -305,7 +320,8 @@
     };
 
     Arquimago.WALLPAPERS = {
-        auto: { id: "auto", name: "Automático", desc: "Usa o wallpaper do Template ativo.", src: null }
+        auto: { id: "auto", name: "Automático", desc: "Usa o wallpaper do Template ativo.", src: null },
+        custom: { id: "custom", name: "Da galeria", desc: "Use uma imagem da sua galeria como papel de parede.", src: "" }
     };
 
     Arquimago.MISSIONS = {

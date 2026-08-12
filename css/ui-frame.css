@@ -192,8 +192,8 @@
     padding: 0;
     overflow: hidden;
     display: block;
-    background-color: #050b12;
-    background-image: url("../assets/ui/tabs/reference/frame-center.png");
+    background-color: transparent;
+    background-image: url("../assets/ui/tabs/reference/frame-center-vazado.png");
     background-position: center;
     background-repeat: no-repeat;
     background-size: 100% 100%;
@@ -202,32 +202,33 @@
 }
 
 #game .tab:first-of-type {
-    background-image: url("../assets/ui/tabs/reference/frame-left.png");
+    background-image: url("../assets/ui/tabs/reference/frame-left-vazado.png");
 }
 
 #game .tab:last-of-type {
-    background-image: url("../assets/ui/tabs/reference/frame-right.png");
+    background-image: url("../assets/ui/tabs/reference/frame-right-vazado.png");
 }
 
 #game .tab.active[data-screen="home"] {
-    background-image: url("../assets/ui/tabs/reference/frame-active-home.png");
+    background-image: url("../assets/ui/tabs/reference/frame-active-home-vazado.png");
 }
 
 #game .tab.active[data-screen="home"] .tab-icon,
 #game .tab.active[data-screen="home"] .tab-txt {
-    visibility: hidden;
+    visibility: visible;
 }
 
 #game .tab.active:not([data-screen="home"]) {
-    background-image: url("../assets/ui/tabs/reference/frame-center.png");
+    background-image: url("../assets/ui/tabs/reference/frame-active-vazado.png");
 }
 
-#game .tab.active:not([data-screen="home"]):first-of-type {
-    background-image: url("../assets/ui/tabs/reference/frame-left.png");
+#game .tab.active {
+    filter: drop-shadow(0 0 10px var(--gold-glow));
 }
 
-#game .tab.active:not([data-screen="home"]):last-of-type {
-    background-image: url("../assets/ui/tabs/reference/frame-right.png");
+#game .tab:not(.active):hover .tab-icon,
+#game .tab:not(.active):hover .tab-txt {
+    filter: brightness(1.18) drop-shadow(0 0 6px rgba(201, 168, 76, 0.25));
 }
 
 #game .tab::before,

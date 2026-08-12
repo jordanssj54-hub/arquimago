@@ -1,0 +1,300 @@
+/* ============================================================
+   Home Widgets — grid modular, personalizável
+   ============================================================ */
+
+.home-edit-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-height: 0;
+}
+
+.home-edit-trigger {
+    margin-left: auto;
+}
+
+.home-edit-hint {
+    margin-right: auto;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.home-widget-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+    grid-auto-flow: row dense;
+}
+
+.home-widget {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+}
+
+.home-widget--small  { grid-column-end: span 1; }
+.home-widget--medium { grid-column-end: span 2; }
+.home-widget--wide   { grid-column-end: span 4; }
+.home-widget--large  { grid-column-end: span 2; grid-row-end: span 2; }
+.home-widget--full   { grid-column-end: span 4; grid-row-end: span 2; }
+
+.home-widget__body {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.home-widget__body > .panel,
+.home-widget__body > .home-boss-card,
+.home-widget__body > .home-rank-card,
+.home-widget__body > .home-slideshow {
+    margin: 0;
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+/* ============================================================
+   Modo de edição
+   ============================================================ */
+
+.home-edit-mode .home-widget {
+    outline: 1px dashed rgba(201, 168, 76, 0.45);
+    outline-offset: 3px;
+    border-radius: 10px;
+}
+
+.home-edit-mode .home-widget.is-dragging {
+    opacity: 0.55;
+    outline-style: solid;
+    outline-color: var(--gold);
+}
+
+.home-widget-grid.is-reordering .home-widget:not(.is-dragging) {
+    outline-style: dashed;
+    outline-color: rgba(201, 168, 76, 0.3);
+}
+
+.home-widget__controls {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 30;
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    pointer-events: none;
+}
+
+.home-widget__controls button {
+    pointer-events: auto;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid rgba(201, 168, 76, 0.5);
+    background: linear-gradient(180deg, rgba(12, 14, 22, 0.92), rgba(8, 10, 15, 0.94));
+    color: var(--gold-light);
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: var(--transition);
+}
+
+.home-widget__controls button:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px var(--fx-gold-soft);
+}
+
+.home-widget__handle {
+    cursor: grab;
+    touch-action: none;
+}
+
+.home-widget__resize {
+    position: relative;
+}
+
+.home-widget__size-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 40;
+    display: none;
+    min-width: 148px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid var(--border-gold);
+    background: linear-gradient(180deg, rgba(16, 18, 28, 0.98), rgba(8, 10, 15, 0.98));
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.home-widget__resize.is-open .home-widget__size-menu {
+    display: block;
+}
+
+.home-widget__size-menu__label {
+    display: block;
+    padding: 2px 8px 6px;
+    color: var(--text-dim);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.home-widget__size-opt {
+    display: block;
+    width: 100%;
+    padding: 7px 10px;
+    margin: 2px 0;
+    border: none;
+    border-radius: 8px;
+    text-align: left;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text);
+    background: transparent;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.home-widget__size-opt:hover {
+    background: rgba(201, 168, 76, 0.1);
+    color: var(--gold-light);
+}
+
+.home-widget__size-opt.is-active {
+    color: var(--gold);
+    font-weight: 600;
+    background: rgba(201, 168, 76, 0.08);
+}
+
+/* ============================================================
+   Painel de widgets (ocultar / reativar)
+   ============================================================ */
+
+.home-widgets-panel {
+    display: none;
+    padding: 16px 18px;
+    margin: 4px 0 0;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    background: linear-gradient(180deg, rgba(16, 18, 28, 0.92), rgba(8, 10, 15, 0.92));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 36px rgba(0, 0, 0, 0.35);
+}
+
+.home-widgets-panel.is-open {
+    display: block;
+}
+
+.home-widgets-panel__title {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: var(--gold-light);
+    font-weight: 600;
+}
+
+.home-widget-vis {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 8px;
+    margin: 2px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: var(--text);
+    transition: var(--transition);
+}
+
+.home-widget-vis:hover {
+    background: rgba(201, 168, 76, 0.07);
+    color: var(--gold-light);
+}
+
+.home-widget-vis input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--gold);
+}
+
+/* ============================================================
+   Widget Classe
+   ============================================================ */
+
+.home-class-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 22px;
+}
+
+.home-class-card__art {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    box-shadow: 0 0 14px var(--fx-gold-soft);
+    background: rgba(8, 10, 15, 0.6);
+}
+
+.home-class-card__art svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.home-class-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.home-class-card__info strong {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--gold-light);
+}
+
+.home-class-card__info span:last-child {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* ============================================================
+   Responsividade
+   ============================================================ */
+
+@media (max-width: 1023px) {
+    .home-widget-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .home-widget--wide  { grid-column-end: span 2; }
+    .home-widget--full  { grid-column-end: span 2; grid-row-end: span 2; }
+    .home-widget--large { grid-column-end: span 2; grid-row-end: span 2; }
+}
+
+@media (max-width: 640px) {
+    .home-widget-grid { grid-template-columns: minmax(0, 1fr); }
+    .home-widget,
+    .home-widget--small,
+    .home-widget--medium,
+    .home-widget--large,
+    .home-widget--wide,
+    .home-widget--full {
+        grid-column-end: span 1;
+        grid-row-end: span 1;
+    }
+}

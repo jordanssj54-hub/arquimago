@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="css/intro.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/slideshow.css">
+<link rel="stylesheet" href="css/home-widgets.css">
 <link rel="stylesheet" href="css/map.css">
 <link rel="stylesheet" href="css/missions.css">
 <link rel="stylesheet" href="css/grimoire.css">
@@ -63,6 +64,14 @@
 <div class="field-select" id="fontSelect" data-select="font"></div>
 </div>
 <div class="settings-group">
+<h4>Papel de Parede</h4>
+<p class="settings-hint">Use o fundo do Template ou escolha uma imagem da sua galeria.</p>
+<div class="field-select" id="wallpaperSelect" data-select="wallpaper"></div>
+<button type="button" class="btn-secondary compact" id="uploadWallpaperButton">🖼️ Usar imagem da galeria</button>
+<button type="button" class="btn-secondary compact" id="clearWallpaperButton">↺ Voltar ao Automático</button>
+<input type="file" id="wallpaperFileInput" accept="image/*" hidden>
+</div>
+<div class="settings-group">
 <h4>Layout da Navegação</h4>
 <p class="settings-hint">Posição das abas.</p>
 <div class="segmented" id="navPositionControl">
@@ -109,19 +118,17 @@
 <div class="xp-text">0 / 100 XP</div>
 </div>
 <div class="top-crystals">
-<div class="top-crystal is-emerald" title="Saldo Disponível" aria-label="Saldo disponível">
-<span class="top-crystal__gem" aria-hidden="true"></span>
-<span class="top-crystal__label">Saldo</span>
-<span class="top-crystal__value" id="topCrystalSaldo">R$ 0,00</span>
-</div>
-<div class="top-crystal is-sapphire" title="Guardado (poupança)" aria-label="Poupança guardada">
-<span class="top-crystal__gem" aria-hidden="true"></span>
-<span class="top-crystal__label">Poupança</span>
-<span class="top-crystal__value" id="topCrystalGuardado">R$ 0,00</span>
-</div>
+    <div class="top-crystal is-emerald" title="Saldo Disponível" aria-label="Saldo disponível">
+    <span class="top-crystal__gem" aria-hidden="true"></span>
+    <span class="top-crystal__value" id="topCrystalSaldo">R$ 0,00</span>
+    </div>
+    <div class="top-crystal is-sapphire" title="Guardado (poupança)" aria-label="Poupança guardada">
+    <span class="top-crystal__gem" aria-hidden="true"></span>
+    <span class="top-crystal__value" id="topCrystalGuardado">R$ 0,00</span>
+    </div>
 </div>
 <button id="settingsButton" class="icon-button" aria-label="Configurações">
-<img class="icon-button-icon" src="assets/ui/icons/icon_settings.png?v=2" alt="" aria-hidden="true">
+<img class="icon-button-icon" src="assets/ui/icons/icon_settings_gear.png" alt="" aria-hidden="true">
 </button>
 </header>
 
@@ -188,6 +195,7 @@
 <script src="js/profile.js"></script>
 <script src="js/avatar.js"></script>
 <script src="js/slideshow.js"></script>
+<script src="js/home-widgets.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/tabs.js"></script>

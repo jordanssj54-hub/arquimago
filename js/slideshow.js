@@ -22,6 +22,31 @@
             image: "assets/illustrations/journey-valley.png",
             title: "Vale da Jornada",
             quote: "A jornada também faz parte da conquista."
+        },
+        {
+            image: "assets/illustrations/cidade-dourada.png",
+            title: "Cidade Dourada",
+            quote: "Cada decisão de hoje constrói a cidade que você vai habitar amanhã."
+        },
+        {
+            image: "assets/illustrations/cidade-gotica.png",
+            title: "Cidade Gótica",
+            quote: "Mesmo sob sombras, quem caminha encontra seus próprios caminhos de luz."
+        },
+        {
+            image: "assets/illustrations/floresta.encantada.png",
+            title: "Floresta Encantada",
+            quote: "Todo passo em meio ao desconhecido ainda é um passo à frente."
+        },
+        {
+            image: "assets/illustrations/vale-fantastico.png",
+            title: "Vale Fantástico",
+            quote: "O impossível é só um lugar que ainda não foi visitado."
+        },
+        {
+            image: "assets/illustrations/vale-sombrio.png",
+            title: "Vale Sombrio",
+            quote: "Nos dias difíceis é que a sua luz fica mais visível."
         }
     ];
 

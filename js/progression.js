@@ -329,6 +329,7 @@
             week: week,
             name: definition.name,
             icon: definition.icon,
+            image: definition.image || "",
             maxHp: definition.maxHp,
             hp: definition.maxHp,
             description: definition.description,

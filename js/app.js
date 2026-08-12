@@ -28,6 +28,10 @@
         var templateHint = document.getElementById("templateSelectHint");
         var navPositionControl = document.getElementById("navPositionControl");
         var navScaleControl = document.getElementById("navScaleControl");
+        var wallpaperSelectWrapper = document.getElementById("wallpaperSelect");
+        var uploadWallpaperButton = document.getElementById("uploadWallpaperButton");
+        var clearWallpaperButton = document.getElementById("clearWallpaperButton");
+        var wallpaperFileInput = document.getElementById("wallpaperFileInput");
 
         var openMenu = null;
 
@@ -145,6 +149,7 @@
         buildFieldSelect(templateWrapper, Arquimago.TEMPLATES, function () { return Arquimago.state.template; }, Arquimago.selectTemplate, templateValue, templateOption);
         var themeSelectUI = buildFieldSelect(themeWrapper, Arquimago.THEMES, function () { return Arquimago.state.theme; }, Arquimago.selectTheme, themeValue, themeValue);
         buildFieldSelect(fontWrapper, Arquimago.TYPOGRAPHY, function () { return Arquimago.state.font; }, Arquimago.selectTypography, fontValue, fontValue);
+        var wallpaperSelectUI = buildFieldSelect(wallpaperSelectWrapper, Arquimago.WALLPAPERS, function () { return Arquimago.state.wallpaper; }, Arquimago.selectWallpaper, templateValue, templateOption);
 
         document.addEventListener("click", function () {
             closeAllMenus();
@@ -152,6 +157,43 @@
 
         if (templateHint && Arquimago.TEMPLATES[Arquimago.state.template]) {
             templateHint.textContent = Arquimago.TEMPLATES[Arquimago.state.template].desc || "";
+        }
+
+        function refreshWallpaperButtons() {
+            var isCustom = Arquimago.state.wallpaper === "custom";
+            if (clearWallpaperButton) clearWallpaperButton.hidden = !isCustom;
+        }
+
+        if (uploadWallpaperButton && wallpaperFileInput) {
+            uploadWallpaperButton.addEventListener("click", function () {
+                Arquimago.playClick();
+                wallpaperFileInput.click();
+            });
+            wallpaperFileInput.addEventListener("change", function () {
+                var file = wallpaperFileInput.files && wallpaperFileInput.files[0];
+                if (!file) return;
+                if (!/^image\//.test(file.type)) {
+                    if (Arquimago.showNotification) Arquimago.showNotification("Escolha um arquivo de imagem.", "boss");
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function () {
+                    if (Arquimago.setCustomWallpaper) Arquimago.setCustomWallpaper(reader.result);
+                    refreshWallpaperButtons();
+                    if (wallpaperSelectUI && wallpaperSelectUI.refresh) wallpaperSelectUI.refresh();
+                };
+                reader.readAsDataURL(file);
+                wallpaperFileInput.value = "";
+            });
+            refreshWallpaperButtons();
+        }
+
+        if (clearWallpaperButton && Arquimago.selectWallpaper) {
+            clearWallpaperButton.addEventListener("click", function () {
+                Arquimago.playClick();
+                Arquimago.selectWallpaper("auto");
+                refreshWallpaperButtons();
+            });
         }
 
         if (toggle) {
