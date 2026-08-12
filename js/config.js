@@ -331,7 +331,7 @@
             { id: "main_alongamento", name: "Alongamento", desc: "Movimentos suaves para liberar tensões e preparar o espírito.", objective: "Praticar movimentos de alongamento", category: "Corpo", xp: 4, bossDamage: 15, attribute: "strength", icon: "🤸" },
             { id: "main_agua", name: "Água", desc: "Hidrate-se com consistência ao longo do dia.", objective: "Manter-se hidratado durante o dia", category: "Corpo", xp: 2, bossDamage: 10, attribute: "vitality", icon: "💧" },
             { id: "main_alimentacao", name: "Alimentação", desc: "Escolha uma refeição equilibrada e consciente.", objective: "Escolher uma refeição equilibrada", category: "Corpo", xp: 4, bossDamage: 18, attribute: "vitality", icon: "🍎" },
-{ id: "main_sono", name: "Sono", desc: "Descanse em hora adequada para recuperar força.", objective: "Dormir em horário adequado", category: "Corpo", xp: 5, bossDamage: 35, attribute: "vitality", icon: "😴" }
+            { id: "main_sono", name: "Sono", desc: "Descanse em hora adequada para recuperar força.", objective: "Dormir em horário adequado", category: "Corpo", xp: 5, bossDamage: 35, attribute: "vitality", icon: "😴" }
         ],
         daily: [
             { id: "daily_tempo_qualidade", name: "Tempo de qualidade", desc: "Momento presente e gratuito com quem importa.", objective: "Dedicar tempo de qualidade a alguém", category: "Vida", xp: 3, bossDamage: 12, attribute: "spirit", icon: "⏳" },
