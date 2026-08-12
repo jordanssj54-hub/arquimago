@@ -95,6 +95,7 @@
         var fin = state.financas;
         if (!Array.isArray(fin.despesas)) fin.despesas = [];
         if (!Array.isArray(fin.transacoes)) fin.transacoes = [];
+        if (typeof fin.cartaoLimite !== "number" || !isFinite(fin.cartaoLimite)) fin.cartaoLimite = 0;
         return fin;
     }
 
@@ -299,7 +300,19 @@
         getFin(Arquimago.state).transacoes.forEach(function (t) {
             if (t.tipo === "entrada" && t.data && t.data.indexOf(mes) === 0) receitas += Number(t.valor) || 0;
         });
-        return { aPagar: aPagar, jaPago: jaPago, total: aPagar + jaPago, receitas: receitas, saldo: getFin(Arquimago.state).saldo };
+        return { aPagar: aPagar, jaPago: jaPago, total: aPagar + jaPago, receitas: receitas, saldo: getFin(Arquimago.state).saldo, cartaoLimite: getFin(Arquimago.state).cartaoLimite };
+    }
+
+    function cartaoData(mes) {
+        var fin = getFin(Arquimago.state);
+        var limite = Number(fin.cartaoLimite) || 0;
+        var gasto = 0;
+        despesasDoMes(mes).forEach(function (i) {
+            if (i.categoria === "Cartão") gasto += i.valor;
+        });
+        var disponivel = Math.max(0, limite - gasto);
+        var pct = limite > 0 ? Math.min(100, Math.round((gasto / limite) * 100)) : 0;
+        return { limite: limite, gasto: gasto, disponivel: disponivel, pct: pct };
     }
 
     function historicoLista() {
@@ -802,6 +815,83 @@
     /* ============================================================
        Renderização
        ============================================================ */
+    /* ============================================================
+       Widgets da Home (saldo, guardado, cartão, despesas)
+       ============================================================ */
+    function finWidgetHeader(title, icon, hint) {
+        return '<div class="panel-header home-fin-widget__head">' +
+            '<h3>' + (icon ? '<span class="home-fin-widget__icon" aria-hidden="true">' + icon + '</span>' : "") + esc(title) + '</h3>' +
+            (hint ? '<span>' + esc(hint) + '</span>' : "") +
+            '</div>';
+    }
+
+    Arquimago.saldoWidgetHtml = function () {
+        var fin = getFin(Arquimago.state);
+        return '<section class="panel home-fin-widget home-fin-widget--saldo">' +
+            finWidgetHeader("Saldo", "💎") +
+            '<div class="home-fin-widget__value">' + formatMoney(fin.saldo) + '</div>' +
+            '<button type="button" class="btn-secondary compact home-fin-widget__open" data-fin-open="financas">Abrir finanças ›</button>' +
+            '</section>';
+    };
+
+    Arquimago.guardadoWidgetHtml = function () {
+        var fin = getFin(Arquimago.state);
+        return '<section class="panel home-fin-widget home-fin-widget--guardado">' +
+            finWidgetHeader("Guardado", "🔵") +
+            '<div class="home-fin-widget__value">' + formatMoney(fin.guardado) + '</div>' +
+            '<button type="button" class="btn-secondary compact home-fin-widget__open" data-fin-open="financas">Abrir finanças ›</button>' +
+            '</section>';
+    };
+
+    Arquimago.cartaoWidgetHtml = function () {
+        var data = cartaoData(mesAtual());
+        if (!data.limite) {
+            return '<section class="panel home-fin-widget home-fin-widget--cartao">' +
+                finWidgetHeader("Cartão de Crédito", "💳") +
+                '<p class="home-fin-widget__empty">Defina o limite do seu cartão nas finanças para acompanhar aqui.</p>' +
+                '<button type="button" class="btn-secondary compact home-fin-widget__open" data-fin-open="financas">Configurar cartão ›</button>' +
+                '</section>';
+        }
+        return '<section class="panel home-fin-widget home-fin-widget--cartao">' +
+            finWidgetHeader("Cartão de Crédito", "💳") +
+            '<div class="home-fin-widget__bar">' +
+            '<span class="home-fin-widget__bar-fill" style="width:' + data.pct + '%"></span>' +
+            '</div>' +
+            '<div class="home-fin-widget__values">' +
+            '<span><small>Usado</small><strong class="is-gasto">' + formatMoney(data.gasto) + '</strong></span>' +
+            '<span><small>Limite</small><strong>' + formatMoney(data.limite) + '</strong></span>' +
+            '<span><small>Disponível</small><strong class="is-disponivel">' + formatMoney(data.disponivel) + '</strong></span>' +
+            '</div>' +
+            '<button type="button" class="btn-secondary compact home-fin-widget__open" data-fin-open="financas">Ver finanças ›</button>' +
+            '</section>';
+    };
+
+    Arquimago.despesasWidgetHtml = function () {
+        var mes = mesAtual();
+        var inst = despesasDoMes(mes);
+        if (!inst.length) {
+            return '<section class="panel home-fin-widget home-fin-widget--despesas">' +
+                finWidgetHeader("Despesas de " + MESES_ABR[parseInt(mes.split("-")[1], 10) - 1], "📅") +
+                '<p class="home-fin-widget__empty">Nenhuma despesa cadastrada para ' + mesLabel(mes) + '.</p>' +
+                '<button type="button" class="btn-secondary compact home-fin-widget__open" data-fin-open="financas">Adicionar despesa ›</button>' +
+                '</section>';
+        }
+        var rows = inst.slice(0, 6).map(function (i) {
+            var est = estadoItem(i);
+            return '<div class="home-fin-row is-' + est.cls + '">' +
+                '<span class="home-fin-row__dia"><b>' + pad2(i.dia) + '</b><small>Dia</small></span>' +
+                '<span class="home-fin-row__copy"><strong>' + esc(i.nome) + '</strong><small>' + esc(i.categoria) + (i.parcelaNumero ? " · " + i.parcelaNumero + "/" + i.parcelaTotal : "") + '</small></span>' +
+                '<span class="home-fin-row__valor">' + formatMoney(i.valor) + '</span>' +
+                '<span class="home-fin-row__status is-' + est.cls + '">' + (i.paga ? "✓" : "•") + '</span>' +
+                '</div>';
+        }).join("");
+        return '<section class="panel home-fin-widget home-fin-widget--despesas">' +
+            finWidgetHeader("Despesas · vence", "📅") +
+            '<div class="home-fin-widget__list">' + rows + '</div>' +
+            '<button type="button" class="btn-secondary compact home-fin-widget__open" data-fin-open="financas">Ver todas ›</button>' +
+            '</section>';
+    };
+
     function despesaRowHtml(inst) {
         var est = estadoItem(inst);
         var parc = inst.parcelaNumero ? '<span class="fin-row__parcela">' + inst.parcelaNumero + '/' + inst.parcelaTotal + '</span>' : "";
@@ -822,6 +912,7 @@
             '<div class="fin-row__nome-text"><strong>' + (inst.categoria === "Banco" ? '<span class="fin-row__banco" title="Despesa de banco">🏦</span>' : "") + esc(inst.nome) + '</strong>' +
             '<small>' + esc(inst.categoria) + ' · ' + esc(tipoLabel) + parc + '</small></div>' +
             '</div>' +
+            '<div class="fin-row__dia" title="Vence no dia ' + inst.dia + '"><b>' + pad2(inst.dia) + '</b><i>Dia</i></div>' +
             '<div class="fin-row__valor">' + formatMoney(inst.valor) + '</div>' +
             '<div class="fin-row__status is-' + est.cls + '">' + est.text + '</div>' +
             '<div class="fin-row__acoes">' + actions + '</div>' +
@@ -836,6 +927,7 @@
         var html = '<div class="fin-table" role="table" aria-label="Despesas de ' + mesLabel(mes) + '">';
         html += '<div class="fin-row fin-row--head" role="row">' +
             '<span><i class="fin-row__head-check" aria-hidden="true"></i>Despesa</span>' +
+            '<span>Vencimento</span>' +
             '<span>Valor</span>' +
             '<span>Status</span>' +
             '</div>';
@@ -1038,6 +1130,61 @@
         bindFinancas(container);
         Arquimago.updateTopCrystals();
     };
+
+    /* ============================================================
+       Widgets móveis da Home (finanças)
+       ============================================================ */
+    function bindFinOpen(el) {
+        el.querySelectorAll("[data-fin-open]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                if (Arquimago.playClick) Arquimago.playClick();
+                var id = btn.getAttribute("data-fin-open");
+                var tab = document.querySelector('.tab[data-screen="' + id + '"]');
+                if (tab) tab.click();
+            });
+        });
+    }
+
+    if (Arquimago.homeWidgets) {
+        Arquimago.homeWidgets.register({
+            id: "fin-despesas",
+            title: "Despesas · finanças",
+            defaultSize: "wide",
+            sizes: ["medium", "wide", "full"],
+            render: function () { return Arquimago.despesasWidgetHtml(); },
+            afterRender: function (ctx, el) { bindFinOpen(el); }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "fin-saldo",
+            title: "Saldo · finanças",
+            defaultSize: "medium",
+            sizes: ["small", "medium", "wide"],
+            render: function () { return Arquimago.saldoWidgetHtml(); },
+            afterRender: function (ctx, el) { bindFinOpen(el); },
+            visibleByDefault: false
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "fin-guardado",
+            title: "Guardado · finanças",
+            defaultSize: "medium",
+            sizes: ["small", "medium", "wide"],
+            render: function () { return Arquimago.guardadoWidgetHtml(); },
+            afterRender: function (ctx, el) { bindFinOpen(el); },
+            visibleByDefault: false
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "fin-cartao",
+            title: "Cartão de Crédito · finanças",
+            defaultSize: "wide",
+            sizes: ["medium", "wide", "full"],
+            render: function () { return Arquimago.cartaoWidgetHtml(); },
+            afterRender: function (ctx, el) { bindFinOpen(el); },
+            visibleByDefault: false
+        });
+    }
 
     global.Arquimago = Arquimago;
 })(typeof window !== "undefined" ? window : this);
