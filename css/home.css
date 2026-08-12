@@ -264,7 +264,7 @@
 .xp-bar--top {
     max-width: 240px;
     margin-left: 0;
-    margin-right: auto;
+    margin-right: 12px;
 }
 
 .xp-bar--top .xp-text {
