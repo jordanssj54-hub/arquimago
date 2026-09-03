@@ -6,7 +6,7 @@
 
     function isMobileViewport() {
         var game = document.getElementById("game");
-        return global.innerWidth <= 768 || (game && game.getAttribute("data-screen") === "home" && global.innerWidth <= 1100);
+        return global.innerWidth <= 1100;
     }
 
     Arquimago.closeMobileNavigation = function () {

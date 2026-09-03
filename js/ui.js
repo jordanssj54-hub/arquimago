@@ -118,7 +118,7 @@
             '<strong class="home-journey-card__stats">' + rank.completed + ' / ' + rank.total + ' MISSÕES <i>•</i> ' + rank.percent + '%</strong>' +
             '<span class="home-journey-card__bar"><span class="home-journey-card__fill" style="width:' + rank.percent + '%"></span><img src="assets/ui/home-reference/journey-progress.png" alt=""></span>' +
             '<details class="home-missions-details"><summary class="home-all-missions">VER MISSÕES <b aria-hidden="true">›</b></summary><div class="home-mission-list">' + missionRows + '</div><button type="button" class="home-open-missions" id="openAllMissions">ABRIR PAINEL COMPLETO</button></details></div>' +
-            '<img class="home-journey-card__art" src="assets/ui/home-reference/journey-art.png" alt="" aria-hidden="true">' +
+            '<img class="home-journey-card__art" src="projeto/guardiao-simbolcard%20(2).png" alt="" aria-hidden="true">' +
             '</section>';
     }
 

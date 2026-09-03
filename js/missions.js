@@ -26,6 +26,8 @@
     var missionManagementMode = null;
     var selectedMissionIds = {};
     var editingMissionId = null;
+    var missionReferenceTab = "daily";
+    var missionCountdownTimer = null;
     var ACTIVE_MISSIONS_HIDDEN_KEY = "arquimago_active_missions_hidden_v1";
     var activeMissionsHidden = loadActiveMissionsHidden();
 
@@ -208,7 +210,7 @@
 
     function anchorItem(anchor) {
         if (!anchor || !anchor.closest) return null;
-        return anchor.closest(".mission-item") || anchor.closest(".mission-card") || anchor.closest(".home-mission-row");
+        return anchor.closest(".mission-item") || anchor.closest(".mission-ref-card") || anchor.closest(".mission-card") || anchor.closest(".home-mission-row");
     }
 
     /* ============================================================
@@ -712,6 +714,162 @@
         return html;
     }
 
+    var REFERENCE_MISSION_META = {
+        daily_estudo_dia: {
+            title: "ESTUDAR",
+            desc: "Dedique ao menos 30 minutos para estudar algo que te faça evoluir.",
+            progress: "30 MIN",
+            icon: "📖",
+            kind: "study"
+        },
+        main_treino: {
+            title: "TREINAR",
+            desc: "Faça seu treino e fortaleça seu corpo e mente.",
+            progress: "1 TREINO",
+            icon: "🏋️",
+            kind: "training"
+        },
+        daily_contabilidade: {
+            title: "ORGANIZAR FINANÇAS",
+            desc: "Registre seus gastos e mantenha suas finanças em dia.",
+            progress: "1 REGISTRO",
+            icon: "💰",
+            kind: "finance"
+        }
+    };
+
+    function referenceMissionEntries(state) {
+        var all = Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state, true) : [];
+        return Object.keys(REFERENCE_MISSION_META).map(function (id) {
+            return all.find(function (entry) {
+                return entry.mission.id === id && !(Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, id));
+            });
+        }).filter(Boolean);
+    }
+
+    function referenceMissionCardHtml(state, entry) {
+        var mission = entry.mission;
+        var meta = REFERENCE_MISSION_META[mission.id] || {
+            title: String(mission.name || "Missão").toUpperCase(),
+            desc: mission.desc || mission.objective || "Complete esta missão para avançar.",
+            progress: "1 MISSÃO",
+            icon: Arquimago.getMissionIcon(mission),
+            kind: "default"
+        };
+        var done = isDone(state, mission, entry.type);
+        var progress = done ? (meta.kind === "study" ? "30" : "1") : "0";
+        return '<div class="mission-item mission-ref-card mission-ref-card--' + meta.kind + (done ? " completed" : "") + '" data-id="' + escapeHtml(mission.id) + '" data-type="' + escapeHtml(entry.type) + '">' +
+            '<div class="mission-ref-card__icon mission-ref-card__icon--' + meta.kind + '" aria-hidden="true">' + meta.icon + '</div>' +
+            '<div class="mission-ref-card__copy"><h3>' + escapeHtml(meta.title) + '</h3><p>' + escapeHtml(meta.desc) + '</p>' +
+            '<div class="mission-ref-card__rewards"><strong>+ ' + escapeHtml(mission.xp) + ' XP</strong><span>+ 10</span><img src="assets/ui/home-reference/xp-icon.png" alt="" aria-hidden="true"></div></div>' +
+            '<div class="mission-ref-card__progress"><strong>' + progress + ' / ' + escapeHtml(meta.progress) + '</strong><span><i style="width:' + (done ? "100" : "0") + '%"></i></span></div>' +
+            '<label class="mission-check mission-ref-card__check" title="Marcar missão"><input type="checkbox"' + (done ? " checked" : "") + '><span class="mission-check__box"></span></label>' +
+            '</div>';
+    }
+
+    function missionsReferenceXpHtml(state) {
+        var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { earned: 0, goal: 0, percent: 0 };
+        var goal = Math.max(0, Number(monthly.goal) || 0);
+        var earned = Math.max(0, Number(monthly.earned) || 0);
+        var percent = goal ? Math.min(100, Math.round((earned / goal) * 100)) : 0;
+        var remaining = Math.max(0, goal - earned);
+        return '<section class="missions-reference-xp xp-bar"><span class="xp-fill" style="width:' + percent + '%"></span><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><strong class="xp-text">' + Arquimago.formatNumber(earned) + ' / ' + Arquimago.formatNumber(goal) + ' XP</strong><small>' + (remaining ? "FALTAM " + Arquimago.formatNumber(remaining) + " XP PARA O RANK C" : "RANK C ALCANÇADO") + '</small></section>';
+    }
+
+    function missionsReferenceFinanceHtml(state) {
+        var fin = state.financas || {};
+        return '<section class="missions-reference-finance home-finance-card"><span class="home-finance-card__item"><img class="home-finance-card__icon" src="assets/ui/home-reference/finance-icon.png" alt="" aria-hidden="true"><span><small>FINANÇAS</small><strong>R$ ' + (Number(fin.saldo) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong></span></span><img class="home-finance-card__divider" src="assets/ui/home-reference/finance-divider.png" alt="" aria-hidden="true"><span class="home-finance-card__item"><img class="home-finance-card__icon" src="assets/ui/home-reference/resource-icon.png" alt="" aria-hidden="true"><span><small>RECURSOS</small><strong>R$ ' + (Number(fin.guardado) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong></span></span></section>';
+    }
+
+    function missionCountdownValue() {
+        var now = new Date();
+        var next = new Date(now);
+        next.setHours(24, 0, 0, 0);
+        var seconds = Math.max(0, Math.floor((next.getTime() - now.getTime()) / 1000));
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var secs = seconds % 60;
+        return [hours, minutes, secs].map(function (value) { return String(value).padStart(2, "0"); }).join(":");
+    }
+
+    function missionsReferenceRefreshHtml() {
+        return '<section class="missions-reference-refresh"><div class="missions-reference-refresh__countdown"><span aria-hidden="true">🔒</span><div><p>Novas missões disponíveis em</p><strong data-mission-countdown>' + missionCountdownValue() + '</strong></div></div><button type="button" class="missions-reference-refresh__button" data-refresh-missions>ATUALIZAR AGORA<span><img src="assets/ui/home-reference/xp-icon.png" alt="" aria-hidden="true">10</span></button></section>';
+    }
+
+    function missionReferenceDailyHtml(state) {
+        var entries = referenceMissionEntries(state);
+        var completed = entries.filter(function (entry) { return isDone(state, entry.mission, entry.type); }).length;
+        var cards = entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("");
+        return '<section class="missions-reference-panel" data-ref-panel="daily"><section class="missions-reference-journey"><div class="missions-reference-journey__counter"><strong>' + completed + ' / ' + entries.length + '</strong><span>MISSÕES<br>HOJE</span></div><div class="missions-reference-journey__copy"><h2>JORNADA DE HOJE</h2><p>Complete suas missões diárias e<br>avance na sua jornada.</p></div><img src="projeto/guardiao-simbolcard%20(1).png" alt="" aria-hidden="true"></section><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhuma missão principal disponível no momento.</p>') + '</div>' + missionsReferenceRefreshHtml() + '</section>';
+    }
+
+    function missionReferenceWeeklyHtml(state) {
+        var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) { return entry.type === "weekly" || entry.type === "custom_weekly"; });
+        return '<section class="missions-reference-panel" data-ref-panel="weekly" hidden><div class="missions-reference-section-title"><span>JORNADA SEMANAL</span><p>Missões que mantêm seu progresso em movimento.</p></div><div class="missions-reference-list">' + (entries.length ? entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("") : '<p class="missions-reference-empty">Nenhuma missão semanal disponível.</p>') + '</div></section>';
+    }
+
+    function missionReferenceAchievementsHtml(state) {
+        var entries = completedMissionEntries(state);
+        return '<section class="missions-reference-panel" data-ref-panel="achievements" hidden><div class="missions-reference-section-title"><span>CONQUISTAS</span><p>Seu histórico de missões concluídas.</p></div><div class="missions-reference-list">' + (entries.length ? entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("") : '<p class="missions-reference-empty">Complete uma missão para registrar sua primeira conquista.</p>') + '</div></section>';
+    }
+
+    function missionsReferenceExtrasHtml(state) {
+        var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) { return !REFERENCE_MISSION_META[entry.mission.id]; });
+        if (!entries.length) return "";
+        return '<details class="missions-reference-extra"><summary>OUTRAS MISSÕES DISPONÍVEIS <span>⌄</span></summary><div class="missions-list">' + entries.map(function (entry) { var freq = FREQ_MAP[entry.type] || { label: "Missão", css: "daily" }; return missionItemHtml(state, entry.mission, entry.type, freq, entry.mission.desc); }).join("") + '</div></details>';
+    }
+
+    function missionsReferenceHtml(state, canClear) {
+        return '<div class="missions-page missions-page--reference">' + missionsReferenceXpHtml(state) + missionsReferenceFinanceHtml(state) + '<div class="missions-reference-heading"><div><img src="assets/ui/emblems/emblem_archmage.png" alt="" aria-hidden="true"><h1>MISSÕES</h1></div>' + missionsToolbarHtml(canClear) + '</div><div class="missions-reference-tabs" role="tablist"><button type="button" class="is-active" data-mission-ref-tab="daily" role="tab" aria-selected="true">DIÁRIAS</button><button type="button" data-mission-ref-tab="weekly" role="tab" aria-selected="false">SEMANAIS</button><button type="button" data-mission-ref-tab="achievements" role="tab" aria-selected="false">CONQUISTAS</button></div>' + missionReferenceDailyHtml(state) + missionReferenceWeeklyHtml(state) + missionReferenceAchievementsHtml(state) + missionsReferenceExtrasHtml(state) + '<div class="missions-reference-secondary">' + missionManagementHtml(state) + customSectionHtml(state) + hiddenMissionsHtml(state) + '</div></div>';
+    }
+
+    function startMissionCountdown(container) {
+        if (missionCountdownTimer) clearInterval(missionCountdownTimer);
+        var update = function () {
+            var el = container.querySelector("[data-mission-countdown]");
+            if (el) el.textContent = missionCountdownValue();
+        };
+        update();
+        missionCountdownTimer = setInterval(update, 1000);
+    }
+
+    function bindMissionReferenceControls(container) {
+        container.querySelectorAll("[data-mission-ref-tab]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                missionReferenceTab = button.getAttribute("data-mission-ref-tab");
+                container.querySelectorAll("[data-mission-ref-tab]").forEach(function (tab) {
+                    var active = tab === button;
+                    tab.classList.toggle("is-active", active);
+                    tab.setAttribute("aria-selected", String(active));
+                });
+                container.querySelectorAll("[data-ref-panel]").forEach(function (panel) {
+                    panel.hidden = panel.getAttribute("data-ref-panel") !== missionReferenceTab;
+                });
+                Arquimago.playClick();
+            });
+        });
+
+        var refreshButton = container.querySelector("[data-refresh-missions]");
+        if (refreshButton) refreshButton.addEventListener("click", function () {
+            Arquimago.playClick();
+            if (Arquimago.syncDates) Arquimago.syncDates(Arquimago.state);
+            if (Arquimago.saveState) Arquimago.saveState(Arquimago.state);
+            Arquimago.renderMissions();
+        });
+        startMissionCountdown(container);
+        var activeTab = container.querySelector('[data-mission-ref-tab="' + missionReferenceTab + '"]');
+        if (activeTab) {
+            container.querySelectorAll("[data-mission-ref-tab]").forEach(function (tab) {
+                var active = tab === activeTab;
+                tab.classList.toggle("is-active", active);
+                tab.setAttribute("aria-selected", String(active));
+            });
+            container.querySelectorAll("[data-ref-panel]").forEach(function (panel) {
+                panel.hidden = panel.getAttribute("data-ref-panel") !== missionReferenceTab;
+            });
+        }
+    }
+
     function deleteMissionForManagement(id) {
         if (id.indexOf("custom_") === 0) {
             Arquimago.deleteCustomMission(id, { skipRefresh: true });
@@ -922,22 +1080,12 @@
         rememberFormValues(container.querySelector("#customMissionForm"));
 
         var canClear = completedMissionEntries(state).length > 0;
-        var html = '<div class="missions-page">';
-        html += missionsToolbarHtml(canClear);
-        html += missionManagementHtml(state);
-
-        html += activeMissionsHtml(state);
-        html += customSectionHtml(state);
-
-        var completedHtml = completedMissionsHtml(state);
-        if (completedHtml) {
-            html += collapsibleSectionHtml("completed", "Missões Concluídas", "Missões que você já cumpriu. Desmarque para reativar.", completedHtml);
-        }
-
-        html += hiddenMissionsHtml(state);
-
-        html += '</div>';
+        var dailyRank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D" };
+        var topRank = document.getElementById("topDailyRank");
+        if (topRank) topRank.textContent = dailyRank.rank;
+        var html = missionsReferenceHtml(state, canClear);
         container.innerHTML = html;
+        bindMissionReferenceControls(container);
         bindMissionToggles(container);
         bindMissionDetailsToggles(container);
         bindMissionSettings(container);
