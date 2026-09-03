@@ -26,11 +26,11 @@
 
     function initSettings() {
         var btn = document.getElementById("settingsButton");
+        var drawerSettingsButton = document.getElementById("drawerSettingsButton");
         var modal = document.getElementById("settings-modal");
         var toggle = document.getElementById("soundToggle");
         var audioButton = document.getElementById("audioToggleButton");
         var templateHint = document.getElementById("templateSelectHint");
-        var navPositionControl = document.getElementById("navPositionControl");
         var navScaleControl = document.getElementById("navScaleControl");
         var wallpaperSelectWrapper = document.getElementById("wallpaperSelect");
         var uploadWallpaperButton = document.getElementById("uploadWallpaperButton");
@@ -228,11 +228,14 @@
             });
         }
 
-        if (btn && modal) {
-            btn.addEventListener("click", function () {
+        if (modal) {
+            function openSettings() {
                 Arquimago.playClick();
                 modal.hidden = false;
-            });
+                if (Arquimago.closeMobileNavigation) Arquimago.closeMobileNavigation();
+            }
+            if (btn) btn.addEventListener("click", openSettings);
+            if (drawerSettingsButton) drawerSettingsButton.addEventListener("click", openSettings);
             modal.querySelectorAll("[data-close-modal]").forEach(function (el) {
                 el.addEventListener("click", function () {
                     modal.hidden = true;
@@ -241,13 +244,7 @@
         }
 
         function refreshNavControls() {
-            var position = Arquimago.state.navPosition === "left" ? "left" : "top";
             var scale = parseFloat(Arquimago.state.navScale) || 1;
-            if (navPositionControl) {
-                navPositionControl.querySelectorAll(".segmented__btn").forEach(function (b) {
-                    b.classList.toggle("active", b.dataset.navPos === position);
-                });
-            }
             if (navScaleControl) {
                 navScaleControl.querySelectorAll(".segmented__btn").forEach(function (b) {
                     b.classList.toggle("active", Math.abs(parseFloat(b.dataset.navScale) - scale) < 0.001);
@@ -256,17 +253,8 @@
         }
 
         function wireNavControls() {
-            if (!navPositionControl && !navScaleControl) return;
+            if (!navScaleControl) return;
             refreshNavControls();
-            if (navPositionControl) {
-                navPositionControl.querySelectorAll(".segmented__btn").forEach(function (b) {
-                    b.addEventListener("click", function () {
-                        Arquimago.playClick();
-                        Arquimago.selectNavPosition(b.dataset.navPos);
-                        refreshNavControls();
-                    });
-                });
-            }
             if (navScaleControl) {
                 navScaleControl.querySelectorAll(".segmented__btn").forEach(function (b) {
                     b.addEventListener("click", function () {

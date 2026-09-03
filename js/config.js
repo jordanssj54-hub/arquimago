@@ -7,7 +7,7 @@
     Arquimago.MONTHLY_GOAL_FRACTION = 0.6;
 
     Arquimago.NAVIGATION = {
-        position: "top",
+        position: "left",
         scale: 1.0
     };
 
@@ -126,7 +126,8 @@
         playTimeSeconds: 0,
         introSeen: false,
         soundEnabled: true,
-        navPosition: "top",
+        navPosition: "left",
+        navCollapsed: false,
         navScale: 1,
         dailyDate: "",
         dailyXP: 0,

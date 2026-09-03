@@ -36,6 +36,7 @@
 <link rel="stylesheet" href="css/ui-frame.css">
 <link rel="stylesheet" href="css/ui-effects.css">
 <link rel="stylesheet" href="css/template-2.css">
+<link rel="stylesheet" href="css/navigation-drawer.css">
 </head>
 <body class="theme-black">
 
@@ -83,11 +84,7 @@
 </div>
 <div class="settings-group">
 <h4>Layout da Navegação</h4>
-<p class="settings-hint">Posição das abas.</p>
-<div class="segmented" id="navPositionControl">
-<button type="button" data-nav-pos="top" class="segmented__btn">Topo</button>
-<button type="button" data-nav-pos="left" class="segmented__btn">Lateral</button>
-</div>
+<p class="settings-hint">A Navigation Drawer fica fixa na lateral no desktop e sobreposta em telas menores.</p>
 <p class="settings-hint">Tamanho das abas.</p>
 <div class="segmented" id="navScaleControl">
 <button type="button" data-nav-scale="0.8" class="segmented__btn">80%</button>
@@ -107,6 +104,9 @@
 
 <div id="game" hidden>
 <header class="topbar">
+<button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-controls="mainNavigation" aria-expanded="false" aria-label="Abrir navegação">
+<span class="mobile-nav-toggle__icon" aria-hidden="true"><span></span><span></span><span></span></span>
+</button>
 <div class="logo-container">
 <img class="logo-emblem" src="assets/ui/emblems/emblem_archmage.png?v=2" alt="Archmage Emblem">
 <div class="logo-area">
@@ -142,39 +142,65 @@
 </button>
 </header>
 
-<nav class="main-tabs">
-<button class="tab active" data-screen="home" aria-label="Home">
+<div class="nav-scrim" id="navScrim" hidden></div>
+<nav class="main-tabs" id="mainNavigation" aria-label="Navegação principal">
+<div class="drawer-header">
+<div class="drawer-brand">
+<img src="assets/ui/emblems/emblem_archmage.png?v=2" alt="" aria-hidden="true">
+<div class="drawer-brand-copy">
+<strong>ARQUIMAGO</strong>
+<span>O RECOMEÇO</span>
+</div>
+</div>
+<button class="drawer-toggle" id="navDrawerToggle" type="button" aria-controls="mainNavigation" aria-expanded="true" aria-label="Recolher navegação">
+<span class="drawer-toggle-icon" aria-hidden="true"></span>
+</button>
+</div>
+<div class="drawer-rule" aria-hidden="true"></div>
+<button class="tab active" data-screen="home" aria-label="Início" data-tooltip="Início" title="Início">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-home.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-home.png" alt="" aria-hidden="true">
+<span class="tab-label">Início</span>
 </button>
-<button class="tab" data-screen="history" aria-label="História">
+<button class="tab" data-screen="history" aria-label="História" data-tooltip="História" title="História">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-history.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-history.png" alt="" aria-hidden="true">
+<span class="tab-label">História</span>
 </button>
-<button class="tab" data-screen="map" aria-label="Mapa">
+<button class="tab" data-screen="map" aria-label="Mapa" data-tooltip="Mapa" title="Mapa">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-map.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-map.png" alt="" aria-hidden="true">
+<span class="tab-label">Mapa</span>
 </button>
-<button class="tab" data-screen="missions" aria-label="Missões">
+<button class="tab" data-screen="missions" aria-label="Missões" data-tooltip="Missões" title="Missões">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-missions.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-missions.png" alt="" aria-hidden="true">
+<span class="tab-label">Missões</span>
 </button>
-<button class="tab" data-screen="financas" aria-label="Finanças">
+<button class="tab" data-screen="financas" aria-label="Finanças" data-tooltip="Finanças" title="Finanças">
 <span class="tab-fallback-icon" aria-hidden="true">💎</span>
-<span class="tab-fallback-text">Finanças</span>
+<span class="tab-label">Finanças</span>
 </button>
-<button class="tab" data-screen="attributes" aria-label="Atributos">
+<button class="tab" data-screen="attributes" aria-label="Atributos" data-tooltip="Atributos" title="Atributos">
 <span class="tab-fallback-icon" aria-hidden="true">✦</span>
-<span class="tab-fallback-text">Atributos</span>
+<span class="tab-label">Atributos</span>
 </button>
-<button class="tab" data-screen="grimoire" aria-label="Grimório">
+<button class="tab" data-screen="grimoire" aria-label="Grimório" data-tooltip="Grimório" title="Grimório">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-grimoire.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-grimoire.png" alt="" aria-hidden="true">
+<span class="tab-label">Grimório</span>
 </button>
-<button class="tab" data-screen="profile" aria-label="Perfil">
+<button class="tab" data-screen="profile" aria-label="Perfil" data-tooltip="Perfil" title="Perfil">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-profile.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-profile.png" alt="" aria-hidden="true">
+<span class="tab-label">Perfil</span>
 </button>
+<div class="drawer-footer">
+<button class="drawer-settings" id="drawerSettingsButton" type="button" aria-label="Configurações" data-tooltip="Configurações" title="Configurações">
+<img src="assets/ui/icons/icon_settings_gear.png" alt="" aria-hidden="true">
+<span class="tab-label">Configurações</span>
+</button>
+</div>
 </nav>
 
 <div class="main-frame">

@@ -615,6 +615,7 @@
     };
 
     Arquimago.normalizeState = function (state) {
+        if (typeof state.navCollapsed !== "boolean") state.navCollapsed = false;
         state.completedIds = Array.isArray(state.completedIds) ? state.completedIds : [];
         state.dailyDone = Array.isArray(state.dailyDone) ? state.dailyDone : [];
         state.weeklyDone = Array.isArray(state.weeklyDone) ? state.weeklyDone : [];

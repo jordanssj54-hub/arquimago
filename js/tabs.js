@@ -216,13 +216,11 @@
     };
 
     function applyNavigationConfig() {
-        var cfg = Arquimago.NAVIGATION || { position: "top", scale: 1.0 };
-        var position = cfg.position;
+        var cfg = Arquimago.NAVIGATION || { position: "left", scale: 1.0 };
+        // The navigation is always a drawer on desktop; mobile switches to an off-canvas menu in CSS.
+        var position = "left";
         var scale = parseFloat(cfg.scale);
-        if (Arquimago.state) {
-            if (Arquimago.state.navPosition) position = Arquimago.state.navPosition;
-            if (Arquimago.state.navScale) scale = parseFloat(Arquimago.state.navScale);
-        }
+        if (Arquimago.state && Arquimago.state.navScale) scale = parseFloat(Arquimago.state.navScale);
         if (!isFinite(scale) || scale <= 0) scale = 1.0;
         document.documentElement.style.setProperty("--nav-scale", String(scale));
         var game = document.getElementById("game");

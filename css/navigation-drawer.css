@@ -1,0 +1,536 @@
+/* ==========================================================================
+   Navigation Drawer
+   The existing .tab buttons remain the navigation API; this file only changes
+   their layout and presentation.
+   ========================================================================== */
+
+#game {
+    --drawer-expanded-width: clamp(220px, calc(248px * var(--nav-scale)), 320px);
+    --drawer-collapsed-width: clamp(72px, calc(78px * var(--nav-scale)), 112px);
+    --drawer-width: var(--drawer-expanded-width);
+}
+
+#game.nav-collapsed {
+    --drawer-width: var(--drawer-collapsed-width);
+}
+
+.nav-scrim,
+.mobile-nav-toggle {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    #game[data-nav-position] {
+        display: grid;
+        grid-template-columns: var(--drawer-width) minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas:
+            "topbar topbar"
+            "drawer content";
+        height: 100vh;
+        min-height: 100vh;
+        overflow: hidden;
+        transition: grid-template-columns 0.32s var(--ease);
+    }
+
+    #game[data-nav-position] .topbar {
+        grid-area: topbar;
+        min-width: 0;
+    }
+
+    #game[data-nav-position] .main-tabs {
+        grid-area: drawer;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 4px;
+        overflow: visible;
+        position: relative;
+        z-index: 110;
+        background: transparent !important;
+        border-right: 1px solid var(--border-gold);
+        box-shadow: none;
+        transition: width 0.32s var(--ease), padding 0.32s var(--ease), background 0.32s ease;
+    }
+
+    #game[data-nav-position] .main-frame {
+        grid-area: content;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+}
+
+#game[data-nav-position] .drawer-header {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 2px 0 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+#game[data-nav-position] .drawer-brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 auto;
+}
+
+#game[data-nav-position] .drawer-brand > img {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+
+#game[data-nav-position] .drawer-brand-copy {
+    min-width: 0;
+    max-width: 170px;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 1;
+    transform: translateX(0);
+    transition: max-width 0.28s var(--ease), opacity 0.18s ease, transform 0.28s var(--ease);
+}
+
+#game[data-nav-position] .drawer-brand-copy strong {
+    display: block;
+    overflow: hidden;
+    color: var(--gold-light);
+    font-family: var(--font-display);
+    font-size: 0.76rem;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+}
+
+#game[data-nav-position] .drawer-brand-copy span {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-dim);
+    font-size: 0.54rem;
+    letter-spacing: 0.2em;
+    line-height: 1;
+}
+
+#game[data-nav-position] .drawer-toggle {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    flex: 0 0 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#game[data-nav-position] .drawer-toggle:hover,
+#game[data-nav-position] .drawer-toggle:focus-visible {
+    color: var(--gold-light);
+    border-color: var(--border-gold);
+    background: var(--gold-glow);
+    box-shadow: 0 0 16px var(--fx-gold-soft);
+}
+
+#game[data-nav-position] .drawer-toggle-icon {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(135deg);
+    transition: transform 0.3s var(--ease);
+}
+
+#game[data-nav-position] .drawer-rule {
+    height: 1px;
+    flex: 0 0 1px;
+    margin: 8px 4px 10px;
+    background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+}
+
+#game[data-nav-position] .tab,
+#game[data-nav-position] .drawer-settings {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+    min-height: 52px;
+    flex: 0 0 52px;
+    padding: 0 13px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.84rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-align: left;
+    cursor: pointer;
+    overflow: visible;
+    white-space: nowrap;
+    transition: color 0.22s ease, background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, padding 0.32s var(--ease), gap 0.32s var(--ease);
+}
+
+#game[data-nav-position] .tab::before,
+#game[data-nav-position] .tab-glow {
+    display: none !important;
+}
+
+#game[data-nav-position] .tab:hover,
+#game[data-nav-position] .drawer-settings:hover,
+#game[data-nav-position] .tab:focus-visible,
+#game[data-nav-position] .drawer-settings:focus-visible {
+    color: var(--text);
+    border-color: var(--border);
+    background: rgba(255, 255, 255, 0.045) !important;
+    outline: none;
+}
+
+#game[data-nav-position] .tab.active {
+    color: var(--gold-light);
+    border-color: var(--border-gold);
+    background: linear-gradient(100deg, var(--gold-glow), rgba(255, 255, 255, 0.035)) !important;
+    box-shadow: inset 3px 0 var(--gold), 0 8px 22px rgba(0, 0, 0, 0.14);
+    filter: none;
+}
+
+#game[data-nav-position] .tab-icon,
+#game[data-nav-position] .tab-fallback-icon,
+#game[data-nav-position] .drawer-settings > img {
+    position: relative;
+    top: auto !important;
+    left: auto !important;
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: contain;
+    object-position: center;
+    transform: none !important;
+    pointer-events: none;
+    -webkit-user-drag: none;
+}
+
+#game[data-nav-position] .tab-fallback-icon {
+    font-size: 1.34rem;
+    line-height: 1;
+}
+
+#game[data-nav-position] .tab-txt,
+#game[data-nav-position] .tab-fallback-text {
+    display: none !important;
+}
+
+#game[data-nav-position] .tab-label {
+    display: block;
+    min-width: 0;
+    max-width: 180px;
+    overflow: hidden;
+    flex: 1 1 auto;
+    opacity: 1;
+    transform: translateX(0);
+    text-overflow: ellipsis;
+    transition: max-width 0.28s var(--ease), opacity 0.18s ease, transform 0.28s var(--ease);
+}
+
+#game[data-nav-position] .drawer-footer {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-brand-copy {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-8px);
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-header {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-toggle {
+    position: absolute;
+    right: 7px;
+    top: 58px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    transform: translateX(50%);
+    z-index: 5;
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-toggle-icon {
+    transform: rotate(-45deg);
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-rule {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+#game.nav-collapsed[data-nav-position] .tab,
+#game.nav-collapsed[data-nav-position] .drawer-settings {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#game.nav-collapsed[data-nav-position] .tab.active {
+    box-shadow: inset 3px 0 var(--gold), 0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+#game.nav-collapsed[data-nav-position] .tab-label,
+#game.nav-collapsed[data-nav-position] .drawer-settings .tab-label {
+    max-width: 0;
+    flex: 0 0 0;
+    opacity: 0;
+    transform: translateX(-8px);
+}
+
+#game.nav-collapsed[data-nav-position] .tab:hover::after,
+#game.nav-collapsed[data-nav-position] .tab:focus-visible::after,
+#game.nav-collapsed[data-nav-position] .drawer-settings:hover::after,
+#game.nav-collapsed[data-nav-position] .drawer-settings:focus-visible::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    z-index: 30;
+    width: max-content;
+    max-width: 190px;
+    padding: 8px 11px;
+    border: 1px solid var(--border-gold);
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    color: var(--text);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4), 0 0 14px var(--fx-gold-soft);
+    font-family: var(--font-body);
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-50%) translateX(-4px);
+    animation: drawerTooltipIn 0.16s ease forwards;
+}
+
+@keyframes drawerTooltipIn {
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+@media (max-width: 768px) {
+    #game[data-nav-position] {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        height: auto;
+        overflow: visible;
+    }
+
+    #game[data-nav-position] .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    #game[data-nav-position] .main-frame {
+        width: 100%;
+        min-height: calc(100vh - var(--topbar-height));
+        flex: 1 1 auto;
+        grid-area: auto;
+    }
+
+    #game[data-nav-position] .main-tabs {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 400;
+        width: min(86vw, 312px);
+        height: 100vh;
+        min-height: 100vh;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background: transparent !important;
+        border-right: 1px solid var(--border-gold);
+        box-shadow: none;
+        transform: translateX(-105%);
+        transition: transform 0.32s var(--ease);
+    }
+
+    #game.nav-mobile-open[data-nav-position] .main-tabs {
+        transform: translateX(0);
+    }
+
+    #game[data-nav-position] .drawer-toggle {
+        width: 34px;
+        height: 34px;
+    }
+
+    #game[data-nav-position] .drawer-brand-copy {
+        max-width: 190px;
+        opacity: 1;
+        transform: none;
+    }
+
+    #game[data-nav-position] .tab,
+    #game[data-nav-position] .drawer-settings {
+        height: 54px;
+        min-height: 54px;
+        flex-basis: 54px;
+    }
+
+    #game[data-nav-position] .tab-label,
+    #game[data-nav-position] .drawer-settings .tab-label {
+        max-width: 190px;
+        flex-basis: auto;
+        opacity: 1;
+        transform: none;
+    }
+
+    #game.nav-collapsed[data-nav-position] .drawer-brand-copy,
+    #game.nav-collapsed[data-nav-position] .tab-label,
+    #game.nav-collapsed[data-nav-position] .drawer-settings .tab-label {
+        max-width: 190px;
+        flex-basis: auto;
+        opacity: 1;
+        transform: none;
+    }
+
+    #game.nav-collapsed[data-nav-position] .drawer-header {
+        justify-content: flex-start;
+        padding-left: 4px;
+        padding-right: 2px;
+    }
+
+    #game.nav-collapsed[data-nav-position] .drawer-toggle {
+        position: static;
+        width: 34px;
+        height: 34px;
+        transform: none;
+    }
+
+    #game.nav-collapsed[data-nav-position] .tab,
+    #game.nav-collapsed[data-nav-position] .drawer-settings {
+        justify-content: flex-start;
+        gap: 12px;
+        padding-left: 13px;
+        padding-right: 13px;
+    }
+
+    #game[data-nav-position] .mobile-nav-toggle {
+        width: 40px;
+        height: 40px;
+        margin: 0 8px 0 0;
+        padding: 0;
+        flex: 0 0 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        order: -1;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.025);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    #game[data-nav-position] .mobile-nav-toggle:hover,
+    #game[data-nav-position] .mobile-nav-toggle:focus-visible {
+        color: var(--gold-light);
+        border-color: var(--border-gold);
+        outline: none;
+    }
+
+    #game[data-nav-position] .mobile-nav-toggle__icon {
+        width: 19px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    #game[data-nav-position] .mobile-nav-toggle__icon span {
+        display: block;
+        height: 2px;
+        border-radius: 2px;
+        background: currentColor;
+        transition: transform 0.25s ease, opacity 0.2s ease;
+    }
+
+    #game.nav-mobile-open[data-nav-position] .mobile-nav-toggle__icon span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+    }
+
+    #game.nav-mobile-open[data-nav-position] .mobile-nav-toggle__icon span:nth-child(2) {
+        opacity: 0;
+    }
+
+    #game.nav-mobile-open[data-nav-position] .mobile-nav-toggle__icon span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .nav-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 350;
+        display: block;
+        background: rgba(2, 3, 8, 0.62);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+        opacity: 1;
+    }
+
+    .nav-scrim[hidden] {
+        display: none;
+    }
+}
+
+body.nav-open {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #game[data-nav-position] .main-tabs,
+    #game[data-nav-position] .tab,
+    #game[data-nav-position] .drawer-settings,
+    #game[data-nav-position] .tab-label,
+    #game[data-nav-position] .drawer-brand-copy,
+    #game[data-nav-position] .drawer-toggle-icon {
+        transition-duration: 0.01ms;
+    }
+}
