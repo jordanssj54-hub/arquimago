@@ -227,5 +227,30 @@
         });
     };
 
+    Arquimago.playClassChange = function (rising) {
+        if (!canPlay()) return;
+        var ac = getCtx();
+        if (!ac) return;
+        audioUnlock();
+        var t = ac.currentTime;
+        var g = out(rising ? 0.13 : 0.09);
+        if (!g) return;
+        var notes = rising ? [523.25, 659.25, 783.99, 1046.5] : [493.88, 392];
+        notes.forEach(function (f, i) {
+            var osc = ac.createOscillator();
+            var gn = ac.createGain();
+            var start = t + i * (rising ? 0.08 : 0.12);
+            osc.type = rising ? "triangle" : "sine";
+            osc.frequency.value = f;
+            gn.gain.setValueAtTime(0.001, start);
+            gn.gain.exponentialRampToValueAtTime(rising ? 0.25 : 0.18, start + 0.02);
+            gn.gain.exponentialRampToValueAtTime(0.001, start + (rising ? 0.28 : 0.24));
+            osc.connect(gn);
+            gn.connect(g);
+            osc.start(start);
+            osc.stop(start + (rising ? 0.32 : 0.28));
+        });
+    };
+
     global.Arquimago = Arquimago;
 })(typeof window !== "undefined" ? window : this);

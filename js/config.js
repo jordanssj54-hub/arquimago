@@ -4,6 +4,7 @@
     var Arquimago = global.Arquimago || {};
 
     Arquimago.STORAGE_KEY = "arquimago_recomeco_v3";
+    Arquimago.MONTHLY_GOAL_FRACTION = 0.6;
 
     Arquimago.NAVIGATION = {
         position: "top",
@@ -109,6 +110,7 @@
         level: 1,
         xp: 0,
         totalXP: 0,
+        classIndex: 0,
         streak: 0,
         template: "default",
         theme: "current",
@@ -127,6 +129,10 @@
         navPosition: "top",
         navScale: 1,
         dailyDate: "",
+        dailyXP: 0,
+        dailyAvailableXP: 0,
+        dailyCompletedMissionIds: [],
+        dailyHistory: [],
         weeklyDate: "",
         dailyDone: [],
         weeklyDone: [],
@@ -153,6 +159,12 @@
         bestDailyRankPercent: 0,
         daysUsingApp: 0,
         lastUsageDate: "",
+        monthlyKey: "",
+        monthlyXP: 0,
+        monthlyAvailableXP: 0,
+        monthlyGoalXP: 0,
+        monthlyHistory: [],
+        pendingClassChanges: [],
         financas: {
             saldo: 0,
             guardado: 0,
@@ -182,6 +194,14 @@
         { level: 10, title: "Forjado nas Montanhas" },
         { level: 15, title: "Rompedor do Eclipse" },
         { level: 20, title: "Arquimago Supremo" }
+    ];
+
+    Arquimago.CLASS_DEFINITIONS = [
+        { id: "D", name: "D" },
+        { id: "C", name: "C" },
+        { id: "B", name: "B" },
+        { id: "A", name: "A" },
+        { id: "S", name: "S" }
     ];
 
     Arquimago.SPELLS = [
@@ -549,10 +569,19 @@
         return false;
     };
 
-    Arquimago.CHARACTER_CLASS = "Arquimago";
+    Arquimago.getClassIndex = function (state) {
+        state = state || Arquimago.state;
+        var index = state ? parseInt(state.classIndex, 10) : 0;
+        if (!isFinite(index)) index = 0;
+        return Math.max(0, Math.min(Arquimago.CLASS_DEFINITIONS.length - 1, index));
+    };
 
-    Arquimago.getCharacterClass = function () {
-        return Arquimago.CHARACTER_CLASS;
+    Arquimago.getClassDefinition = function (state) {
+        return Arquimago.CLASS_DEFINITIONS[Arquimago.getClassIndex(state)] || Arquimago.CLASS_DEFINITIONS[0];
+    };
+
+    Arquimago.getCharacterClass = function (state) {
+        return Arquimago.getClassDefinition(state).name;
     };
 
     Arquimago.getCharacterName = function () {

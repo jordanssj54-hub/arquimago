@@ -36,7 +36,7 @@
         if (!layer) return;
         var pop = document.createElement("div");
         pop.className = "fx-xp-pop";
-        pop.textContent = "+" + amount + " XP";
+        pop.textContent = "+" + amount + " XP ✨";
         if (anchorEl) {
             var rect = anchorEl.getBoundingClientRect();
             pop.style.left = rect.left + rect.width / 2 + "px";
@@ -46,7 +46,7 @@
             pop.style.top = "40%";
         }
         layer.appendChild(pop);
-        Arquimago.spawnBurst(anchorEl || document.body, 8);
+        Arquimago.spawnBurst(anchorEl || document.body, 10);
         setTimeout(function () { pop.remove(); }, 1200);
     };
 
@@ -106,6 +106,47 @@
                 if (onDone) onDone();
             }, 600);
         }, 2800);
+    };
+
+    Arquimago.showClassChange = function (change, onDone) {
+        var overlay = document.getElementById("levelup-overlay");
+        if (!overlay || !change) { if (onDone) onDone(); return; }
+
+        var rising = change.direction > 0;
+        overlay.hidden = false;
+        overlay.innerHTML =
+            '<div class="levelup-backdrop"></div>' +
+            '<div class="levelup-particles"></div>' +
+            '<div class="levelup-content class-change-content">' +
+            '<div class="levelup-pre">META ARCANA</div>' +
+            '<div class="class-change-symbol">' + (rising ? "✦" : "◇") + '</div>' +
+            '<div class="levelup-number">' + (rising ? "Classe elevada" : "Classe reduzida") + '</div>' +
+            '<div class="levelup-sub">' + change.previousClass + ' → ' + change.currentClass + '</div>' +
+            '</div>';
+
+        var particles = overlay.querySelector(".levelup-particles");
+        for (var i = 0; i < 24; i++) {
+            var p = document.createElement("span");
+            p.className = "levelup-particle";
+            p.style.left = Math.random() * 100 + "%";
+            p.style.top = Math.random() * 100 + "%";
+            p.style.animationDelay = Math.random() * 0.5 + "s";
+            particles.appendChild(p);
+        }
+
+        overlay.classList.add("class-change", rising ? "class-change--up" : "class-change--down", "active");
+        if (Arquimago.playClassChange) Arquimago.playClassChange(rising);
+
+        setTimeout(function () {
+            overlay.classList.remove("active");
+            overlay.classList.add("out");
+            setTimeout(function () {
+                overlay.hidden = true;
+                overlay.classList.remove("out", "class-change", "class-change--up", "class-change--down");
+                overlay.innerHTML = "";
+                if (onDone) onDone();
+            }, 600);
+        }, 3000);
     };
 
     global.Arquimago = Arquimago;

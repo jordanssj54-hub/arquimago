@@ -12,7 +12,8 @@
 
     function todayKey() {
         if (Arquimago.getTodayKey) return Arquimago.getTodayKey();
-        return new Date().toISOString().slice(0, 10);
+        var d = new Date();
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
 
     function weekKey() {
@@ -21,7 +22,7 @@
         var day = d.getDay();
         var diff = d.getDate() - day + (day === 0 ? -6 : 1);
         d.setDate(diff);
-        return d.toISOString().slice(0, 10);
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
 
     function validAttribute(key) {
@@ -45,12 +46,12 @@
         return list.indexOf(mission.id) !== -1;
     }
 
-    function allNativeMissions() {
+    function allNativeMissions(state) {
         var result = [];
         ["main", "daily", "weekly", "habits"].forEach(function (type) {
             (Arquimago.MISSIONS[type] || []).forEach(function (mission) {
                 result.push({
-                    mission: Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mission) : mission,
+                    mission: Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mission, state) : mission,
                     type: type
                 });
             });
@@ -105,9 +106,9 @@
         return Math.max(1, Math.min(10, parseInt(xp, 10) || 4));
     };
 
-    Arquimago.applyMissionOverrides = function (mission) {
+    Arquimago.applyMissionOverrides = function (mission, state) {
         if (!mission) return mission;
-        var overrides = Arquimago.getMissionOverrides();
+        var overrides = Arquimago.getMissionOverrides(state);
         var ov = overrides[mission.id];
         if (!ov) return mission;
         var merged = {};
@@ -146,7 +147,7 @@
 
     Arquimago.getAllMissionEntries = function (state, includeSuppressed) {
         state = state || Arquimago.state;
-        var entries = allNativeMissions();
+        var entries = allNativeMissions(state);
         (state && state.customMissions || []).forEach(function (mission) {
             entries.push({
                 mission: mission,
@@ -170,9 +171,7 @@
     Arquimago.getDailyMissionEntries = function (state) {
         state = state || Arquimago.state;
         if (!state) return [];
-        return Arquimago.getAllMissionEntries(state).filter(function (entry) {
-            return entry.type === "daily" || entry.type === "habits" || entry.type === "custom_daily";
-        });
+        return Arquimago.getAllMissionEntries(state);
     };
 
     Arquimago.getRankForPercentage = function (percent) {
@@ -346,6 +345,162 @@
         };
     };
 
+    function monthKeyFromValue(value) {
+        if (value && /^\d{4}-\d{2}$/.test(String(value))) return String(value);
+        if (Arquimago.getMonthKey) return Arquimago.getMonthKey();
+        var now = new Date();
+        return now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+    }
+
+    function nextMonthKey(key) {
+        var parts = String(key).split("-");
+        var year = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10);
+        if (!isFinite(year) || !isFinite(month)) return null;
+        month += 1;
+        if (month > 12) {
+            month = 1;
+            year += 1;
+        }
+        return year + "-" + String(month).padStart(2, "0");
+    }
+
+    function monthSerial(key) {
+        var parts = String(key).split("-");
+        var year = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10);
+        return isFinite(year) && isFinite(month) ? year * 12 + month : NaN;
+    }
+
+    Arquimago.getMonthlyAvailableMissionXP = function (state, month) {
+        state = state || Arquimago.state;
+        month = monthKeyFromValue(month);
+        var missionXP = Arquimago.getTotalAvailableMissionXP(state);
+        var workdays = Arquimago.getBusinessDaysInMonth ? Arquimago.getBusinessDaysInMonth(month) : 0;
+        return missionXP * workdays;
+    };
+
+    Arquimago.getMonthlyGoalXP = function (availableXP) {
+        return Math.ceil(Math.max(0, Number(availableXP) || 0) * (Arquimago.MONTHLY_GOAL_FRACTION || 0.6));
+    };
+
+    Arquimago.getMonthlyProgress = function (state) {
+        state = state || Arquimago.state;
+        var currentAvailable = Arquimago.getMonthlyAvailableMissionXP(state, state && state.monthlyKey);
+        var available = Math.max(0, Number(state && state.monthlyAvailableXP) || 0);
+        if (currentAvailable > available) {
+            state.monthlyAvailableXP = currentAvailable;
+            state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(currentAvailable);
+            available = currentAvailable;
+        }
+        var goal = Math.max(0, Number(state && state.monthlyGoalXP) || Arquimago.getMonthlyGoalXP(available));
+        var earned = Math.max(0, Number(state && state.monthlyXP) || 0);
+        var percent = available > 0 ? Math.min(100, Math.round((earned / available) * 100)) : 0;
+        return {
+            month: monthKeyFromValue(state && state.monthlyKey),
+            earned: earned,
+            available: available,
+            goal: goal,
+            percent: percent,
+            goalPercent: goal > 0 ? Math.min(100, Math.round((earned / goal) * 100)) : 0,
+            isMet: goal > 0 && earned >= goal
+        };
+    };
+
+    function classChangeForCycle(state, met, month) {
+        var beforeIndex = Arquimago.getClassIndex(state);
+        var direction = met ? 1 : -1;
+        var afterIndex = Math.max(0, Math.min(Arquimago.CLASS_DEFINITIONS.length - 1, beforeIndex + direction));
+        if (afterIndex === beforeIndex) return null;
+
+        var before = Arquimago.getClassDefinition(state);
+        state.classIndex = afterIndex;
+        var after = Arquimago.getClassDefinition(state);
+        if (!Array.isArray(state.pendingClassChanges)) state.pendingClassChanges = [];
+        state.pendingClassChanges.push({
+            month: month,
+            direction: direction,
+            previousClass: before.name,
+            currentClass: after.name
+        });
+        return { direction: direction, previousClass: before.name, currentClass: after.name, month: month };
+    }
+
+    Arquimago.finalizeMonthlyCycle = function (state, month) {
+        state = state || Arquimago.state;
+        month = monthKeyFromValue(month);
+        if (!state || !month) return null;
+        if ((state.monthlyHistory || []).some(function (entry) { return entry.month === month; })) return null;
+
+        var available = Math.max(0, Number(state.monthlyAvailableXP) || 0);
+        if (!available) available = Arquimago.getMonthlyAvailableMissionXP(state, month);
+        var earned = Math.max(0, Number(state.monthlyXP) || 0);
+        var goal = Arquimago.getMonthlyGoalXP(available);
+        var percent = available > 0 ? Math.min(100, Math.round((earned / available) * 100)) : 0;
+        var met = goal > 0 && earned >= goal;
+        var classBefore = Arquimago.getCharacterClass(state);
+        var classIndexBefore = Arquimago.getClassIndex(state);
+        var classChange = classChangeForCycle(state, met, month);
+
+        state.monthlyHistory.push({
+            month: month,
+            xp: earned,
+            totalAvailableXP: available,
+            goalXP: goal,
+            percentage: percent,
+            goalMet: met,
+            class: classBefore,
+            classIndex: classIndexBefore,
+            closedAt: todayKey()
+        });
+        return state.monthlyHistory[state.monthlyHistory.length - 1];
+    };
+
+    Arquimago.startMonthlyCycle = function (state, month) {
+        state = state || Arquimago.state;
+        month = monthKeyFromValue(month);
+        state.monthlyKey = month;
+        state.monthlyXP = 0;
+        state.monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP(state, month);
+        state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(state.monthlyAvailableXP);
+        return Arquimago.getMonthlyProgress(state);
+    };
+
+    Arquimago.syncMonthlyCycle = function (state, month) {
+        state = state || Arquimago.state;
+        month = monthKeyFromValue(month);
+        if (!state.monthlyKey || !/^\d{4}-\d{2}$/.test(state.monthlyKey)) {
+            Arquimago.startMonthlyCycle(state, month);
+            return { changed: true, changes: [] };
+        }
+        if (state.monthlyKey === month) {
+            if (!state.monthlyAvailableXP) {
+                state.monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP(state, month);
+                state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(state.monthlyAvailableXP);
+            }
+            return { changed: false, changes: [] };
+        }
+        if (monthSerial(state.monthlyKey) > monthSerial(month)) {
+            Arquimago.startMonthlyCycle(state, month);
+            return { changed: true, changes: [] };
+        }
+
+        var changes = [];
+        var cursor = state.monthlyKey;
+        var guard = 0;
+        while (cursor && cursor !== month && guard < 240) {
+            var record = Arquimago.finalizeMonthlyCycle(state, cursor);
+            if (record) {
+                var change = state.pendingClassChanges[state.pendingClassChanges.length - 1];
+                if (change && change.month === cursor) changes.push(change);
+            }
+            cursor = nextMonthKey(cursor);
+            Arquimago.startMonthlyCycle(state, cursor);
+            guard++;
+        }
+        return { changed: true, changes: changes };
+    };
+
     Arquimago.changeAttributeProgress = function (state, mission, delta) {
         if (!state || !mission || !validAttribute(mission.attribute)) return { levelUp: false, data: null };
         if (!state.attributes) state.attributes = {};
@@ -464,6 +619,10 @@
         state.dailyDone = Array.isArray(state.dailyDone) ? state.dailyDone : [];
         state.weeklyDone = Array.isArray(state.weeklyDone) ? state.weeklyDone : [];
         state.habitsDone = Array.isArray(state.habitsDone) ? state.habitsDone : [];
+        state.dailyCompletedMissionIds = Array.isArray(state.dailyCompletedMissionIds) ? state.dailyCompletedMissionIds : [];
+        state.dailyHistory = Array.isArray(state.dailyHistory) ? state.dailyHistory : [];
+        state.monthlyHistory = Array.isArray(state.monthlyHistory) ? state.monthlyHistory : [];
+        state.pendingClassChanges = Array.isArray(state.pendingClassChanges) ? state.pendingClassChanges : [];
         state.customMissions = Array.isArray(state.customMissions) ? state.customMissions : [];
         state.hiddenMissionIds = Array.isArray(state.hiddenMissionIds) ? state.hiddenMissionIds : [];
         state.deletedMissionIds = Array.isArray(state.deletedMissionIds) ? state.deletedMissionIds : [];
@@ -510,6 +669,14 @@
         state.bestDailyRankPercent = Math.max(0, Math.min(100, Number(state.bestDailyRankPercent) || 0));
         state.daysUsingApp = Math.max(0, Number(state.daysUsingApp) || 0);
         if (typeof state.lastUsageDate !== "string") state.lastUsageDate = "";
+        if (typeof state.dailyDate !== "string") state.dailyDate = "";
+        state.dailyXP = Math.max(0, Number(state.dailyXP) || 0);
+        state.dailyAvailableXP = Math.max(0, Number(state.dailyAvailableXP) || 0);
+        if (typeof state.monthlyKey !== "string") state.monthlyKey = "";
+        state.monthlyXP = Math.max(0, Number(state.monthlyXP) || 0);
+        state.monthlyAvailableXP = Math.max(0, Number(state.monthlyAvailableXP) || 0);
+        state.monthlyGoalXP = Math.max(0, Number(state.monthlyGoalXP) || 0);
+        state.classIndex = Arquimago.getClassIndex(state);
         if (typeof state.level !== "number" || state.level < 1) state.level = 1;
         if (typeof state.xp !== "number" || state.xp < 0) state.xp = 0;
         if (typeof state.totalXP !== "number" || state.totalXP < 0) state.totalXP = 0;

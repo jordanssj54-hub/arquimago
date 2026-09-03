@@ -11,13 +11,13 @@
     };
 
     var FREQ_MAP = {
-        main: { label: "Principal", css: "special" },
+        main: { label: "Diária", css: "special" },
         daily: { label: "Diária", css: "daily" },
-        weekly: { label: "Semanal", css: "weekly" },
-        habits: { label: "Hábito", css: "habit" },
+        weekly: { label: "Diária", css: "weekly" },
+        habits: { label: "Diária", css: "habit" },
         custom_daily: { label: "Diária", css: "daily" },
-        custom_weekly: { label: "Semanal", css: "weekly" },
-        custom_free: { label: "Livre", css: "free" }
+        custom_weekly: { label: "Diária", css: "weekly" },
+        custom_free: { label: "Diária", css: "free" }
     };
 
     var customFormOpen = false;
@@ -209,11 +209,17 @@
        ============================================================ */
     Arquimago.setMissionComplete = function (mission, type, isComplete, anchor) {
         var state = Arquimago.state;
+        if (Arquimago.syncDates) Arquimago.syncDates(state);
+        if (Arquimago.processPendingClassChanges) Arquimago.processPendingClassChanges();
         var item = anchorItem(anchor);
+        var now = new Date();
+        var completionDate = Arquimago.getTodayKey ? Arquimago.getTodayKey() : now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
 
         if (isComplete) {
             if (isDone(state, mission, type)) return;
             markCompleted(state, mission, type);
+            if (!Array.isArray(state.dailyCompletedMissionIds)) state.dailyCompletedMissionIds = [];
+            if (state.dailyCompletedMissionIds.indexOf(mission.id) === -1) state.dailyCompletedMissionIds.push(mission.id);
             state.missionsCompleted += 1;
             state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) + 1);
             state.xpCompletedForLevel = Math.max(0, (state.xpCompletedForLevel || 0) + (Number(mission.xp) || 0));
@@ -242,16 +248,17 @@
 
             Arquimago.saveState(state);
 
+            Arquimago.gainXP(mission.xp, anchor, completionDate, { deferRefresh: true, skipSound: true });
             setTimeout(function () {
-                Arquimago.gainXP(mission.xp, anchor);
-
-                if (Arquimago.checkMissionLevelUp) {
-                    Arquimago.checkMissionLevelUp(anchor);
-                }
-            }, 350);
+                var leveledUp = Arquimago.checkMissionLevelUp ? Arquimago.checkMissionLevelUp(anchor) : false;
+                if (!leveledUp && Arquimago.refreshAll) Arquimago.refreshAll(true);
+            }, 700);
         } else {
             if (!isDone(state, mission, type)) return;
             unmarkCompleted(state, mission, type);
+            if (Array.isArray(state.dailyCompletedMissionIds)) {
+                state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (id) { return id !== mission.id; });
+            }
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
             state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) - 1);
             state.xpCompletedForLevel = Math.max(0, (state.xpCompletedForLevel || 0) - (Number(mission.xp) || 0));
@@ -274,17 +281,14 @@
 
     /* ============================================================
        Missões Personalizadas — cidadãs de primeira classe.
-       Usam exatamente os mesmos arrays de progresso das nativas:
-       dailyDone (diária), weeklyDone (semanal), completedIds (livre).
+       Todas as missões personalizadas seguem o checklist diário.
        ============================================================ */
     Arquimago.getCustomMissions = function () {
         return (Arquimago.state && Arquimago.state.customMissions) || [];
     };
 
     Arquimago.getCustomTypeForFrequency = function (freq) {
-        if (freq === "daily") return "custom_daily";
-        if (freq === "weekly") return "custom_weekly";
-        return "custom_free";
+        return "custom_daily";
     };
 
     Arquimago.getMissionIcon = function (mission) {
@@ -303,7 +307,7 @@
             id: "custom_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
             name: String(opts.name || "").trim(),
             xp: Math.max(2, Math.min(8, parseInt(opts.xp, 10) || 4)),
-            frequency: opts.frequency === "daily" || opts.frequency === "weekly" ? opts.frequency : "free",
+            frequency: "daily",
             objective: String(opts.objective || "").trim(),
             icon: String(opts.icon || "🎯"),
             attribute: Arquimago.ATTRIBUTE_DEFINITIONS[opts.attribute] ? opts.attribute : "vitality",
@@ -339,6 +343,9 @@
         var type = Arquimago.getCustomTypeForFrequency(mission.frequency);
         if (isDone(state, mission, type)) {
             unmarkCompleted(state, mission, type);
+            if (Array.isArray(state.dailyCompletedMissionIds)) {
+                state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (missionId) { return missionId !== id; });
+            }
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
         }
@@ -457,10 +464,8 @@
              '</div>' +
             '<div class="missions-form__field">' +
             '<label for="customFreq">Frequência</label>' +
-            '<select id="customFreq">' +
-            '<option value="daily"' + (formCache.freq === "daily" ? " selected" : "") + '>Diária</option>' +
-            '<option value="weekly"' + (formCache.freq === "weekly" ? " selected" : "") + '>Semanal</option>' +
-            '<option value="free"' + (formCache.freq === "free" ? " selected" : "") + '>Livre</option>' +
+             '<select id="customFreq">' +
+             '<option value="daily" selected>Diária</option>' +
             '</select>' +
             '</div>' +
              '<div class="missions-form__field missions-form__field--full">' +
@@ -712,6 +717,9 @@
 
         entries.forEach(function (entry) {
             unmarkCompleted(state, entry.mission, entry.type);
+            if (Array.isArray(state.dailyCompletedMissionIds)) {
+                state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (id) { return id !== entry.mission.id; });
+            }
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, entry.mission);
         });
         state.missionsCompleted = Math.max(0, state.missionsCompleted - entries.length);
@@ -980,7 +988,7 @@
                 var mission = findMission(type, id);
                 if (!mission) return;
 
-                Arquimago.playClick();
+                if (!input.checked) Arquimago.playClick();
                 Arquimago.setMissionComplete(mission, type, input.checked, input);
             });
         });

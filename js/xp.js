@@ -12,63 +12,55 @@
         return need <= 0 ? 100 : Math.min(100, (state.xp / need) * 100);
     };
 
-    Arquimago.checkMissionLevelUp = function (anchorEl) {
-        var state = Arquimago.state;
-        var prevLevel = state.level;
-        var progress = Arquimago.getMissionXPProgress ? Arquimago.getMissionXPProgress(state) : null;
-
-        if (!progress || !progress.isMet) return false;
-
-        state.level += 1;
-        state.title = Arquimago.getTitleForLevel(state.level);
-        state.chapter = Arquimago.getChapterForLevel(state.level).id;
-        state.missionsCompletedForLevel = 0;
-        state.xpCompletedForLevel = 0;
-
-        Arquimago.SPELLS.forEach(function (spell) {
-            if (state.level >= spell.level && state.unlockedSpells.indexOf(spell.id) === -1) {
-                state.unlockedSpells.push(spell.id);
-            }
-        });
-
-        var unlockedRewards = [];
-        if (Arquimago.getGrimoireRewards) {
-            Arquimago.getGrimoireRewards().forEach(function (reward) {
-                if (state.level >= reward.nivelNecessario && prevLevel < reward.nivelNecessario) {
-                    unlockedRewards.push(reward);
-                }
-            });
-        }
-
-        Arquimago.saveState(state);
-
-        Arquimago.showLevelUp(state.level, function () {
-            if (unlockedRewards.length && Arquimago.showRewardUnlock) {
-                Arquimago.showRewardUnlock(unlockedRewards, function () {
-                    Arquimago.refreshAll();
-                });
-            } else {
-                Arquimago.refreshAll();
-            }
-        });
-
-        return true;
+    Arquimago.checkMissionLevelUp = function () {
+        return false;
     };
 
-    Arquimago.gainXP = function (amount, anchorEl) {
+    function addXPToCycleHistory(state, total, dateKey) {
+        if (dateKey === state.dailyDate) {
+            state.dailyXP = Math.max(0, (Number(state.dailyXP) || 0) + total);
+        } else {
+            var dayRecord = (state.dailyHistory || []).find(function (entry) { return entry.date === dateKey; });
+            if (dayRecord) {
+                dayRecord.xp = Math.max(0, (Number(dayRecord.xp) || 0) + total);
+                if (dayRecord.totalAvailableXP > 0) {
+                    dayRecord.percentage = Math.min(100, Math.round((dayRecord.xp / dayRecord.totalAvailableXP) * 100));
+                }
+            }
+        }
+
+        var month = String(dateKey || "").slice(0, 7);
+        if (month === state.monthlyKey) {
+            state.monthlyXP = Math.max(0, (Number(state.monthlyXP) || 0) + total);
+        } else {
+            var monthRecord = (state.monthlyHistory || []).find(function (entry) { return entry.month === month; });
+            if (monthRecord) {
+                monthRecord.xp = Math.max(0, (Number(monthRecord.xp) || 0) + total);
+                monthRecord.percentage = monthRecord.totalAvailableXP > 0 ? Math.min(100, Math.round((monthRecord.xp / monthRecord.totalAvailableXP) * 100)) : 0;
+                monthRecord.goalMet = monthRecord.xp >= monthRecord.goalXP;
+            }
+        }
+    }
+
+    Arquimago.gainXP = function (amount, anchorEl, completionDate, options) {
         var state = Arquimago.state;
+        if (Arquimago.syncDates) Arquimago.syncDates(state);
+        options = options || {};
+        amount = Math.max(0, Number(amount) || 0);
         var bonus = Math.round(amount * Arquimago.getEventBonus());
         var total = amount + bonus;
+        var dateKey = completionDate || Arquimago.getTodayKey();
 
         state.totalXP += total;
         state.xp += total;
+        addXPToCycleHistory(state, total, dateKey);
 
         Arquimago.showXpPopup(total, anchorEl);
-        Arquimago.playXp();
+        if (!options.skipSound) Arquimago.playXp();
         Arquimago.showNotification("+" + total + " XP" + (bonus ? " (evento ativo)" : ""), "xp");
 
         Arquimago.saveState(state);
-        Arquimago.refreshAll(true);
+        if (!options.deferRefresh) Arquimago.refreshAll(true);
 
         return total;
     };

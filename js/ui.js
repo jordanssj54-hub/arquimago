@@ -77,11 +77,32 @@
     }
 
     function xpPanelHtml(ctx) {
+        var monthly = ctx.monthly;
+        var remaining = Math.max(0, monthly.goal - monthly.earned);
+        var classLabel = escapeHtml(Arquimago.getCharacterClass());
         return '<section class="panel home-xp-panel">' +
-            '<div class="home-xp-panel__heading"><div><span class="section-label">Progresso da jornada</span><h1>Nível ' + ctx.state.level + '</h1></div><span class="home-xp-panel__pace">Evolução constante</span></div>' +
-            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (ctx.animateXp ? 0 : xpFillWidth(ctx.xpPct)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + ctx.xpCurrent + ' / ' + ctx.xpNeed + ' XP</div></div>' +
-            '<div class="home-xp-panel__meta"><span>' + ctx.xpCurrent + ' XP acumulados neste nível</span><strong>Faltam ' + Math.max(0, ctx.xpNeed - ctx.xpCurrent) + ' XP</strong></div>' +
+            '<div class="home-xp-panel__heading"><div><span class="section-label">Meta Arcana</span><h1>' + escapeHtml(monthLabel(monthly.month)) + '</h1></div><span class="home-xp-panel__pace">Classe ' + classLabel + '</span></div>' +
+            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (ctx.animateXp ? 0 : xpFillWidth(monthly.percent)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</div></div>' +
+            '<div class="home-xp-panel__meta"><span>' + monthly.percent + '% do total disponível · meta em 60%</span><strong>' + (monthly.isMet ? "Meta atingida" : "Faltam " + Arquimago.formatNumber(remaining) + " XP") + '</strong></div>' +
             '</section>';
+    }
+
+    function monthLabel(key) {
+        var parts = String(key || "").split("-");
+        var year = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10);
+        if (!isFinite(year) || !isFinite(month)) return "Mês atual";
+        return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
+
+    function monthlyCardHtml(monthly, animate) {
+        var remaining = Math.max(0, monthly.goal - monthly.earned);
+        return '<button type="button" class="home-monthly-card' + (monthly.isMet ? " is-met" : "") + '" id="monthlyGoalCard">' +
+            '<span class="home-monthly-card__head"><span><small>Meta Arcana</small><strong>' + escapeHtml(monthLabel(monthly.month)) + '</strong></span><b>' + (monthly.isMet ? "Meta atingida" : monthly.percent + "%") + '</b></span>' +
+            '<span class="home-monthly-card__bar"><span style="width:' + (animate ? 0 : monthly.percent) + '%"></span><i style="left:60%"></i></span>' +
+            '<span class="home-monthly-card__values"><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.available) + ' XP</strong><span>' + (monthly.isMet ? "Ciclo garantido" : "Faltam " + Arquimago.formatNumber(remaining) + " XP para 60%") + '</span></span>' +
+            '<span class="home-card-link">Ver histórico mensal <b aria-hidden="true">›</b></span>' +
+            '</button>';
     }
 
     function missionPanelHtml(ctx) {
@@ -102,7 +123,7 @@
                 var id = row.getAttribute("data-home-mission-id");
                 var mission = Arquimago.findMissionByType ? Arquimago.findMissionByType(type, id) : Arquimago.findMission(type, id);
                 if (!mission) return;
-                Arquimago.playClick();
+                if (!input.checked) Arquimago.playClick();
                 Arquimago.setMissionComplete(mission, type, input.checked, input);
             });
         });
@@ -179,22 +200,17 @@
         if (!container || !Arquimago.state) return;
 
         var state = Arquimago.state;
-        var xpProgress = Arquimago.getMissionXPProgress ? Arquimago.getMissionXPProgress(state) : { earned: 0, required: 100, percent: 0 };
-        var xpNeed = xpProgress.required;
-        var xpCurrent = xpProgress.earned;
-        var xpPct = xpProgress.percent;
         var boss = Arquimago.getWeeklyBoss ? Arquimago.getWeeklyBoss(state) : { name: "Boss da Semana", hp: 0, maxHp: 1, icon: "👹", defeated: false };
         var rank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D", completed: 0, total: 0, percent: 0, nextRank: "C", missionsToNext: 0 };
         var dailyEntries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
+        var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { month: "", earned: 0, available: 0, goal: 0, percent: 0, isMet: false };
 
         var ctx = {
             state: state,
-            xpNeed: xpNeed,
-            xpCurrent: xpCurrent,
-            xpPct: xpPct,
             boss: boss,
             rank: rank,
             dailyEntries: dailyEntries,
+            monthly: monthly,
             animateXp: !!animateXp,
             homeMissionsHidden: homeMissionsHidden
         };
@@ -205,18 +221,23 @@
             container.innerHTML = '<div class="home-page home-page--focused">' +
                 rankCardHtml(rank) +
                 xpPanelHtml(ctx) +
+                monthlyCardHtml(monthly, false) +
                 bossCardHtml(boss) +
                 (Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : "") +
                 missionPanelHtml(ctx) +
                 '</div>';
         }
 
-        var topLevel = document.getElementById("topPlayerLevel");
-        if (topLevel) topLevel.textContent = state.level;
         var topRank = document.getElementById("topDailyRank");
         if (topRank) topRank.textContent = rank.rank;
-        document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) { fill.style.width = xpFillWidth(xpPct); });
-        document.querySelectorAll(".xp-bar--top .xp-text").forEach(function (text) { text.innerText = xpCurrent + " / " + xpNeed + " XP"; });
+        var topClass = document.getElementById("topClassLetter");
+        if (topClass) topClass.textContent = Arquimago.getCharacterClass();
+        document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) {
+            if (animateXp) fill.classList.add("xp-animate");
+            fill.style.width = xpFillWidth(monthly.percent);
+            if (animateXp) setTimeout(function () { fill.classList.remove("xp-animate"); }, 900);
+        });
+        document.querySelectorAll(".xp-bar--top .xp-text").forEach(function (text) { text.innerText = Arquimago.formatNumber(monthly.earned) + " / " + Arquimago.formatNumber(monthly.goal) + " XP"; });
         if (Arquimago.initSlideshow) Arquimago.initSlideshow();
     };
 
@@ -245,6 +266,20 @@
             '<div class="detail-stats"><div class="detail-stat"><span>Concluídas</span><strong>' + rank.completed + ' / ' + rank.total + '</strong><small>missões realizadas hoje</small></div><div class="detail-stat"><span>Restantes</span><strong>' + rank.remaining + '</strong><small>missões para encerrar o dia</small></div>' + next + '</div>' +
             '<p class="progression-modal__hint">O Rank Diário é independente do XP. Ele existe para mostrar a qualidade do seu dia, sem alterar a velocidade da sua evolução.</p>';
         openProgressionModal("Rank de Hoje", content, "progression-modal--rank");
+    };
+
+    Arquimago.openMonthlyDetails = function () {
+        var state = Arquimago.state;
+        var monthly = Arquimago.getMonthlyProgress(state);
+        var history = (state.monthlyHistory || []).slice().reverse();
+        var rows = history.length ? history.map(function (entry) {
+            return '<div class="monthly-history-row' + (entry.goalMet ? " is-met" : "") + '"><div><strong>' + escapeHtml(monthLabel(entry.month)) + '</strong><small>' + escapeHtml(entry.class || "Aprendiz") + '</small></div><span>' + Arquimago.formatNumber(entry.xp) + ' / ' + Arquimago.formatNumber(entry.totalAvailableXP) + ' XP</span><b>' + entry.percentage + '%</b><em>' + (entry.goalMet ? "Meta atingida" : "Meta não atingida") + '</em></div>';
+        }).join("") : '<p class="profile-empty">Nenhum ciclo mensal encerrado ainda.</p>';
+        var content = '<div class="monthly-detail__hero"><div><small>' + escapeHtml(monthLabel(monthly.month)) + '</small><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.available) + ' XP</strong><span>' + monthly.percent + '% do total disponível · meta em 60%</span></div><b class="monthly-detail__class">' + escapeHtml(Arquimago.getCharacterClass()) + '</b></div>' +
+            '<div class="monthly-detail__bar"><span style="width:' + monthly.percent + '%"></span><i style="left:60%"></i></div>' +
+            '<p class="progression-modal__hint">A Meta Arcana reinicia no primeiro dia de cada mês. O XP permanente, nível, magias e títulos continuam intactos.</p>' +
+            '<div class="monthly-history"><h3>Histórico mensal</h3>' + rows + '</div>';
+        openProgressionModal("Meta Arcana", content, "progression-modal--monthly");
     };
 
     Arquimago.openWeeklyBossDetails = function () {
@@ -331,6 +366,29 @@
                         setTimeout(function () { fill.classList.remove("xp-animate"); }, 900);
                     });
                 });
+            }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "monthly",
+            title: "Meta Arcana",
+            defaultSize: "wide",
+            sizes: ["medium", "wide", "full"],
+            render: function (ctx) { return monthlyCardHtml(ctx.monthly, ctx.animateXp); },
+            afterRender: function (ctx, el) {
+                var b = el.querySelector("#monthlyGoalCard");
+                if (b) b.addEventListener("click", function () {
+                    Arquimago.playClick();
+                    Arquimago.openMonthlyDetails();
+                });
+                if (ctx.animateXp) {
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () {
+                            var fill = el.querySelector(".home-monthly-card__bar span");
+                            if (fill) fill.style.width = ctx.monthly.percent + "%";
+                        });
+                    });
+                }
             }
         });
 

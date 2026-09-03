@@ -3,6 +3,8 @@
 
     var Arquimago = global.Arquimago || {};
     var playTimer = null;
+    var dateSyncTimer = null;
+    var dateSyncEventsBound = false;
 
     Arquimago.enterGame = function () {
         var game = document.getElementById("game");
@@ -15,9 +17,11 @@
         Arquimago.applyAppearance();
         if (Arquimago.applyNavigationConfig) Arquimago.applyNavigationConfig();
         Arquimago.refreshAll();
+        processPendingClassChanges();
         Arquimago.startMusic();
         initSettings();
         startPlayTimer();
+        startDateSyncTimer();
     };
 
     function initSettings() {
@@ -278,16 +282,52 @@
     }
 
     function startPlayTimer() {
+        if (playTimer) clearInterval(playTimer);
         playTimer = setInterval(function () {
             Arquimago.state.playTimeSeconds += 30;
             Arquimago.saveState(Arquimago.state);
         }, 30000);
     }
 
+    function processPendingClassChanges() {
+        var changes = Arquimago.state && Arquimago.state.pendingClassChanges;
+        if (!changes || !changes.length) return;
+        var change = changes[changes.length - 1];
+        Arquimago.state.pendingClassChanges = [];
+        Arquimago.saveState(Arquimago.state);
+        if (Arquimago.showClassChange) Arquimago.showClassChange(change);
+        if (Arquimago.showNotification) {
+            Arquimago.showNotification((change.direction > 0 ? "Classe elevada: " : "Classe reduzida: ") + change.currentClass, "xp");
+        }
+    }
+    Arquimago.processPendingClassChanges = processPendingClassChanges;
+
+    function startDateSyncTimer() {
+        if (dateSyncTimer) clearInterval(dateSyncTimer);
+        function syncCurrentDates() {
+            var state = Arquimago.state;
+            if (!state || !Arquimago.syncDates) return;
+            var oldDay = state.dailyDate;
+            var oldMonth = state.monthlyKey;
+            Arquimago.syncDates(state);
+            if (oldDay !== state.dailyDate || oldMonth !== state.monthlyKey) {
+                Arquimago.saveState(state);
+                Arquimago.refreshAll(false);
+                processPendingClassChanges();
+            }
+        }
+        dateSyncTimer = setInterval(syncCurrentDates, 60000);
+        if (!dateSyncEventsBound) {
+            dateSyncEventsBound = true;
+            document.addEventListener("visibilitychange", function () {
+                if (!document.hidden) syncCurrentDates();
+            });
+            window.addEventListener("focus", syncCurrentDates);
+        }
+    }
+
     Arquimago.init = function () {
         Arquimago.state = Arquimago.loadState();
-        Arquimago.state.title = Arquimago.getTitleForLevel(Arquimago.state.level);
-        Arquimago.state.chapter = Arquimago.getChapterForLevel(Arquimago.state.level).id;
         Arquimago.saveState(Arquimago.state);
 
         Arquimago.runIntro(function () {
