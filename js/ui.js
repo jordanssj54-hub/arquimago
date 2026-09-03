@@ -33,6 +33,15 @@
             .replace(/>/g, "&gt;");
     }
 
+    function formatHomeMoney(value) {
+        var amount = Math.round((Number(value) || 0) * 100) / 100;
+        try {
+            return "R$ " + amount.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } catch (error) {
+            return "R$ " + amount.toFixed(2).replace(".", ",");
+        }
+    }
+
     function isDone(state, entry) {
         var type = entry.type;
         var list = type === "main" || type === "custom_free" ? state.completedIds :
@@ -79,11 +88,10 @@
     function xpPanelHtml(ctx) {
         var monthly = ctx.monthly;
         var remaining = Math.max(0, monthly.goal - monthly.earned);
-        var classLabel = escapeHtml(Arquimago.getCharacterClass());
-        return '<section class="panel home-xp-panel">' +
-            '<div class="home-xp-panel__heading"><div><span class="section-label">Meta Arcana</span><h1>' + escapeHtml(monthLabel(monthly.month)) + '</h1></div><span class="home-xp-panel__pace">Classe ' + classLabel + '</span></div>' +
-            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (ctx.animateXp ? 0 : xpFillWidth(monthly.percent)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</div></div>' +
-            '<div class="home-xp-panel__meta"><span>' + monthly.percent + '% do total disponível · meta em 60%</span><strong>' + (monthly.isMet ? "Meta atingida" : "Faltam " + Arquimago.formatNumber(remaining) + " XP") + '</strong></div>' +
+        var goalPercent = monthly.goal > 0 ? Math.min(100, Math.round((monthly.earned / monthly.goal) * 100)) : 0;
+        return '<section class="home-xp-panel">' +
+            '<div class="home-xp-panel__bar xp-bar"><div class="xp-fill" id="xpFill" style="width:' + (ctx.animateXp ? 0 : xpFillWidth(goalPercent)) + '"></div><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><div class="xp-text" id="xpText">' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</div></div>' +
+            '<div class="home-xp-panel__meta"><span>' + (monthly.isMet ? "RANK C ALCANÇADO" : "FALTA " + Arquimago.formatNumber(remaining) + " XP PARA O RANK C") + '</span></div>' +
             '</section>';
     }
 
@@ -97,21 +105,20 @@
 
     function monthlyCardHtml(monthly, animate) {
         var remaining = Math.max(0, monthly.goal - monthly.earned);
-        return '<button type="button" class="home-monthly-card' + (monthly.isMet ? " is-met" : "") + '" id="monthlyGoalCard">' +
-            '<span class="home-monthly-card__head"><span><small>Meta Arcana</small><strong>' + escapeHtml(monthLabel(monthly.month)) + '</strong></span><b>' + (monthly.isMet ? "Meta atingida" : monthly.percent + "%") + '</b></span>' +
-            '<span class="home-monthly-card__bar"><span style="width:' + (animate ? 0 : monthly.percent) + '%"></span><i style="left:60%"></i></span>' +
-            '<span class="home-monthly-card__values"><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.available) + ' XP</strong><span>' + (monthly.isMet ? "Ciclo garantido" : "Faltam " + Arquimago.formatNumber(remaining) + " XP para 60%") + '</span></span>' +
-            '<span class="home-card-link">Ver histórico mensal <b aria-hidden="true">›</b></span>' +
+        return '<button type="button" class="home-monthly-card' + (monthly.isMet ? " is-met" : "") + '" id="monthlyGoalCard"><img class="home-monthly-card__art" src="assets/ui/home-reference/monthly-art.png" alt="" aria-hidden="true">' +
+            '<span class="home-monthly-card__head"><span><small>META ARCANA</small><strong>' + escapeHtml(monthLabel(monthly.month)) + '</strong></span></span>' +
+            '<span class="home-monthly-card__body"><span class="home-monthly-card__seal" aria-hidden="true"><img src="assets/ui/home-reference/xp-icon.png" alt=""></span><span class="home-monthly-card__progress"><span class="home-monthly-card__values"><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</strong></span><span class="home-monthly-card__bar"><span class="xp-fill" style="width:' + (animate ? 0 : monthly.percent) + '%"></span><img class="xp-frame" src="assets/ui/home-reference/xp-track-frame.png" alt=""></span><span class="home-monthly-card__caption">' + monthly.percent + '% DO TOTAL DISPONÍVEL · META EM 60%</span></span><strong class="home-monthly-card__remaining">' + (monthly.isMet ? "META ATINGIDA" : "FALTAM " + Arquimago.formatNumber(remaining) + " XP") + '</strong></span>' +
             '</button>';
     }
 
     function missionPanelHtml(ctx) {
         var rank = ctx.rank;
-        var state = ctx.state;
-        return '<section class="panel home-missions-panel"><div class="home-panel-heading"><div><span class="section-label">Hoje</span><h2>Missões</h2></div><div class="home-panel-heading__actions"><span>' + rank.completed + ' / ' + rank.total + ' concluídas</span><button type="button" class="btn-secondary compact home-missions-toggle" id="toggleHomeMissionsButton">' + (homeMissionsHidden ? "Mostrar" : "Ocultar") + '</button></div></div>' +
-            '<div class="home-mission-list' + (homeMissionsHidden ? " is-hidden" : "") + '">' + (ctx.dailyEntries.length ? ctx.dailyEntries.map(function (entry) { return homeMissionRow(state, entry); }).join("") : '<p class="home-empty">Nenhuma missão diária disponível.</p>') + '</div>' +
-            (homeMissionsHidden ? '<p class="home-missions-hidden-note">As missões de hoje estão ocultas.</p>' : "") +
-            '<button type="button" class="btn-secondary compact home-all-missions" id="openAllMissions">Ver todas as missões</button>' +
+        var missionRows = (ctx.dailyEntries || []).map(function (entry) { return homeMissionRow(ctx.state, entry); }).join("");
+        return '<section class="home-journey-card panel"><div class="home-journey-card__content"><h2><img class="home-journey-title" src="assets/ui/home-reference/journey-title.png" alt="Jornada de hoje"></h2>' +
+            '<strong class="home-journey-card__stats">' + rank.completed + ' / ' + rank.total + ' MISSÕES <i>•</i> ' + rank.percent + '%</strong>' +
+            '<span class="home-journey-card__bar"><span class="home-journey-card__fill" style="width:' + rank.percent + '%"></span><img src="assets/ui/home-reference/journey-progress.png" alt=""></span>' +
+            '<details class="home-missions-details"><summary class="home-all-missions">VER MISSÕES <b aria-hidden="true">›</b></summary><div class="home-mission-list">' + missionRows + '</div><button type="button" class="home-open-missions" id="openAllMissions">ABRIR PAINEL COMPLETO</button></details></div>' +
+            '<img class="home-journey-card__art" src="assets/ui/home-reference/journey-art.png" alt="" aria-hidden="true">' +
             '</section>';
     }
 
@@ -181,18 +188,31 @@
     }
 
     function rankCardHtml(rank) {
-        var nextText = rank.nextRank ? "Faltam " + rank.missionsToNext + " missões para Rank " + rank.nextRank : "Rank máximo alcançado";
-        var rankIds = ["D", "C", "B", "A", "S"];
-        var rankFiles = { D: "rank_D", C: "rank_C", B: "rank_B", A: "rank_A", S: "rank_S" };
-        var medals = rankIds.map(function (id) {
-            var active = id === rank.rank;
-            return '<span class="home-rank-card__gem' + (active ? " is-active" : "") + (id === "S" ? " is-rank-s" : "") + '" title="Rank ' + id + '"><img src="assets/ranks/' + rankFiles[id] + '.png" alt="Rank ' + id + '">' + (active ? '<b>' + id + '</b>' : '') + '</span>';
-        }).join("");
         return '<button type="button" class="home-rank-card' + (rank.rank === "S" ? " is-rank-s" : "") + '" id="dailyRankCard">' +
-            '<span class="home-rank-card__medals" aria-hidden="true">' + medals + '</span>' +
-            '<span class="home-rank-card__copy"><small>Rank de Hoje</small><strong>Rank ' + rank.rank + '</strong><span>' + rank.completed + ' / ' + rank.total + ' Missões · ' + rank.percent + '%</span></span>' +
-            '<span class="home-rank-card__next">' + nextText + ' <b aria-hidden="true">›</b></span>' +
+            '<img class="home-rank-card__ornament home-rank-card__ornament--left" src="assets/ui/home-reference/rank-left-ornament.png" alt="" aria-hidden="true"><img class="home-rank-card__ornament home-rank-card__ornament--right" src="assets/ui/home-reference/rank-right-ornament.png" alt="" aria-hidden="true"><span class="home-rank-card__copy"><img class="home-rank-card__label" src="assets/ui/home-reference/rank-label.png" alt="Rank atual"><strong>' + rank.rank + '</strong></span>' +
             '</button>';
+    }
+
+    function financeCardHtml(ctx) {
+        var fin = ctx.state.financas || {};
+        return '<button type="button" class="home-finance-card" data-fin-open="financas">' +
+            '<span class="home-finance-card__item"><img class="home-finance-card__icon" src="assets/ui/home-reference/finance-icon.png" alt="" aria-hidden="true"><span><small>FINANÇAS</small><strong>' + formatHomeMoney(fin.saldo) + '</strong></span></span>' +
+            '<img class="home-finance-card__divider" src="assets/ui/home-reference/finance-divider.png" alt="" aria-hidden="true">' +
+            '<span class="home-finance-card__item"><img class="home-finance-card__icon" src="assets/ui/home-reference/resource-icon.png" alt="" aria-hidden="true"><span><small>RECURSOS</small><strong>' + formatHomeMoney(fin.guardado) + '</strong></span></span>' +
+            '</button>';
+    }
+
+    function ascensionCardHtml() {
+        var ids = ["D", "C", "B", "A", "S"];
+        var files = { D: "rank_D", C: "rank_C", B: "rank_B", A: "rank_A", S: "rank_S" };
+        var current = Arquimago.getCharacterClass();
+        var nodes = ids.map(function (id) {
+            var active = id === current;
+            var image = active && id === "D" ? "assets/ui/home-reference/rank-d-active.png" : "assets/ranks/" + files[id] + ".png";
+            var label = active && id === "D" ? "" : '<strong>' + id + '</strong>';
+            return '<span class="home-ascension-card__node' + (active ? " is-active" : "") + '"><span><img src="' + image + '" alt="Rank ' + id + '"></span>' + label + (active ? '<small>ATUAL</small>' : "") + '</span>';
+        }).join("");
+        return '<section class="home-ascension-card panel"><h2><img class="home-ascension-title" src="assets/ui/home-reference/ascension-title.png" alt="Sua ascensão"></h2><div class="home-ascension-card__track">' + nodes + '</div><p>DISCIPLINA <i>•</i> FOCO <i>•</i> EVOLUÇÃO</p><small>O poder já existe. Você só precisa despertá-lo.</small></section>';
     }
 
     Arquimago.renderHome = function (animateXp) {
@@ -211,6 +231,7 @@
             rank: rank,
             dailyEntries: dailyEntries,
             monthly: monthly,
+            xpPct: monthly.goal > 0 ? Math.min(100, Math.round((monthly.earned / monthly.goal) * 100)) : 0,
             animateXp: !!animateXp,
             homeMissionsHidden: homeMissionsHidden
         };
@@ -346,6 +367,30 @@
         });
 
         Arquimago.homeWidgets.register({
+            id: "finance",
+            title: "Finanças e Recursos",
+            defaultSize: "wide",
+            sizes: ["wide", "full"],
+            render: function (ctx) { return financeCardHtml(ctx); },
+            afterRender: function (ctx, el) {
+                var b = el.querySelector("[data-fin-open]");
+                if (b) b.addEventListener("click", function () {
+                    Arquimago.playClick();
+                    var tab = document.querySelector('.tab[data-screen="financas"]');
+                    if (tab) tab.click();
+                });
+            }
+        });
+
+        Arquimago.homeWidgets.register({
+            id: "ascension",
+            title: "Sua Ascensão",
+            defaultSize: "wide",
+            sizes: ["wide", "full"],
+            render: function () { return ascensionCardHtml(); }
+        });
+
+        Arquimago.homeWidgets.register({
             id: "xp",
             title: "Progresso da Jornada",
             defaultSize: "wide",
@@ -400,7 +445,8 @@
                     Arquimago.playClick();
                     Arquimago.openWeeklyBossDetails();
                 });
-            }
+            },
+            visibleByDefault: false
         });
 
         Arquimago.homeWidgets.register({
@@ -408,7 +454,8 @@
             title: "Slides / Ilustrações",
             defaultSize: "wide",
             sizes: ["medium", "large", "wide", "full"],
-            render: function (ctx) { return Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : ""; }
+            render: function (ctx) { return Arquimago.slideshowCardHtml ? Arquimago.slideshowCardHtml() : ""; },
+            visibleByDefault: false
         });
 
         Arquimago.homeWidgets.register({

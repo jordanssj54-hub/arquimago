@@ -310,6 +310,15 @@
     box-shadow: inset 3px 0 var(--gold), 0 8px 22px rgba(0, 0, 0, 0.14);
 }
 
+/* The extracted crops for these two icons include unequal side margins. */
+#game[data-nav-position] .tab[data-screen="missions"] .tab-icon {
+    transform: translate(-14%, 12%) !important;
+}
+
+#game[data-nav-position] .tab[data-screen="financas"] .tab-icon {
+    transform: translate(-19%, 10%) !important;
+}
+
 #game.nav-collapsed[data-nav-position] .tab-label,
 #game.nav-collapsed[data-nav-position] .drawer-settings .tab-label {
     max-width: 0;

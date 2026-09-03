@@ -3,7 +3,8 @@
 
     var Arquimago = global.Arquimago || {};
 
-    var LAYOUT_KEY = "arquimago_home_layout_v1";
+    var LAYOUT_KEY = "arquimago_home_layout_v2";
+    var REFERENCE_ORDER = ["rank", "xp", "finance", "missions", "ascension", "monthly"];
     var SIZE_LABELS = {
         small: "Pequeno",
         medium: "Médio",
@@ -43,7 +44,11 @@
 
     function defaultLayout() {
         var order = [], sizes = {}, visible = {};
+        var orderedRegistry = REFERENCE_ORDER.map(function (id) { return byId[id]; }).filter(Boolean);
         registry.forEach(function (w) {
+            if (orderedRegistry.indexOf(w) === -1) orderedRegistry.push(w);
+        });
+        orderedRegistry.forEach(function (w) {
             order.push(w.id);
             sizes[w.id] = w.defaultSize;
             if (w.visibleByDefault === false) visible[w.id] = false;
@@ -53,7 +58,8 @@
 
     function computeOrder() {
         var seen = {}, ordered = [];
-        (layout.order || []).forEach(function (id) {
+        var savedOrder = layout.order && layout.order.length ? layout.order : REFERENCE_ORDER;
+        savedOrder.forEach(function (id) {
             if (byId[id] && !seen[id]) {
                 seen[id] = true;
                 ordered.push(id);

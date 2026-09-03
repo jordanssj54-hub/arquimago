@@ -697,7 +697,7 @@
 
     function missionsToolbarHtml(canClear) {
         var html = '<div class="missions-toolbar"><div class="missions-settings">';
-        html += '<button type="button" class="missions-settings__button" id="missionsSettingsButton" aria-expanded="' + String(missionSettingsOpen) + '" aria-controls="missions-settings-menu" aria-label="Opções das missões" title="Opções das missões"><img src="assets/ui/icons/icon_settings.png?v=2" alt=""></button>';
+        html += '<button type="button" class="missions-settings__button" id="missionsSettingsButton" aria-expanded="' + String(missionSettingsOpen) + '" aria-controls="missions-settings-menu" aria-label="Opções das missões" title="Opções das missões"><img src="assets/ui/home-reference/settings-icon.png" alt=""></button>';
         if (missionSettingsOpen) {
             html += '<div class="missions-settings__menu" id="missions-settings-menu" role="menu">';
             html += '<button type="button" role="menuitem" id="clearCompletedMissions"' + (canClear ? "" : " disabled") + '>Desmarcar todas as concluídas</button>';

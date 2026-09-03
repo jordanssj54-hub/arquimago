@@ -61,6 +61,7 @@
                 element: tab
             };
         });
+        nav.setAttribute("data-home-order", Arquimago.TABS.map(function (tab) { return tab.id; }).join(","));
     }
 
     function applyOrder(order) {

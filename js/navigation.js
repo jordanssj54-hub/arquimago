@@ -5,7 +5,8 @@
     var navigationInitialized = false;
 
     function isMobileViewport() {
-        return global.innerWidth <= 768;
+        var game = document.getElementById("game");
+        return global.innerWidth <= 768 || (game && game.getAttribute("data-screen") === "home" && global.innerWidth <= 1100);
     }
 
     Arquimago.closeMobileNavigation = function () {
@@ -35,6 +36,10 @@
             game.classList.toggle("nav-collapsed", collapsed);
             if (drawerToggle) drawerToggle.setAttribute("aria-expanded", String(!collapsed));
             if (drawerToggle) drawerToggle.setAttribute("aria-label", collapsed ? "Expandir navegação" : "Recolher navegação");
+            if (mobileToggle && !isMobileViewport()) {
+                mobileToggle.setAttribute("aria-expanded", String(!collapsed));
+                mobileToggle.setAttribute("aria-label", collapsed ? "Expandir navegação" : "Recolher navegação");
+            }
             if (persist && Arquimago.state) {
                 Arquimago.state.navCollapsed = collapsed;
                 Arquimago.saveState(Arquimago.state);
@@ -51,6 +56,7 @@
         }
 
         function openScreen(id) {
+            if (game) game.setAttribute("data-screen", id);
             screens.forEach(function (s) {
                 s.classList.remove("active", "entering");
                 if (s.id === id) {
@@ -68,7 +74,7 @@
             if (id === "financas") Arquimago.renderFinancas();
             if (id === "profile") Arquimago.renderProfile();
             Arquimago.playClick();
-            if (isMobileViewport()) setMobileOpen(false);
+            if (game && game.classList.contains("nav-mobile-open")) setMobileOpen(false);
         }
 
         tabs.forEach(function (tab) {
@@ -91,7 +97,11 @@
         if (mobileToggle) {
             mobileToggle.addEventListener("click", function () {
                 Arquimago.playClick();
-                setMobileOpen(!game.classList.contains("nav-mobile-open"));
+                if (isMobileViewport()) {
+                    setMobileOpen(!game.classList.contains("nav-mobile-open"));
+                    return;
+                }
+                setCollapsed(!game.classList.contains("nav-collapsed"), true);
             });
         }
 
@@ -110,6 +120,7 @@
         setCollapsed(!!(Arquimago.state && Arquimago.state.navCollapsed), false);
         var activeTab = document.querySelector(".tab.active");
         if (activeTab) {
+            if (game) game.setAttribute("data-screen", activeTab.dataset.screen);
             activeTab.setAttribute("aria-current", "page");
         }
     };
