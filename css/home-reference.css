@@ -33,6 +33,22 @@
 }
 
 #game[data-screen="home"] .home-widget__body {
+    min-height: 0 !important;
+}
+
+/* Keep the reference composition compact, but restore the modular grid while editing. */
+#game[data-screen="home"] .home-page.home-edit-mode .home-widget-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+#game[data-screen="home"] .home-page.home-edit-mode .home-widget {
+    width: auto;
+}
+
+#game[data-screen="home"] .home-widget__body {
     width: 100%;
 }
 
@@ -48,7 +64,7 @@
     position: absolute;
     top: 4px;
     right: 0;
-    opacity: 0;
+    opacity: 0.72;
 }
 
 #game[data-screen="home"] .home-edit-bar:hover .home-edit-trigger,
@@ -79,9 +95,16 @@
 }
 
 #game[data-screen="home"] .logo-container {
+    min-width: 0;
+    max-width: 100%;
     margin: 0;
     gap: 0;
     justify-content: center;
+}
+
+#game[data-screen="home"] .logo-area {
+    min-width: 0;
+    max-width: 100%;
 }
 
 #game[data-screen="home"] .logo-emblem,
@@ -93,6 +116,7 @@
 #game[data-screen="home"] .home-logo-art {
     display: block;
     width: min(500px, 54vw);
+    max-width: 100%;
     height: auto;
 }
 
@@ -753,7 +777,7 @@
         border-top: 0;
         border-right: 0;
         background-color: #050609 !important;
-        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg");
+        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg") !important;
         background-size: cover;
         box-shadow: none;
         transform: none;
@@ -799,8 +823,8 @@
         display: none !important;
     }
 
-    #game[data-screen="home"][data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab-icon,
-    #game[data-screen="home"][data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab-label {
+    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab-icon,
+    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab-label {
         visibility: hidden;
     }
 
@@ -814,7 +838,7 @@
         text-transform: uppercase;
     }
 
-    #game[data-screen="home"][data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab.active {
+    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab.active {
         color: transparent;
         border: 0;
         background-color: transparent !important;
@@ -848,7 +872,7 @@
         overflow-x: hidden;
         overflow-y: auto;
         background-color: #050609 !important;
-        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg");
+        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg") !important;
         background-size: cover;
         transform: translateX(0);
     }
@@ -921,7 +945,7 @@
     }
 
     #game[data-screen="home"] .home-logo-art {
-        width: min(500px, 74vw);
+        width: min(500px, calc(100vw - 150px));
     }
 
     #game[data-screen="home"] .mobile-nav-toggle,
@@ -944,6 +968,11 @@
     }
 
     #game[data-screen="home"] .home-widget-grid {
+        gap: 12px;
+    }
+
+    #game[data-screen="home"] .home-page.home-edit-mode .home-widget-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
     }
 

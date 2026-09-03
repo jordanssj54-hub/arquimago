@@ -3,7 +3,7 @@
 
     var Arquimago = global.Arquimago || {};
 
-    var LAYOUT_KEY = "arquimago_home_layout_v2";
+    var LAYOUT_KEY = "arquimago_home_layout_v3";
     var REFERENCE_ORDER = ["rank", "xp", "finance", "missions", "ascension", "monthly"];
     var SIZE_LABELS = {
         small: "Pequeno",
