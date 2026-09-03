@@ -23,20 +23,18 @@
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/slideshow.css">
 <link rel="stylesheet" href="css/home-widgets.css">
-<link rel="stylesheet" href="css/map.css">
 <link rel="stylesheet" href="css/missions.css">
 <link rel="stylesheet" href="css/grimoire.css">
 <link rel="stylesheet" href="css/avatar.css">
 <link rel="stylesheet" href="css/profile.css">
 <link rel="stylesheet" href="css/progression.css">
-<link rel="stylesheet" href="css/history.css">
-<link rel="stylesheet" href="css/history-intro.css">
 <link rel="stylesheet" href="css/overlays.css">
 <link rel="stylesheet" href="css/financas.css">
 <link rel="stylesheet" href="css/ui-frame.css">
 <link rel="stylesheet" href="css/ui-effects.css">
 <link rel="stylesheet" href="css/template-2.css">
 <link rel="stylesheet" href="css/navigation-drawer.css">
+<link rel="stylesheet" href="css/boss.css">
 </head>
 <body class="theme-black">
 
@@ -119,6 +117,10 @@
 <img class="xp-frame" src="assets/frames/xp_frame.png" alt="">
 <div class="xp-text">0 / 100 XP</div>
 </div>
+<div class="top-level-badge" aria-label="Classe">
+<span>CLASSE</span>
+<strong id="topClassLetter">D</strong>
+</div>
 <div class="top-rank-badge" aria-label="Rank de hoje">
 <span>RANK</span>
 <strong id="topDailyRank">D</strong>
@@ -158,33 +160,18 @@
 <img class="tab-txt" src="assets/ui/tabs/reference/text-home.png" alt="" aria-hidden="true">
 <span class="tab-label">Início</span>
 </button>
-<button class="tab" data-screen="history" aria-label="História" data-tooltip="História" title="História">
-<img class="tab-icon" src="assets/ui/tabs/reference/icon-history.png" alt="" aria-hidden="true">
-<img class="tab-txt" src="assets/ui/tabs/reference/text-history.png" alt="" aria-hidden="true">
-<span class="tab-label">História</span>
-</button>
-<button class="tab" data-screen="map" aria-label="Mapa" data-tooltip="Mapa" title="Mapa">
-<img class="tab-icon" src="assets/ui/tabs/reference/icon-map.png" alt="" aria-hidden="true">
-<img class="tab-txt" src="assets/ui/tabs/reference/text-map.png" alt="" aria-hidden="true">
-<span class="tab-label">Mapa</span>
-</button>
 <button class="tab" data-screen="missions" aria-label="Missões" data-tooltip="Missões" title="Missões">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-missions.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-missions.png" alt="" aria-hidden="true">
 <span class="tab-label">Missões</span>
 </button>
+<button class="tab" data-screen="boss" aria-label="Boss" data-tooltip="Boss" title="Boss">
+<span class="tab-fallback-icon" aria-hidden="true">👹</span>
+<span class="tab-label">Boss</span>
+</button>
 <button class="tab" data-screen="financas" aria-label="Finanças" data-tooltip="Finanças" title="Finanças">
 <span class="tab-fallback-icon" aria-hidden="true">💎</span>
 <span class="tab-label">Finanças</span>
-</button>
-<button class="tab" data-screen="attributes" aria-label="Atributos" data-tooltip="Atributos" title="Atributos">
-<span class="tab-fallback-icon" aria-hidden="true">✦</span>
-<span class="tab-label">Atributos</span>
-</button>
-<button class="tab" data-screen="grimoire" aria-label="Grimório" data-tooltip="Grimório" title="Grimório">
-<img class="tab-icon" src="assets/ui/tabs/reference/icon-grimoire.png" alt="" aria-hidden="true">
-<img class="tab-txt" src="assets/ui/tabs/reference/text-grimoire.png" alt="" aria-hidden="true">
-<span class="tab-label">Grimório</span>
 </button>
 <button class="tab" data-screen="profile" aria-label="Perfil" data-tooltip="Perfil" title="Perfil">
 <img class="tab-icon" src="assets/ui/tabs/reference/icon-profile.png" alt="" aria-hidden="true">
@@ -202,12 +189,9 @@
 <div class="main-frame">
 <main class="main-content">
 <section id="home" class="screen active"></section>
-<section id="history" class="screen"></section>
-<section id="map" class="screen"></section>
 <section id="missions" class="screen"></section>
+<section id="boss" class="screen"></section>
 <section id="financas" class="screen"></section>
-<section id="attributes" class="screen"></section>
-<section id="grimoire" class="screen"></section>
 <section id="profile" class="screen"></section>
 </main>
 </div>
@@ -221,8 +205,6 @@
 <script src="js/effects.js"></script>
 <script src="js/xp.js"></script>
 <script src="js/missions.js"></script>
-<script src="js/attributes.js"></script>
-<script src="js/map.js"></script>
 <script src="js/grimoire.js"></script>
 <script src="js/profile.js"></script>
 <script src="js/avatar.js"></script>
@@ -234,8 +216,7 @@
 <script src="js/narrative.js"></script>
 <script src="js/engine/cinematic.js"></script>
 <script src="js/intro.js"></script>
-<script src="js/history-intro.js"></script>
-<script type="module" src="js/history.js"></script>
+<script src="js/boss.js"></script>
 <script src="js/financas.js"></script>
 <script src="js/app.js"></script>
 </body>

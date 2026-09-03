@@ -376,3 +376,199 @@
     color: var(--text-dim);
     line-height: 1.5;
 }
+
+/* Profile Attributes */
+.profile-attributes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 4px;
+}
+
+.profile-attribute-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.profile-attribute-card:hover {
+    border-color: var(--attribute-color, var(--border-gold));
+    background: var(--bg-elevated);
+}
+
+.profile-attribute-card__icon {
+    font-size: 1.3rem;
+    flex: 0 0 28px;
+    text-align: center;
+}
+
+.profile-attribute-card__info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.profile-attribute-card__info strong {
+    display: block;
+    font-size: 0.84rem;
+    color: var(--text);
+}
+
+.profile-attribute-card__info span {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 1px;
+}
+
+.profile-attribute-card__bar {
+    flex: 0 0 60px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.profile-attribute-card__bar span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--attribute-color, var(--gold));
+    transition: width 0.4s ease;
+}
+
+/* Profile Attribute Detail */
+.profile-attribute-detail {
+    margin-top: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+}
+
+.profile-attribute-detail__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.profile-attribute-detail__header .profile-attribute-detail__icon {
+    font-size: 1.6rem;
+}
+
+.profile-attribute-detail__header strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.profile-attribute-detail__header span {
+    font-size: 0.76rem;
+    color: var(--text-dim);
+}
+
+.profile-attribute-detail__desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.profile-attribute-detail__progress {
+    margin-bottom: 12px;
+}
+
+.profile-attribute-detail__bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.profile-attribute-detail__bar span {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--attribute-color, var(--gold));
+}
+
+.profile-attribute-detail__progress span {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.profile-attribute-detail__missions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-attribute-mission {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.profile-attribute-mission span:first-child {
+    font-size: 1rem;
+}
+
+.profile-attribute-mission strong {
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--text);
+}
+
+.profile-attribute-mission em {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-style: normal;
+}
+
+/* Profile About Me */
+.profile-about__input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 70px;
+    transition: border-color 0.2s ease;
+}
+
+.profile-about__input:focus {
+    outline: none;
+    border-color: var(--border-gold);
+}
+
+.profile-about__input::placeholder {
+    color: var(--text-dim);
+}
+
+.profile-about__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.profile-about__footer span {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}

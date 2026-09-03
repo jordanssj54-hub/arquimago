@@ -117,6 +117,7 @@
         font: "classica",
         wallpaper: "auto",
         customWallpaper: "",
+        aboutMe: "",
         lastActiveDate: "",
         chapter: 1,
         completedIds: [],

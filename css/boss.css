@@ -1,0 +1,300 @@
+/* ==========================================================================
+   Boss Screen
+   ========================================================================== */
+
+.boss-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+}
+
+.boss-page__header {
+    margin-bottom: 28px;
+}
+
+.boss-page__header h1 {
+    margin: 4px 0 8px;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: var(--gold-light);
+}
+
+.boss-page__header p {
+    color: var(--text-dim);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+/* Boss Cards List */
+.boss-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.boss-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+    text-align: left;
+}
+
+.boss-card:hover,
+.boss-card:focus-visible {
+    border-color: var(--border-gold);
+    background: var(--bg-elevated);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    outline: none;
+}
+
+.boss-card.is-defeated {
+    opacity: 0.6;
+}
+
+.boss-card__image {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-deep);
+}
+
+.boss-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.boss-card__info {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.boss-card__info strong {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.boss-card__info span {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+}
+
+.boss-card__chevron {
+    flex: 0 0 auto;
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+.boss-card:hover .boss-card__chevron {
+    color: var(--gold-light);
+}
+
+/* Boss Detail */
+.boss-detail {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 0 80px;
+}
+
+.boss-detail__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+    border: none;
+    background: none;
+    color: var(--gold-light);
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    margin-bottom: 8px;
+}
+
+.boss-detail__back:hover {
+    color: var(--gold);
+}
+
+.boss-detail__hero {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: var(--bg-deep);
+}
+
+.boss-detail__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.boss-detail__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(5, 8, 18, 0.85) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.boss-detail__info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 20px;
+    z-index: 1;
+}
+
+.boss-detail__icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.boss-detail__info h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--gold-light);
+    margin-bottom: 4px;
+}
+
+.boss-detail__info p {
+    font-size: 0.84rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+/* Stats Row */
+.boss-detail__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.boss-detail__stat {
+    text-align: center;
+    padding: 14px 8px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+}
+
+.boss-detail__stat span {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+}
+
+.boss-detail__stat strong {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--gold-light);
+}
+
+/* Sections */
+.boss-detail__section {
+    margin-bottom: 20px;
+}
+
+.boss-detail__section h3 {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+}
+
+.boss-detail__section p {
+    font-size: 0.84rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+/* Weaknesses */
+.boss-detail__weaknesses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.boss-detail__weakness {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+/* Trophies */
+.boss-detail__trophies {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.boss-detail__trophy {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+}
+
+.boss-detail__trophy span {
+    font-size: 1.2rem;
+}
+
+.boss-detail__trophy strong {
+    font-size: 0.84rem;
+    color: var(--text);
+}
+
+.boss-detail__trophy small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 1px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .boss-card__image {
+        width: 52px;
+        height: 52px;
+        flex: 0 0 52px;
+    }
+
+    .boss-detail__stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .boss-detail__info h2 {
+        font-size: 1.2rem;
+    }
+}

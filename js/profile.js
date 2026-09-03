@@ -31,13 +31,48 @@
         return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     }
 
-    function dateLabel(key) {
-        var parts = String(key || "").split("-");
-        var year = parseInt(parts[0], 10);
-        var month = parseInt(parts[1], 10);
-        var day = parseInt(parts[2], 10);
-        if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return key || "Dia";
-        return new Date(year, month - 1, day).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    function attributeCardCompact(state, key) {
+        var definition = Arquimago.ATTRIBUTE_DEFINITIONS[key];
+        var data = Arquimago.getAttributeProgress(state, key);
+        return '<div class="profile-attribute-card" data-attribute-key="' + key + '" style="--attribute-color:' + definition.color + '">' +
+            '<span class="profile-attribute-card__icon">' + definition.icon + '</span>' +
+            '<span class="profile-attribute-card__info">' +
+            '<strong>' + definition.name + '</strong>' +
+            '<span>Nv. ' + data.level + ' · ' + data.progress + '/' + data.required + '</span>' +
+            '</span>' +
+            '<span class="profile-attribute-card__bar"><span style="width:' + data.percent + '%"></span></span>' +
+            '</div>';
+    }
+
+    function attributeDetailPanel(state, key) {
+        var definition = Arquimago.ATTRIBUTE_DEFINITIONS[key];
+        var data = Arquimago.getAttributeProgress(state, key);
+        var entries = Arquimago.getMissionsForAttribute ? Arquimago.getMissionsForAttribute(key) : [];
+        var html = '<div class="profile-attribute-detail" style="--attribute-color:' + definition.color + '">';
+        html += '<div class="profile-attribute-detail__header">';
+        html += '<span class="profile-attribute-detail__icon">' + definition.icon + '</span>';
+        html += '<div><strong>' + definition.name + '</strong><span>Nível ' + data.level + '</span></div>';
+        html += '</div>';
+        html += '<p class="profile-attribute-detail__desc">' + definition.description + '</p>';
+        html += '<div class="profile-attribute-detail__progress">';
+        html += '<div class="profile-attribute-detail__bar"><span style="width:' + data.percent + '%"></span></div>';
+        html += '<span>' + data.progress + ' / ' + data.required + ' · ' + data.total + ' total</span>';
+        html += '</div>';
+        if (entries.length) {
+            html += '<div class="profile-attribute-detail__missions">';
+            entries.forEach(function (entry) {
+                var mission = entry.mission;
+                var count = Arquimago.getMissionCompletionCount ? Arquimago.getMissionCompletionCount(state, mission.id) : 0;
+                html += '<div class="profile-attribute-mission">';
+                html += '<span>' + Arquimago.getMissionIcon(mission) + '</span>';
+                html += '<strong>' + escapeHtml(mission.name) + '</strong>';
+                html += '<em>' + count + 'x</em>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
     }
 
     Arquimago.renderProfile = function () {
@@ -45,87 +80,98 @@
         if (!container || !Arquimago.state) return;
 
         var state = Arquimago.state;
-        var bestRank = state.bestDailyRankPercent > 0 ? "Rank " + state.bestDailyRank : "—";
         var trophies = state.bossTrophies || [];
         var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { month: "", earned: 0, available: 0, goal: 0, percent: 0, isMet: false };
-        var monthlyHistory = (state.monthlyHistory || []).slice().reverse();
-        var dailyHistory = (state.dailyHistory || []).slice().reverse().slice(0, 30);
+        var aboutMe = state.aboutMe || "";
 
         var html = '<div class="profile-page">';
+
         html += '<div class="profile-banner">';
         html += '<div class="profile-avatar-wrap"><div class="profile-avatar">' + Arquimago.getPlayerAvatar() + '</div><button class="avatar-edit-btn" id="avatarUploadBtn">Alterar foto</button><input type="file" id="avatarFileInput" accept="image/*" hidden></div>';
-        html += '<div class="profile-banner-info"><span class="section-label">Perfil do Arquimago</span><h2 data-player-name>' + escapeHtml(Arquimago.getDisplayName()) + '</h2><span class="profile-title">Classe ' + escapeHtml(Arquimago.getCharacterClass()) + '</span><p>As estatísticas registram a jornada. Os troféus lembram o que você foi capaz de enfrentar.</p></div>';
+        html += '<div class="profile-banner-info"><span class="section-label">Perfil</span><h2 data-player-name>' + escapeHtml(Arquimago.getDisplayName()) + '</h2><span class="profile-title">Classe ' + escapeHtml(Arquimago.getCharacterClass()) + '</span></div>';
         html += '</div>';
 
-        html += '<div class="panel profile-summary-panel"><div class="panel-header"><h3>Estatísticas da Jornada</h3><span>Classe ' + escapeHtml(Arquimago.getCharacterClass()) + '</span></div><div class="statistics-grid">';
+        html += '<div class="panel profile-summary-panel"><div class="panel-header"><h3>Estatísticas</h3></div><div class="statistics-grid">';
         html += statCard(state.streak + " dias", "Sequência");
-        html += statCard(trophies.length, "Chefes derrotados");
-        html += statCard(Arquimago.formatNumber(state.missionsCompleted), "Missões concluídas");
-        html += statCard(bestRank, "Melhor Rank");
-        html += statCard(state.daysUsingApp, "Dias utilizando");
-        html += statCard(Arquimago.getCharacterClass(), "Classe atual");
+        html += statCard(Arquimago.formatNumber(state.missionsCompleted), "Missões");
+        html += statCard(Arquimago.getCharacterClass(), "Classe");
+        html += statCard(state.daysUsingApp + " dias", "Utilizando");
         html += '</div></div>';
 
-        html += '<div class="profile-grid">';
-        html += '<div class="panel"><div class="panel-header"><h3>Personagem</h3></div><div class="profile-edit">';
-        html += '<div class="profile-edit__row"><label for="playerClassText">Classe</label><strong class="profile-edit__class" id="playerClassText">' + escapeHtml(Arquimago.getCharacterClass()) + '</strong></div>';
-        html += '<div class="profile-edit__row"><label for="playerNameInput">Nome do Personagem</label><input type="text" id="playerNameInput" maxlength="30" autocomplete="off" spellcheck="false" value="' + escapeHtml(Arquimago.getCharacterName()) + '" placeholder="' + escapeHtml(Arquimago.getCharacterClass()) + '"><p class="profile-edit__hint">Sem nome definido, apenas a classe é exibida.</p></div>';
-        html += '<button type="button" class="btn-primary compact" id="savePlayerName">Salvar</button></div></div>';
+        html += '<div class="panel"><div class="panel-header"><h3>Meus Atributos</h3></div><div class="profile-attributes">';
+        Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS).forEach(function (key) {
+            html += attributeCardCompact(state, key);
+        });
+        html += '</div>';
+        html += '<div id="profileAttributeDetail"></div>';
+        html += '</div>';
 
-        html += '<div class="panel"><div class="panel-header"><h3>Progressão</h3><span>Meta Arcana</span></div><div class="profile-stats">';
+        html += '<div class="panel"><div class="panel-header"><h3>Progressão</h3></div><div class="profile-stats">';
         html += '<div class="profile-stat"><span>XP mensal</span><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + '</strong></div>';
         html += '<div class="profile-stat"><span>XP total</span><strong>' + Arquimago.formatNumber(state.totalXP) + '</strong></div>';
-        html += '<div class="profile-stat"><span>Classe</span><strong>' + escapeHtml(Arquimago.getCharacterClass()) + '</strong></div>';
         html += '<div class="profile-stat"><span>Tempo jogado</span><strong>' + Arquimago.formatTime(state.playTimeSeconds) + '</strong></div>';
         html += '</div></div>';
 
-        html += '<div class="panel profile-trophies"><div class="panel-header"><h3>Troféus dos Bosses</h3><span>' + trophies.length + ' conquistados</span></div>';
-        if (!trophies.length) {
-            html += '<p class="profile-empty">Nenhum Boss foi derrotado ainda. Cada semana traz uma nova oportunidade.</p>';
-        } else {
-            html += '<div class="trophy-list">';
-            trophies.slice().reverse().forEach(function (trophy) {
-                html += '<div class="trophy-item"><span class="trophy-item__icon">🏆</span><div><strong>' + escapeHtml(trophy.name) + '</strong><small>' + escapeHtml(trophy.bossName) + ' · semana de ' + escapeHtml(trophy.week) + '</small></div></div>';
-            });
-            html += '</div>';
-        }
-        html += '</div>';
-
-        html += '<div class="panel"><div class="panel-header"><h3>Conquistas</h3><span>' + state.achievements.length + ' desbloqueadas</span></div><div class="achievements">';
-        Arquimago.ACHIEVEMENTS.forEach(function (achievement) {
-            var unlocked = state.achievements.indexOf(achievement.id) !== -1;
-            html += '<div class="achievement ' + (unlocked ? "unlocked" : "locked") + '"><div class="achievement-icon">' + (unlocked ? "◆" : "◇") + '</div><div><h4>' + escapeHtml(achievement.name) + '</h4><p>' + escapeHtml(achievement.desc) + '</p></div></div>';
-        });
-        html += '</div></div></div></div>';
-
-        html += '<div class="panel profile-monthly-panel"><div class="panel-header"><div><h3>Meta Arcana</h3><span>' + escapeHtml(monthLabel(monthly.month)) + '</span></div><strong class="profile-monthly-class">Classe: ' + escapeHtml(Arquimago.getCharacterClass()) + '</strong></div>';
-        html += '<div class="profile-monthly-summary"><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.available) + ' XP</strong><span>' + monthly.percent + '% do total disponível · meta em 60%</span><div class="profile-monthly-bar"><span style="width:' + monthly.percent + '%"></span><i style="left:60%"></i></div><small>' + (monthly.isMet ? 'Meta atingida. A classe sobe no fechamento do ciclo.' : 'Faltam ' + Arquimago.formatNumber(Math.max(0, monthly.goal - monthly.earned)) + ' XP para atingir a meta.') + '</small></div>';
-        html += '<div class="profile-monthly-history"><h4>Histórico mensal</h4>';
-        if (!monthlyHistory.length) {
-            html += '<p class="profile-empty">O primeiro ciclo será arquivado quando o mês terminar.</p>';
-        } else {
-            monthlyHistory.forEach(function (entry) {
-                html += '<div class="profile-monthly-row' + (entry.goalMet ? ' is-met' : '') + '"><span><strong>' + escapeHtml(monthLabel(entry.month)) + '</strong><small>Classe: ' + escapeHtml(entry.class || 'D') + '</small></span><b>' + Arquimago.formatNumber(entry.xp) + ' / ' + Arquimago.formatNumber(entry.totalAvailableXP) + ' XP</b><em>' + entry.percentage + '% · ' + (entry.goalMet ? 'Meta atingida' : 'Meta não atingida') + '</em></div>';
-            });
-        }
+        html += '<div class="panel profile-about-panel"><div class="panel-header"><h3>Sobre mim</h3></div>';
+        html += '<div class="profile-about">';
+        html += '<textarea id="aboutMeInput" class="profile-about__input" placeholder="Quem é você? O que te motiva? Escreva sobre si, seus objetivos ou sua jornada..." rows="3" maxlength="300">' + escapeHtml(aboutMe) + '</textarea>';
+        html += '<div class="profile-about__footer"><span id="aboutMeCount">' + aboutMe.length + '/300</span><button type="button" class="btn-primary compact" id="saveAboutMe">Salvar</button></div>';
         html += '</div></div>';
 
-        html += '<div class="panel profile-daily-panel"><div class="panel-header"><div><h3>Registro diário</h3><span>Os últimos 30 dias</span></div><strong class="profile-monthly-class">XP permanente preservado</strong></div>';
-        if (!dailyHistory.length) {
-            html += '<p class="profile-empty">O primeiro dia será arquivado quando o calendário virar.</p>';
-        } else {
-            html += '<div class="profile-daily-history">';
-            dailyHistory.forEach(function (entry) {
-                html += '<div class="profile-daily-row"><span><strong>' + escapeHtml(dateLabel(entry.date)) + '</strong><small>' + (entry.completed || 0) + ' missões concluídas</small></span><b>+' + Arquimago.formatNumber(entry.xp || 0) + ' XP</b><em>' + (entry.percentage || 0) + '% do dia</em></div>';
+        html += '<div class="panel profile-monthly-panel"><div class="panel-header"><div><h3>Meta Arcana</h3><span>' + escapeHtml(monthLabel(monthly.month)) + '</span></div></div>';
+        html += '<div class="profile-monthly-summary"><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.available) + ' XP</strong><span>' + monthly.percent + '% do total disponível · meta em 60%</span><div class="profile-monthly-bar"><span style="width:' + monthly.percent + '%"></span><i style="left:60%"></i></div></div>';
+        html += '</div>';
+
+        if (trophies.length) {
+            html += '<div class="panel profile-trophies"><div class="panel-header"><h3>Troféus</h3><span>' + trophies.length + '</span></div>';
+            html += '<div class="trophy-list">';
+            trophies.slice().reverse().forEach(function (trophy) {
+                html += '<div class="trophy-item"><span class="trophy-item__icon">🏆</span><div><strong>' + escapeHtml(trophy.name) + '</strong><small>' + escapeHtml(trophy.bossName) + '</small></div></div>';
             });
-            html += '</div>';
+            html += '</div></div>';
         }
+
         html += '</div>';
 
         container.innerHTML = html;
         bindAvatarUpload();
         bindPlayerName();
+        bindAboutMe();
+        bindAttributeCards();
     };
+
+    function bindAboutMe() {
+        var input = document.getElementById("aboutMeInput");
+        var btn = document.getElementById("saveAboutMe");
+        var count = document.getElementById("aboutMeCount");
+        if (!input) return;
+
+        input.addEventListener("input", function () {
+            if (count) count.textContent = input.value.length + "/300";
+        });
+
+        if (btn) btn.addEventListener("click", function () {
+            Arquimago.playClick();
+            var text = String(input.value || "").trim();
+            Arquimago.state.aboutMe = text;
+            Arquimago.saveState(Arquimago.state);
+            Arquimago.showNotification(text ? "Salvo!" : "Texto removido", "xp");
+        });
+    }
+
+    function bindAttributeCards() {
+        var detail = document.getElementById("profileAttributeDetail");
+        if (!detail) return;
+
+        document.querySelectorAll("[data-attribute-key]").forEach(function (card) {
+            card.addEventListener("click", function () {
+                Arquimago.playClick();
+                var key = card.getAttribute("data-attribute-key");
+                detail.innerHTML = attributeDetailPanel(Arquimago.state, key);
+                detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            });
+        });
+    }
 
     function bindPlayerName() {
         var input = document.getElementById("playerNameInput");
@@ -145,10 +191,11 @@
             save();
         });
         input.addEventListener("keydown", function (event) {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            Arquimago.playClick();
-            save();
+            if (event.key === "Enter") {
+                event.preventDefault();
+                Arquimago.playClick();
+                save();
+            }
         });
     }
 

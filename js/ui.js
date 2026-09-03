@@ -322,13 +322,11 @@
 
     Arquimago.refreshAll = function (animateXp) {
         Arquimago.renderHome(animateXp);
-        if (Arquimago.renderHistory) Arquimago.renderHistory();
-        Arquimago.renderMap();
         Arquimago.renderMissions();
+        if (Arquimago.renderBoss) Arquimago.renderBoss();
         if (Arquimago.renderFinancas) Arquimago.renderFinancas();
         Arquimago.renderGrimoire();
         Arquimago.renderProfile();
-        if (Arquimago.renderAttributes) Arquimago.renderAttributes();
     };
 
     if (Arquimago.homeWidgets) {

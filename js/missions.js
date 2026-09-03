@@ -197,6 +197,15 @@
 
     Arquimago.findMission = findMission;
 
+    Arquimago.findMissionById = function (id) {
+        var types = ["main", "daily", "weekly", "habits"];
+        for (var i = 0; i < types.length; i++) {
+            var mission = findMission(types[i], id);
+            if (mission) return mission;
+        }
+        return null;
+    };
+
     function anchorItem(anchor) {
         if (!anchor || !anchor.closest) return null;
         return anchor.closest(".mission-item") || anchor.closest(".mission-card") || anchor.closest(".home-mission-row");
