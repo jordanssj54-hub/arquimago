@@ -777,7 +777,7 @@
         border-top: 0;
         border-right: 0;
         background-color: #050609 !important;
-        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg") !important;
+        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg");
         background-size: cover;
         box-shadow: none;
         transform: none;
