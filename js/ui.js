@@ -230,8 +230,6 @@
 
         var topRank = document.getElementById("topDailyRank");
         if (topRank) topRank.textContent = rank.rank;
-        var topClass = document.getElementById("topClassLetter");
-        if (topClass) topClass.textContent = Arquimago.getCharacterClass();
         document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) {
             if (animateXp) fill.classList.add("xp-animate");
             fill.style.width = xpFillWidth(monthly.percent);
