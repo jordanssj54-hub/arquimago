@@ -99,10 +99,13 @@
     width: 96px;
     height: 96px;
     margin: 0;
-    border: 1px solid rgba(201, 168, 76, 0.7);
-    border-radius: 0;
-    background: linear-gradient(145deg, rgba(201, 168, 76, 0.12), rgba(5, 10, 18, 0.92));
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 16px rgba(201, 168, 76, 0.06);
+    border: 0;
+    background-color: #050609;
+    background-image: var(--top-rank-badge-image);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    box-shadow: none;
 }
 
 #game[data-screen="missions"] .top-rank-badge span {
@@ -161,16 +164,17 @@
     grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
     align-items: center;
     gap: clamp(16px, 5vw, 58px);
-    border-width: 16px 18px 17px 18px;
+    border-width: 18px 18px 17px 18px;
     border-style: solid;
     border-color: transparent;
     border-image-source: url("../assets/ui/home-reference/card-frame.png");
-    border-image-slice: 16 18 17 18;
-    border-image-width: 16px 18px 17px 18px;
+    border-image-slice: 18 18 17 18;
+    border-image-width: 18px 18px 17px 18px;
     border-image-repeat: stretch;
     border-radius: 0;
     background-color: #050609;
     background-image: url("../assets/ui/home-reference/panel-texture.png");
+    background-position: center;
     background-size: cover;
     color: var(--text);
 }
@@ -324,16 +328,17 @@
 .mission-ref-card,
 .missions-reference-refresh {
     position: relative;
-    border-width: 16px 18px 17px 18px;
+    border-width: 18px 18px 17px 18px;
     border-style: solid;
     border-color: transparent;
     border-image-source: url("../assets/ui/home-reference/card-frame.png");
-    border-image-slice: 16 18 17 18;
-    border-image-width: 16px 18px 17px 18px;
+    border-image-slice: 18 18 17 18;
+    border-image-width: 18px 18px 17px 18px;
     border-image-repeat: stretch;
     border-radius: 0;
     background-color: #050609;
     background-image: url("../assets/ui/home-reference/panel-texture.png");
+    background-position: center;
     background-size: cover;
 }
 
@@ -355,12 +360,26 @@
     pointer-events: none;
 }
 
+.missions-reference-journey__symbol {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    z-index: 3;
+    width: 31px;
+    height: 31px;
+    object-fit: contain;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
 .missions-reference-journey > img {
     position: absolute;
-    inset: 0 0 0 auto;
+    top: 16px;
+    right: 18px;
+    bottom: 17px;
     z-index: 0;
     width: 53%;
-    height: 100%;
+    height: calc(100% - 33px);
     object-fit: cover;
     object-position: center;
     pointer-events: none;
@@ -383,11 +402,7 @@
 }
 
 .missions-reference-journey__counter::before {
-    content: "✦";
-    position: absolute;
-    top: -12px;
-    color: var(--gold);
-    font-size: 1.1rem;
+    content: none;
 }
 
 .missions-reference-journey__counter strong {
@@ -925,8 +940,8 @@
     #game[data-screen="missions"] .top-rank-badge {
         top: 22px;
         right: 72px;
-        width: 51px;
-        height: 58px;
+        width: 54px;
+        height: 54px;
     }
 
     #game[data-screen="missions"] .top-rank-badge span {
@@ -1035,7 +1050,17 @@
     }
 
     .missions-reference-journey > img {
+        top: 16px;
+        right: 18px;
+        bottom: 17px;
         width: 57%;
+        height: calc(100% - 33px);
+    }
+
+    .missions-reference-journey__symbol {
+        top: 2px;
+        width: 23px;
+        height: 23px;
     }
 
     .missions-reference-journey__counter {

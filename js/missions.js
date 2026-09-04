@@ -800,7 +800,7 @@
         var entries = referenceMissionEntries(state);
         var completed = entries.filter(function (entry) { return isDone(state, entry.mission, entry.type); }).length;
         var cards = entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("");
-        return '<section class="missions-reference-panel" data-ref-panel="daily"><section class="missions-reference-journey"><div class="missions-reference-journey__counter"><strong>' + completed + ' / ' + entries.length + '</strong><span>MISSÕES<br>HOJE</span></div><div class="missions-reference-journey__copy"><h2>JORNADA DE HOJE</h2><p>Complete suas missões diárias e<br>avance na sua jornada.</p></div><img src="projeto/guardiao-simbolcard%20(1).png" alt="" aria-hidden="true"></section><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhuma missão principal disponível no momento.</p>') + '</div>' + missionsReferenceRefreshHtml() + '</section>';
+        return '<section class="missions-reference-panel" data-ref-panel="daily"><section class="missions-reference-journey"><div class="missions-reference-journey__counter"><img class="missions-reference-journey__symbol" src="projeto/guardiao-simbolcard%20(3).png" alt="" aria-hidden="true"><strong>' + completed + ' / ' + entries.length + '</strong><span>MISSÕES<br>HOJE</span></div><div class="missions-reference-journey__copy"><h2>JORNADA DE HOJE</h2><p>Complete suas missões diárias e<br>avance na sua jornada.</p></div><img src="projeto/guardiao-simbolcard%20(1).png" alt="" aria-hidden="true"></section><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhuma missão principal disponível no momento.</p>') + '</div>' + missionsReferenceRefreshHtml() + '</section>';
     }
 
     function missionReferenceWeeklyHtml(state) {
@@ -1082,7 +1082,11 @@
         var canClear = completedMissionEntries(state).length > 0;
         var dailyRank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D" };
         var topRank = document.getElementById("topDailyRank");
-        if (topRank) topRank.textContent = dailyRank.rank;
+        if (topRank) {
+            topRank.textContent = dailyRank.rank;
+            var topRankBadge = topRank.closest(".top-rank-badge");
+            if (topRankBadge) topRankBadge.dataset.rank = dailyRank.rank;
+        }
         var html = missionsReferenceHtml(state, canClear);
         container.innerHTML = html;
         bindMissionReferenceControls(container);

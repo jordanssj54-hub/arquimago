@@ -105,7 +105,7 @@
 
     function monthlyCardHtml(monthly, animate) {
         var remaining = Math.max(0, monthly.goal - monthly.earned);
-        return '<button type="button" class="home-monthly-card' + (monthly.isMet ? " is-met" : "") + '" id="monthlyGoalCard"><img class="home-monthly-card__art" src="assets/ui/home-reference/monthly-art.png" alt="" aria-hidden="true">' +
+        return '<button type="button" class="home-monthly-card' + (monthly.isMet ? " is-met" : "") + '" id="monthlyGoalCard"><img class="home-monthly-card__art" src="projeto/guardiao-simbolcard%20%283%29.png" alt="" aria-hidden="true">' +
             '<span class="home-monthly-card__head"><span><small>META ARCANA</small><strong>' + escapeHtml(monthLabel(monthly.month)) + '</strong></span></span>' +
             '<span class="home-monthly-card__body"><span class="home-monthly-card__seal" aria-hidden="true"><img src="assets/ui/home-reference/xp-icon.png" alt=""></span><span class="home-monthly-card__progress"><span class="home-monthly-card__values"><strong>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</strong></span><span class="home-monthly-card__bar"><span class="xp-fill" style="width:' + (animate ? 0 : monthly.percent) + '%"></span><img class="xp-frame" src="assets/ui/home-reference/xp-track-frame.png" alt=""></span><span class="home-monthly-card__caption">' + monthly.percent + '% DO TOTAL DISPONÍVEL · META EM 60%</span></span><strong class="home-monthly-card__remaining">' + (monthly.isMet ? "META ATINGIDA" : "FALTAM " + Arquimago.formatNumber(remaining) + " XP") + '</strong></span>' +
             '</button>';
@@ -118,7 +118,7 @@
             '<strong class="home-journey-card__stats">' + rank.completed + ' / ' + rank.total + ' MISSÕES <i>•</i> ' + rank.percent + '%</strong>' +
             '<span class="home-journey-card__bar"><span class="home-journey-card__fill" style="width:' + rank.percent + '%"></span><img src="assets/ui/home-reference/journey-progress.png" alt=""></span>' +
             '<details class="home-missions-details"><summary class="home-all-missions">VER MISSÕES <b aria-hidden="true">›</b></summary><div class="home-mission-list">' + missionRows + '</div><button type="button" class="home-open-missions" id="openAllMissions">ABRIR PAINEL COMPLETO</button></details></div>' +
-            '<img class="home-journey-card__art" src="projeto/guardiao-simbolcard%20(2).png" alt="" aria-hidden="true">' +
+            '<img class="home-journey-card__art" src="assets/ui/home-reference/journey-art.png" alt="" aria-hidden="true">' +
             '</section>';
     }
 
@@ -250,7 +250,11 @@
         }
 
         var topRank = document.getElementById("topDailyRank");
-        if (topRank) topRank.textContent = rank.rank;
+        if (topRank) {
+            topRank.textContent = rank.rank;
+            var topRankBadge = topRank.closest(".top-rank-badge");
+            if (topRankBadge) topRankBadge.dataset.rank = rank.rank;
+        }
         document.querySelectorAll(".xp-bar--top .xp-fill").forEach(function (fill) {
             if (animateXp) fill.classList.add("xp-animate");
             fill.style.width = xpFillWidth(monthly.percent);

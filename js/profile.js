@@ -115,9 +115,11 @@
         var files = { D: "rank_D", C: "rank_C", B: "rank_B", A: "rank_A", S: "rank_S" };
         return ranks.map(function (rank) {
             var active = rank === current;
+            var image = active && rank === "D" ? "assets/ui/home-reference/rank-d-active.png" : "assets/ranks/" + files[rank] + ".png";
+            var label = active && rank === "D" ? "RANK D" : rank;
             return '<div class="profile-reference-rank' + (active ? ' is-active' : '') + '">' +
-                '<span><img src="assets/ranks/' + files[rank] + '.png" alt="Rank ' + rank + '"></span>' +
-                '<strong>' + rank + '</strong>' + (active ? '<small>ATUAL</small>' : '') +
+                '<span><img src="' + image + '" alt="Rank ' + rank + '"></span>' +
+                '<strong>' + label + '</strong>' + (active ? '<small>ATUAL</small>' : '') +
                 '</div>';
         }).join('');
     }
@@ -154,6 +156,13 @@
         var aboutMe = state.aboutMe || "";
 
         var currentClass = Arquimago.getCharacterClass();
+        var dailyRank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: currentClass };
+        var topRank = document.getElementById("topDailyRank");
+        if (topRank) {
+            topRank.textContent = dailyRank.rank;
+            var topRankBadge = topRank.closest(".top-rank-badge");
+            if (topRankBadge) topRankBadge.dataset.rank = dailyRank.rank;
+        }
         var nextRank = Arquimago.getNextRank ? Arquimago.getNextRank(currentClass) : null;
         var monthlyRemaining = Math.max(0, Number(monthly.goal) - Number(monthly.earned));
         var html = '<div class="profile-page profile-page--reference">';
@@ -166,7 +175,7 @@
         html += '<section class="profile-reference-card profile-reference-about"><header class="profile-reference-card__header"><h2><span aria-hidden="true">♟</span> SOBRE VOCÊ</h2></header><div class="profile-reference-about__display' + (aboutMe ? '' : ' is-placeholder') + '" id="aboutMeDisplay">' + (aboutMe ? escapeHtml(aboutMe) : 'Escreva um pouco sobre você (opcional). Conte sua história, sua motivação e o que te trouxe até aqui.') + '</div><button type="button" class="profile-reference-card__edit" id="editAboutMe"><span aria-hidden="true">✎</span> EDITAR</button><div class="profile-about-editor" id="aboutMeEditor" hidden><textarea id="aboutMeInput" class="profile-about__input" placeholder="Quem é você? O que te motiva? Escreva sobre si, seus objetivos ou sua jornada..." rows="3" maxlength="300">' + escapeHtml(aboutMe) + '</textarea><div class="profile-about__footer"><span id="aboutMeCount">' + aboutMe.length + '/300</span><button type="button" class="btn-primary compact" id="saveAboutMe">Salvar</button></div></div></section>';
 
         html += '<section class="profile-reference-progression"><section class="profile-reference-ascension"><header class="profile-reference-section-heading"><h2><span aria-hidden="true">✧</span> SUA ASCENSÃO</h2></header><div class="profile-reference-rank-track">' + rankTrackHtml(currentClass) + '</div></section>';
-        html += '<section class="profile-reference-card profile-reference-next-rank"><header><span>PRÓXIMO RANK</span><img src="assets/ranks/' + (nextRank ? nextRank.id : currentClass) + '.png" alt="" aria-hidden="true"></header><strong>RANK ' + escapeHtml(nextRank ? nextRank.id : currentClass) + '</strong><b>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</b><div class="profile-reference-next-rank__bar"><i style="width:' + (monthly.goal ? Math.min(100, Math.round((monthly.earned / monthly.goal) * 100)) : 0) + '%"></i></div><p>' + (nextRank ? 'Faltam ' + Arquimago.formatNumber(monthlyRemaining) + ' XP para o Rank ' + nextRank.id : 'Rank máximo alcançado') + '</p></section></section>';
+        html += '<section class="profile-reference-card profile-reference-next-rank"><header><span>PRÓXIMO RANK</span><img class="profile-reference-next-rank__symbol" src="projeto/simbol-abas.png" alt="" aria-hidden="true"></header><strong>RANK ' + escapeHtml(nextRank ? nextRank.id : currentClass) + '</strong><b>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</b><div class="profile-reference-next-rank__bar"><i style="width:' + (monthly.goal ? Math.min(100, Math.round((monthly.earned / monthly.goal) * 100)) : 0) + '%"></i></div><p>' + (nextRank ? 'Faltam ' + Arquimago.formatNumber(monthlyRemaining) + ' XP para o Rank ' + nextRank.id : 'Rank máximo alcançado') + '</p></section></section>';
 
         html += '<section class="profile-reference-card profile-reference-attributes"><header class="profile-reference-card__header"><h2><span aria-hidden="true">✥</span> ATRIBUTOS</h2><p>Atributos evoluem a cada missão concluída. <b aria-label="Informações">i</b></p></header><div class="profile-reference-attribute-grid">';
         Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS).forEach(function (key) {

@@ -102,10 +102,13 @@
     width: 96px;
     height: 96px;
     margin: 0;
-    border: 1px solid rgba(201, 168, 76, 0.7);
-    border-radius: 0;
-    background: linear-gradient(145deg, rgba(201, 168, 76, 0.12), rgba(5, 10, 18, 0.92));
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 16px rgba(201, 168, 76, 0.06);
+    border: 0;
+    background-color: #050609;
+    background-image: var(--top-rank-badge-image);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    box-shadow: none;
 }
 
 #game[data-screen="profile"] .top-rank-badge span {
@@ -345,11 +348,19 @@
 
 .profile-reference-card {
     position: relative;
-    border: 1px solid rgba(201, 168, 76, 0.52);
+    border-width: 18px 18px 17px 18px;
+    border-style: solid;
+    border-color: transparent;
+    border-image-source: url("../assets/ui/home-reference/card-frame.png");
+    border-image-slice: 18 18 17 18;
+    border-image-width: 18px 18px 17px 18px;
+    border-image-repeat: stretch;
     border-radius: 0;
-    background: radial-gradient(circle at 50% 0%, rgba(37, 29, 16, 0.32), transparent 55%), #050609;
+    background-color: #050609;
+    background-image: url("../assets/ui/home-reference/panel-texture.png");
+    background-position: center;
+    background-size: cover;
     color: var(--text);
-    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
 }
 
 .profile-reference-card__header {
@@ -372,15 +383,6 @@
     letter-spacing: 0.13em;
     line-height: 1.2;
     text-transform: uppercase;
-}
-
-.profile-reference-card__header h2::after,
-.profile-reference-section-heading h2::after {
-    content: "";
-    width: min(180px, 18vw);
-    height: 1px;
-    margin-left: 15px;
-    background: linear-gradient(90deg, rgba(201, 168, 76, 0.4), transparent);
 }
 
 .profile-reference-card__header h2 span,
@@ -538,6 +540,7 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    mix-blend-mode: screen;
 }
 
 .profile-reference-rank.is-active > span {
@@ -547,12 +550,18 @@
     filter: drop-shadow(0 0 8px rgba(229, 173, 55, 0.6));
 }
 
+.profile-reference-rank.is-active > span img {
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+
 .profile-reference-rank > strong {
     margin-top: 4px;
     color: #d5af58;
     font-family: var(--font-display);
     font-size: 1.05rem;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .profile-reference-rank.is-active > strong {
@@ -573,19 +582,6 @@
     overflow: hidden;
 }
 
-.profile-reference-next-rank::after {
-    content: "";
-    position: absolute;
-    right: -22px;
-    bottom: -30px;
-    width: 170px;
-    height: 170px;
-    border: 1px solid rgba(155, 83, 224, 0.22);
-    border-radius: 50%;
-    box-shadow: 0 0 0 15px rgba(155, 83, 224, 0.025), 0 0 0 32px rgba(155, 83, 224, 0.018);
-    pointer-events: none;
-}
-
 .profile-reference-next-rank > header {
     position: relative;
     z-index: 1;
@@ -598,12 +594,18 @@
     letter-spacing: 0.12em;
 }
 
-.profile-reference-next-rank > header img {
-    width: 90px;
-    height: 90px;
-    margin: -13px -7px -36px 0;
-    opacity: 0.2;
+.profile-reference-next-rank__symbol {
+    position: absolute;
+    right: -82px;
+    bottom: -104px;
+    z-index: 0;
+    width: 270px;
+    height: 270px;
+    opacity: 0.22;
     object-fit: contain;
+    mix-blend-mode: screen;
+    filter: hue-rotate(220deg) saturate(1.55) brightness(0.82);
+    pointer-events: none;
 }
 
 .profile-reference-next-rank > strong,
@@ -1175,8 +1177,8 @@
     #game[data-screen="profile"] .top-rank-badge {
         top: 22px;
         right: 72px;
-        width: 51px;
-        height: 58px;
+        width: 54px;
+        height: 54px;
     }
 
     #game[data-screen="profile"] .top-rank-badge span {
