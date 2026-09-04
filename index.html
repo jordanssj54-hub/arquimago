@@ -37,6 +37,8 @@
 <link rel="stylesheet" href="css/boss.css">
 <link rel="stylesheet" href="css/home-reference.css?v=4">
 <link rel="stylesheet" href="css/missions-reference.css?v=1">
+<link rel="stylesheet" href="css/profile-reference.css?v=1">
+<link rel="stylesheet" href="css/config-reference.css?v=1">
 </head>
 <body class="theme-black">
 
@@ -46,59 +48,142 @@
 <div id="fx-layer"></div>
 <div id="particles-layer"></div>
 
-<div id="settings-modal" class="modal" hidden>
+<div id="settings-modal" class="modal settings-reference-modal" hidden>
 <div class="modal-backdrop" data-close-modal></div>
-<div class="modal-panel">
-<button type="button" class="modal-close-button" data-close-modal aria-label="Fechar">
-<img src="assets/ui/icons/icon-close.png" alt="">
+<div class="modal-panel settings-reference-panel" role="dialog" aria-modal="true" aria-labelledby="settingsReferenceTitle">
+<div class="settings-reference-layout">
+<aside class="settings-reference-sidebar">
+<header class="settings-reference-sidebar__header">
+<button type="button" class="settings-reference-back" data-close-modal aria-label="Voltar">
+<span aria-hidden="true">&larr;</span>
 </button>
-<h3>Configurações</h3>
-<div class="settings-group">
-<label class="toggle-row">
-<span>Sons</span>
+<div class="settings-reference-heading">
+<h2 id="settingsReferenceTitle">CONFIGURAÇÕES</h2>
+<span class="settings-reference-heading__rule" aria-hidden="true"><i></i><b></b><i></i></span>
+</div>
+</header>
+
+<div class="settings-reference-profile">
+<img src="projeto/cardperfil.png" alt="Retrato do personagem" class="settings-reference-profile__portrait">
+<div class="settings-reference-profile__copy">
+<strong data-settings-player-name>Jordan</strong>
+<span>RANK <b id="settingsReferenceRank">D</b></span>
+<button type="button" class="settings-reference-profile__button" data-open-profile>VER PERFIL <b aria-hidden="true">&rsaquo;</b></button>
+</div>
+</div>
+
+<nav class="settings-reference-menu" aria-label="Categorias de configurações">
+<section class="settings-reference-menu__group">
+<h3>CONTA</h3>
+<button type="button" class="settings-reference-menu__row" data-open-profile><span class="settings-reference-menu__icon" aria-hidden="true">&#9813;</span><span><strong>Minha conta</strong><small>Dados pessoais e de acesso</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row"><span class="settings-reference-menu__icon" aria-hidden="true">&#9851;</span><span><strong>Segurança</strong><small>Senha, biometria e sessões</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row"><span class="settings-reference-menu__icon" aria-hidden="true">&#9832;</span><span><strong>Notificações</strong><small>Gerencie seus alertas</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row"><span class="settings-reference-menu__icon" aria-hidden="true">&#9673;</span><span><strong>Privacidade</strong><small>Controle seus dados</small></span><b aria-hidden="true">&rsaquo;</b></button>
+</section>
+<section class="settings-reference-menu__group">
+<h3>APARÊNCIA</h3>
+<button type="button" class="settings-reference-menu__row is-active" data-settings-target="settingsThemeSection"><span class="settings-reference-menu__icon" aria-hidden="true">&#9790;</span><span><strong>Tema</strong><small>Escolha o visual do app</small></span><em id="settingsReferenceThemeName">Escuro</em><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row" data-settings-target="settingsPersonalizationSection"><span class="settings-reference-menu__icon" aria-hidden="true">&#10024;</span><span><strong>Personalização</strong><small>Cores e efeitos</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row" data-settings-target="settingsDisplaySection"><span class="settings-reference-menu__icon" aria-hidden="true">&#8862;</span><span><strong>Interface</strong><small>Ajustes de exibição</small></span><b aria-hidden="true">&rsaquo;</b></button>
+</section>
+<section class="settings-reference-menu__group">
+<h3>JORNADA</h3>
+<button type="button" class="settings-reference-menu__row" data-settings-target="settingsDisplaySection"><span class="settings-reference-menu__icon" aria-hidden="true">&#9678;</span><span><strong>Metas e jornadas</strong><small>Configure suas metas</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row" data-settings-target="settingsDisplaySection"><span class="settings-reference-menu__icon" aria-hidden="true">&#8987;</span><span><strong>Lembretes</strong><small>Horários e frequência</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row" data-settings-target="settingsDisplaySection"><span class="settings-reference-menu__icon" aria-hidden="true">&#8635;</span><span><strong>Sincronização</strong><small>Backup e sincronização</small></span><b aria-hidden="true">&rsaquo;</b></button>
+</section>
+<section class="settings-reference-menu__group">
+<h3>SOBRE</h3>
+<button type="button" class="settings-reference-menu__row"><span class="settings-reference-menu__icon" aria-hidden="true">&#10022;</span><span><strong>Sobre o Arquimago</strong><small>Versão 1.0.0</small></span><b aria-hidden="true">&rsaquo;</b></button>
+<button type="button" class="settings-reference-menu__row"><span class="settings-reference-menu__icon" aria-hidden="true">?</span><span><strong>Ajuda e suporte</strong><small>Dúvidas? Fale conosco</small></span><b aria-hidden="true">&rsaquo;</b></button>
+</section>
+</nav>
+
+<button type="button" class="settings-reference-exit" data-close-modal><span aria-hidden="true">&#10132;</span> SAIR DA JORNADA</button>
+<span class="settings-reference-footer-mark" aria-hidden="true"><i></i><b>&#10022;</b><i></i></span>
+</aside>
+
+<section class="settings-reference-content">
+<header class="settings-reference-content__header">
+<button type="button" class="settings-reference-back" data-close-modal aria-label="Voltar">
+<span aria-hidden="true">&larr;</span>
+</button>
+<div>
+<h1>TEMA</h1>
+<p>Escolha o visual que combina<br class="settings-reference-desktop-break"> com sua jornada.</p>
+</div>
+<img src="projeto/simbol-config.png" alt="" class="settings-reference-content__symbol" aria-hidden="true">
+</header>
+
+<section class="settings-reference-section" id="settingsThemeSection">
+<div class="settings-reference-section__title"><h2>APARÊNCIA</h2><span></span></div>
+<div class="settings-reference-appearance-grid">
+<button type="button" class="settings-reference-appearance-card" data-settings-theme="current" aria-pressed="false">
+<span class="settings-reference-appearance-card__art"><img src="projeto/aparence.png" alt="Lua dourada"></span><span class="settings-reference-check" aria-hidden="true">&#10003;</span><strong>Escuro</strong><small>Padrão do<br>Arquimago</small>
+</button>
+<button type="button" class="settings-reference-appearance-card" data-settings-theme="arcane" aria-pressed="false">
+<span class="settings-reference-appearance-card__art"><img src="projeto/aparence2.png" alt="Símbolo arcano roxo"></span><span class="settings-reference-check" aria-hidden="true">&#10003;</span><strong>Arcano</strong><small>Tons de roxo<br>e mistério</small>
+</button>
+<button type="button" class="settings-reference-appearance-card" data-settings-theme="light" aria-pressed="false">
+<span class="settings-reference-appearance-card__art"><img src="projeto/aparence3.png" alt="Símbolo solar dourado"></span><span class="settings-reference-check" aria-hidden="true">&#10003;</span><strong>Clássico</strong><small>Mais claro<br>e limpo</small>
+</button>
+</div>
+<div class="field-select settings-reference-native-control" id="themeSelect" data-select="theme"></div>
+</section>
+
+<section class="settings-reference-section settings-reference-section--colors" id="settingsPersonalizationSection">
+<div class="settings-reference-section__title"><h2>CORES DE DESTAQUE</h2><span></span></div>
+<p class="settings-reference-description">Escolha a cor que representa sua magia.</p>
+<div class="settings-reference-color-list" role="group" aria-label="Cores de destaque">
+<button type="button" class="settings-reference-color is-gold" data-settings-theme="current" aria-label="Dourado" aria-pressed="false"><span>&#10003;</span></button>
+<button type="button" class="settings-reference-color is-purple" data-settings-theme="mystic" aria-label="Roxo" aria-pressed="false"><span>&#10003;</span></button>
+<button type="button" class="settings-reference-color is-blue" data-settings-theme="shadow" aria-label="Azul" aria-pressed="false"><span>&#10003;</span></button>
+<button type="button" class="settings-reference-color is-green" data-settings-theme="emerald" aria-label="Verde" aria-pressed="false"><span>&#10003;</span></button>
+<button type="button" class="settings-reference-color is-red" data-settings-theme="crimson" aria-label="Vermelho" aria-pressed="false"><span>&#10003;</span></button>
+</div>
+</section>
+
+<section class="settings-reference-section settings-reference-section--effects">
+<div class="settings-reference-section__title"><h2>EFEITOS VISUAIS</h2><span></span></div>
+<div class="settings-reference-control-card">
+<div class="settings-reference-status-row"><span class="settings-reference-control-icon" aria-hidden="true">&#10022;</span><span><strong>Partículas arcanas</strong><small>Efeitos sutis pela interface</small></span><span class="settings-reference-status is-on" aria-label="Ativo"></span></div>
+<div class="settings-reference-status-row"><span class="settings-reference-control-icon" aria-hidden="true">&#10023;</span><span><strong>Brilho nos elementos</strong><small>Destaca elementos importantes</small></span><span class="settings-reference-status is-on" aria-label="Ativo"></span></div>
+<div class="settings-reference-status-row"><span class="settings-reference-control-icon" aria-hidden="true">&#10024;</span><span><strong>Animações suaves</strong><small>Transições e microanimações</small></span><span class="settings-reference-status is-on" aria-label="Ativo"></span></div>
+<div class="settings-reference-status-row"><span class="settings-reference-control-icon" aria-hidden="true">&#9881;</span><span><strong>Modo performance</strong><small>Reduz efeitos para mais desempenho</small></span><span class="settings-reference-status"></span></div>
+</div>
+<div class="settings-reference-sound-row">
+<span><strong>Som e música</strong><small>Ative ou silencie o ambiente</small></span>
+<label class="settings-reference-switch" aria-label="Ativar sons">
 <input type="checkbox" id="soundToggle" checked>
 <span class="toggle-slider"></span>
 </label>
-<button class="btn-secondary compact" id="audioToggleButton" type="button">🔊 Som</button>
+<button type="button" id="audioToggleButton" class="settings-reference-audio-button" aria-label="Alternar som">Som</button>
 </div>
-<div class="settings-group">
-<h4>Template Visual</h4>
-<div class="field-select" id="templateSelect" data-select="template"></div>
+</section>
+
+<section class="settings-reference-section settings-reference-section--compact" id="settingsTypographySection">
+<div class="settings-reference-section__title"><h2>TIPOGRAFIA</h2><span></span></div>
+<div class="settings-reference-select-row"><span class="settings-reference-control-icon" aria-hidden="true">&#10070;</span><span>Estilo de fonte</span><div class="field-select" id="fontSelect" data-select="font"></div></div>
+</section>
+
+<section class="settings-reference-section settings-reference-section--compact" id="settingsDisplaySection">
+<div class="settings-reference-section__title"><h2>EXIBIÇÃO</h2><span></span></div>
+<div class="settings-reference-select-row"><span>Tamanho das abas</span><div class="segmented" id="navScaleControl"><button type="button" data-nav-scale="0.8" class="segmented__btn">80%</button><button type="button" data-nav-scale="1" class="segmented__btn">100%</button><button type="button" data-nav-scale="1.2" class="segmented__btn">120%</button><button type="button" data-nav-scale="1.5" class="segmented__btn">150%</button></div></div>
+<div class="settings-reference-select-row"><span>Papel de parede</span><div class="field-select" id="wallpaperSelect" data-select="wallpaper"></div></div>
+<div class="settings-reference-actions"><button type="button" class="btn-secondary compact" id="uploadWallpaperButton">Usar imagem da galeria</button><button type="button" class="btn-secondary compact" id="clearWallpaperButton">Voltar ao automático</button><input type="file" id="wallpaperFileInput" accept="image/*" hidden></div>
+<div class="settings-reference-select-row"><span>Template visual</span><div class="field-select" id="templateSelect" data-select="template"></div></div>
 <p class="settings-hint" id="templateSelectHint"></p>
+<button type="button" class="settings-reference-restore" id="restoreTabOrderButton">Restaurar ordem da navegação</button>
+</section>
+
+<section class="settings-reference-preview">
+<div class="settings-reference-section__title"><h2>PRÉVIA</h2><span></span></div>
+<div class="settings-reference-preview__body"><span class="settings-reference-preview__seal">&#10022;</span><div class="settings-reference-preview__track"><span></span><b>0 / 1.848 XP</b></div></div>
+<p>Exemplo de como ficará sua interface.</p>
+</section>
+<button type="button" class="settings-reference-save" data-close-modal><span aria-hidden="true">&#10003;</span> SALVAR ALTERAÇÕES</button>
+</section>
 </div>
-<div class="settings-group">
-<h4>Tema de Cores</h4>
-<div class="field-select" id="themeSelect" data-select="theme"></div>
-</div>
-<div class="settings-group">
-<h4>Tipografia</h4>
-<div class="field-select" id="fontSelect" data-select="font"></div>
-</div>
-<div class="settings-group">
-<h4>Papel de Parede</h4>
-<p class="settings-hint">Use o fundo do Template ou escolha uma imagem da sua galeria.</p>
-<div class="field-select" id="wallpaperSelect" data-select="wallpaper"></div>
-<button type="button" class="btn-secondary compact" id="uploadWallpaperButton">🖼️ Usar imagem da galeria</button>
-<button type="button" class="btn-secondary compact" id="clearWallpaperButton">↺ Voltar ao Automático</button>
-<input type="file" id="wallpaperFileInput" accept="image/*" hidden>
-</div>
-<div class="settings-group">
-<h4>Layout da Navegação</h4>
-<p class="settings-hint">A Navigation Drawer fica fixa na lateral no desktop e sobreposta em telas menores.</p>
-<p class="settings-hint">Tamanho das abas.</p>
-<div class="segmented" id="navScaleControl">
-<button type="button" data-nav-scale="0.8" class="segmented__btn">80%</button>
-<button type="button" data-nav-scale="1" class="segmented__btn">100%</button>
-<button type="button" data-nav-scale="1.2" class="segmented__btn">120%</button>
-<button type="button" data-nav-scale="1.5" class="segmented__btn">150%</button>
-</div>
-</div>
-<div class="settings-group">
-<h4>Navegação</h4>
-<p class="settings-hint">Arraste as abas para reorganizar a ordem.</p>
-<button class="btn-secondary compact" id="restoreTabOrderButton" type="button">↺ Restaurar ordem padrão</button>
-</div>
-<button class="btn-secondary" data-close-modal>Fechar</button>
 </div>
 </div>
 

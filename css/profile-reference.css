@@ -1,0 +1,1345 @@
+/* Perfil: composição visual baseada em projeto/ref-perfil.png. */
+
+#game[data-screen="profile"] .main-frame {
+    border: 0;
+    background: transparent;
+}
+
+#game[data-screen="profile"] .main-content {
+    padding: 0 clamp(12px, 3vw, 34px);
+}
+
+#game[data-screen="profile"] .topbar {
+    position: relative;
+    min-height: 136px;
+    padding: 24px 30px 10px;
+    border-bottom: 0;
+    background: transparent;
+}
+
+#game[data-screen="profile"] .logo-container {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    gap: 0;
+    justify-content: center;
+}
+
+#game[data-screen="profile"] .logo-area {
+    min-width: 0;
+    max-width: 100%;
+}
+
+#game[data-screen="profile"] .logo-emblem,
+#game[data-screen="profile"] .logo-area h1,
+#game[data-screen="profile"] .logo-area > span {
+    display: none;
+}
+
+#game[data-screen="profile"] .home-logo-art,
+#game[data-screen="profile"] .mobile-nav-toggle__image {
+    display: block;
+}
+
+#game[data-screen="profile"] .home-logo-art {
+    width: min(500px, 54vw);
+    max-width: 100%;
+    height: auto;
+}
+
+#game[data-screen="profile"] .mobile-nav-toggle {
+    position: absolute;
+    left: 44px;
+    top: 29px;
+    z-index: 4;
+    width: 85px;
+    height: 84px;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+#game[data-screen="profile"] .mobile-nav-toggle__image,
+#game[data-screen="profile"] .icon-button-icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+#game[data-screen="profile"] .mobile-nav-toggle__icon {
+    display: none !important;
+}
+
+#game[data-screen="profile"] .icon-button {
+    position: absolute;
+    right: 47px;
+    top: 29px;
+    z-index: 4;
+    width: 85px;
+    height: 84px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+#game[data-screen="profile"] .mobile-nav-toggle:hover,
+#game[data-screen="profile"] .icon-button:hover {
+    filter: brightness(1.16);
+}
+
+#game[data-screen="profile"] .top-rank-badge {
+    position: absolute;
+    right: 150px;
+    top: 26px;
+    width: 96px;
+    height: 96px;
+    margin: 0;
+    border: 1px solid rgba(201, 168, 76, 0.7);
+    border-radius: 0;
+    background: linear-gradient(145deg, rgba(201, 168, 76, 0.12), rgba(5, 10, 18, 0.92));
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 16px rgba(201, 168, 76, 0.06);
+}
+
+#game[data-screen="profile"] .top-rank-badge span {
+    font-size: 0.66rem;
+}
+
+#game[data-screen="profile"] .top-rank-badge strong {
+    margin-top: 4px;
+    font-size: 1.9rem;
+}
+
+#game[data-screen="profile"] .top-crystals,
+#game[data-screen="profile"] .xp-bar--top {
+    display: none;
+}
+
+.profile-page--reference {
+    width: min(100%, 1020px);
+    margin: 0 auto;
+    padding: 0 0 112px;
+    display: block;
+}
+
+.profile-reference-hero {
+    position: relative;
+    min-height: 292px;
+    padding: 18px 5% 28px;
+    display: grid;
+    grid-template-columns: minmax(270px, 350px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(24px, 5vw, 54px);
+    overflow: hidden;
+}
+
+.profile-reference-hero__symbol {
+    position: absolute;
+    z-index: 0;
+    top: 2px;
+    right: -8px;
+    width: min(300px, 33%);
+    height: 292px;
+    object-fit: contain;
+    opacity: 0.18;
+    pointer-events: none;
+}
+
+.profile-reference-hero > .profile-avatar-wrap {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 360px);
+    aspect-ratio: 1;
+    justify-self: center;
+}
+
+.profile-reference-avatar--art {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.profile-reference-avatar-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.profile-reference-avatar--custom {
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    overflow: visible;
+    border: 3px solid #d6a943;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, rgba(199, 143, 53, 0.3), rgba(4, 6, 9, 0.95) 68%);
+    box-shadow: 0 0 0 5px rgba(201, 168, 76, 0.1), 0 0 24px rgba(201, 168, 76, 0.28), 0 18px 34px rgba(0, 0, 0, 0.35);
+}
+
+.profile-reference-avatar--custom .player-avatar {
+    border-radius: 50%;
+    background: #090b10;
+}
+
+.profile-reference-avatar--custom .player-avatar .mage-avatar-img {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: none;
+}
+
+.profile-reference-avatar--custom .player-avatar__frame {
+    display: none;
+}
+
+.profile-reference-avatar--custom::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+#game[data-screen="profile"] .avatar-edit-btn {
+    inset: auto -3px -3px auto;
+    z-index: 4;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border: 1px solid rgba(201, 168, 76, 0.8);
+    border-radius: 50%;
+    background: #090a0c;
+    color: var(--gold-light);
+    font-size: 0;
+    opacity: 1;
+    box-shadow: 0 0 0 4px #050609, 0 0 14px rgba(201, 168, 76, 0.22);
+}
+
+#game[data-screen="profile"] .profile-avatar-wrap--art .avatar-edit-btn {
+    right: 34px;
+    bottom: 34px;
+}
+
+#game[data-screen="profile"] .avatar-edit-btn::before {
+    content: "✎";
+    font-size: 1.45rem;
+}
+
+.profile-reference-hero__content {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    padding-bottom: 4px;
+}
+
+.profile-reference-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-reference-name h1 {
+    min-width: 0;
+    overflow: hidden;
+    color: #eee5d8;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 4vw, 3.2rem);
+    font-weight: 600;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-reference-name > button {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    border-radius: 9px;
+    background: rgba(201, 168, 76, 0.05);
+    color: var(--gold-light);
+    font-size: 1.35rem;
+    cursor: pointer;
+}
+
+.profile-reference-name > button:hover,
+.profile-reference-name > button:focus-visible {
+    background: rgba(201, 168, 76, 0.15);
+    outline: none;
+}
+
+.profile-reference-title {
+    display: block;
+    margin-top: 13px;
+    color: #a96fe0;
+    font-family: var(--font-display);
+    font-size: clamp(0.9rem, 2vw, 1.25rem);
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.profile-reference-hero__content > p {
+    max-width: 580px;
+    margin-top: 17px;
+    color: #b3aca6;
+    font-size: clamp(0.9rem, 1.7vw, 1.12rem);
+    line-height: 1.65;
+}
+
+.profile-reference-hero__stats {
+    max-width: 620px;
+    margin-top: 21px;
+    padding-top: 15px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(16px, 3vw, 36px);
+    border-top: 1px dashed rgba(201, 168, 76, 0.28);
+}
+
+.profile-reference-hero__stats > span {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: center;
+}
+
+.profile-reference-hero__stats > span > b {
+    grid-row: span 2;
+    color: var(--gold);
+    font-size: 1.8rem;
+    font-weight: 400;
+    text-align: center;
+}
+
+.profile-reference-hero__stats small {
+    color: #b8985b;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+}
+
+.profile-reference-hero__stats strong {
+    color: #bdb7b0;
+    font-family: var(--font-display);
+    font-size: clamp(0.88rem, 1.6vw, 1.1rem);
+    font-weight: 400;
+}
+
+.profile-reference-hero__stats > i {
+    width: 1px;
+    height: 48px;
+    background: rgba(201, 168, 76, 0.38);
+}
+
+.profile-reference-card {
+    position: relative;
+    border: 1px solid rgba(201, 168, 76, 0.52);
+    border-radius: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(37, 29, 16, 0.32), transparent 55%), #050609;
+    color: var(--text);
+    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+}
+
+.profile-reference-card__header {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.profile-reference-card__header h2,
+.profile-reference-section-heading h2 {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    color: #d6aa4c;
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.profile-reference-card__header h2::after,
+.profile-reference-section-heading h2::after {
+    content: "";
+    width: min(180px, 18vw);
+    height: 1px;
+    margin-left: 15px;
+    background: linear-gradient(90deg, rgba(201, 168, 76, 0.4), transparent);
+}
+
+.profile-reference-card__header h2 span,
+.profile-reference-section-heading h2 span {
+    margin-right: 8px;
+    color: var(--gold);
+    font-size: 1.1em;
+}
+
+.profile-reference-card__header > b {
+    color: #d6d0c7;
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.profile-reference-about {
+    min-height: 126px;
+    padding: 18px 26px 16px;
+}
+
+.profile-reference-about__display {
+    max-width: 630px;
+    margin-top: 14px;
+    padding-right: 140px;
+    color: #b8b2ac;
+    font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+    line-height: 1.55;
+}
+
+.profile-reference-about__display.is-placeholder {
+    color: #b8b2ac;
+}
+
+.profile-reference-card__edit,
+.profile-reference-card__action {
+    border: 1px solid rgba(201, 168, 76, 0.58);
+    border-radius: 0;
+    background: rgba(8, 8, 10, 0.84);
+    color: #d7ae54;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+}
+
+.profile-reference-card__edit {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    min-width: 122px;
+    padding: 13px 12px;
+    transform: translateY(-50%);
+}
+
+.profile-reference-card__edit span {
+    margin-right: 8px;
+    font-size: 1.25rem;
+}
+
+.profile-reference-card__edit:hover,
+.profile-reference-card__action:hover,
+.profile-reference-card__edit:focus-visible,
+.profile-reference-card__action:focus-visible {
+    background: rgba(201, 168, 76, 0.1);
+    outline: none;
+}
+
+.profile-about-editor {
+    margin-top: 14px;
+    padding-right: 140px;
+}
+
+.profile-about-editor[hidden],
+.profile-name-editor[hidden] {
+    display: none;
+}
+
+.profile-name-editor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.profile-name-editor input {
+    width: min(100%, 300px);
+    padding: 8px 10px;
+    border: 1px solid rgba(201, 168, 76, 0.45);
+    border-radius: 3px;
+    background: #0a0b0e;
+    color: var(--text);
+    font: inherit;
+}
+
+.profile-name-editor button {
+    padding: 8px 12px;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    background: transparent;
+    color: var(--gold-light);
+    cursor: pointer;
+}
+
+.profile-about-editor .profile-about__input {
+    min-height: 74px;
+    border-color: rgba(201, 168, 76, 0.36);
+    border-radius: 2px;
+    background: #08090c;
+}
+
+.profile-about-editor .profile-about__footer {
+    margin-top: 7px;
+}
+
+.profile-reference-progression {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(285px, 0.9fr);
+    align-items: center;
+    gap: clamp(18px, 4vw, 42px);
+}
+
+.profile-reference-section-heading {
+    padding-left: 5px;
+}
+
+.profile-reference-rank-track {
+    position: relative;
+    margin-top: 23px;
+    padding: 0 2%;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: start;
+    background: linear-gradient(90deg, transparent 3%, rgba(174, 125, 39, 0.5) 14%, rgba(174, 125, 39, 0.5) 86%, transparent 97%) center 47px / 100% 1px no-repeat;
+}
+
+.profile-reference-rank {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-reference-rank > span {
+    display: block;
+    width: clamp(56px, 9vw, 88px);
+    height: clamp(56px, 9vw, 88px);
+}
+
+.profile-reference-rank > span img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.profile-reference-rank.is-active > span {
+    width: clamp(74px, 11vw, 106px);
+    height: clamp(74px, 11vw, 106px);
+    margin-top: -9px;
+    filter: drop-shadow(0 0 8px rgba(229, 173, 55, 0.6));
+}
+
+.profile-reference-rank > strong {
+    margin-top: 4px;
+    color: #d5af58;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.profile-reference-rank.is-active > strong {
+    margin-top: 2px;
+    font-size: 1.2rem;
+}
+
+.profile-reference-rank > small {
+    margin-top: 1px;
+    color: #b7b1a9;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+}
+
+.profile-reference-next-rank {
+    min-height: 202px;
+    padding: 16px 22px;
+    overflow: hidden;
+}
+
+.profile-reference-next-rank::after {
+    content: "";
+    position: absolute;
+    right: -22px;
+    bottom: -30px;
+    width: 170px;
+    height: 170px;
+    border: 1px solid rgba(155, 83, 224, 0.22);
+    border-radius: 50%;
+    box-shadow: 0 0 0 15px rgba(155, 83, 224, 0.025), 0 0 0 32px rgba(155, 83, 224, 0.018);
+    pointer-events: none;
+}
+
+.profile-reference-next-rank > header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #d3b98d;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+}
+
+.profile-reference-next-rank > header img {
+    width: 90px;
+    height: 90px;
+    margin: -13px -7px -36px 0;
+    opacity: 0.2;
+    object-fit: contain;
+}
+
+.profile-reference-next-rank > strong,
+.profile-reference-next-rank > b,
+.profile-reference-next-rank > p,
+.profile-reference-next-rank__bar {
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+.profile-reference-next-rank > strong {
+    margin-top: -10px;
+    color: #a36cdf;
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 3vw, 2rem);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+}
+
+.profile-reference-next-rank > b {
+    margin-top: 8px;
+    color: #e3ddd5;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 400;
+}
+
+.profile-reference-next-rank__bar {
+    height: 9px;
+    margin: 12px 0 9px;
+    overflow: hidden;
+    border: 1px solid rgba(177, 126, 45, 0.6);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.profile-reference-next-rank__bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #8a5d25, #d8a544);
+}
+
+.profile-reference-next-rank > p {
+    color: #a8a09a;
+    font-size: 0.82rem;
+}
+
+.profile-reference-attributes {
+    margin-top: 23px;
+    padding: 18px 22px 16px;
+}
+
+.profile-reference-attributes .profile-reference-card__header {
+    align-items: center;
+}
+
+.profile-reference-attributes .profile-reference-card__header p {
+    color: #96908a;
+    font-size: 0.78rem;
+}
+
+.profile-reference-attributes .profile-reference-card__header p b {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-left: 7px;
+    border: 1px solid rgba(201, 168, 76, 0.75);
+    border-radius: 50%;
+    color: var(--gold-light);
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.profile-reference-attribute-grid {
+    margin-top: 21px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.profile-reference-attribute {
+    min-width: 0;
+    padding: 0 12px 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 0;
+    border-right: 1px solid rgba(201, 168, 76, 0.17);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-body);
+    cursor: pointer;
+}
+
+.profile-reference-attribute:last-child {
+    border-right: 0;
+}
+
+.profile-reference-attribute:hover .profile-reference-attribute__icon,
+.profile-reference-attribute:focus-visible .profile-reference-attribute__icon {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 8px var(--attribute-color));
+}
+
+.profile-reference-attribute:focus-visible {
+    outline: 1px solid var(--attribute-color);
+    outline-offset: -2px;
+}
+
+.profile-reference-attribute__icon {
+    width: 67px;
+    height: 67px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--attribute-color);
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.profile-reference-attribute__icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.profile-reference-attribute > strong {
+    max-width: 100%;
+    margin-top: 6px;
+    overflow: hidden;
+    color: #d0a24a;
+    font-family: var(--font-display);
+    font-size: clamp(0.65rem, 1.2vw, 0.86rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.profile-reference-attribute > b {
+    margin-top: 2px;
+    color: #eee4d5;
+    font-family: var(--font-display);
+    font-size: 1.28rem;
+    font-weight: 500;
+}
+
+.profile-reference-attribute__bar {
+    width: 100%;
+    height: 8px;
+    margin-top: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.58);
+}
+
+.profile-reference-attribute__bar i {
+    display: block;
+    height: 100%;
+    background: var(--attribute-color);
+    box-shadow: 0 0 8px var(--attribute-color);
+}
+
+.profile-reference-attribute > small {
+    margin-top: 7px;
+    color: #9b9690;
+    font-size: 0.78rem;
+}
+
+#game[data-screen="profile"] #profileAttributeDetail {
+    margin: 18px 4px 0;
+}
+
+#game[data-screen="profile"] #profileAttributeDetail:empty {
+    display: none;
+}
+
+#game[data-screen="profile"] .profile-attribute-detail {
+    border-color: rgba(201, 168, 76, 0.32);
+    border-radius: 0;
+    background: rgba(201, 168, 76, 0.04);
+}
+
+.profile-reference-attributes__history {
+    display: block;
+    width: min(550px, 78%);
+    margin: 25px auto 0;
+    padding: 10px 15px;
+}
+
+.profile-reference-card__action span {
+    margin-left: 8px;
+    font-size: 1.1rem;
+}
+
+.profile-reference-lower {
+    margin-top: 23px;
+    display: grid;
+    grid-template-columns: minmax(280px, 0.88fr) minmax(0, 1.12fr);
+    align-items: stretch;
+    gap: 16px;
+}
+
+.profile-reference-statistics,
+.profile-reference-achievements {
+    min-width: 0;
+    padding: 18px 22px 16px;
+}
+
+.profile-reference-stat-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-reference-stat-list > span {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 27px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 2px;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+}
+
+.profile-reference-stat-list > span > b {
+    color: var(--gold);
+    font-size: 1.1rem;
+    font-weight: 400;
+    text-align: center;
+}
+
+.profile-reference-stat-list label {
+    min-width: 0;
+    overflow: hidden;
+    color: #aaa49d;
+    font-size: 0.82rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-reference-stat-list strong {
+    color: #ded7ce;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.profile-reference-statistics .profile-reference-card__action,
+.profile-reference-achievements .profile-reference-card__action {
+    width: 100%;
+    margin-top: 16px;
+    padding: 9px 10px;
+}
+
+.profile-reference-achievement-grid {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.profile-reference-achievement {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.profile-reference-achievement__icon {
+    width: 69px;
+    height: 69px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(167, 164, 157, 0.36);
+    border-radius: 22%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05), rgba(5, 6, 9, 0.75));
+    color: #bcb9b0;
+    font-size: 1.8rem;
+}
+
+.profile-reference-achievement.is-unlocked .profile-reference-achievement__icon {
+    border-color: rgba(201, 168, 76, 0.7);
+    color: var(--gold-light);
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
+}
+
+.profile-reference-achievement.is-locked {
+    opacity: 0.64;
+}
+
+.profile-reference-achievement > strong {
+    max-width: 100%;
+    margin-top: 8px;
+    overflow: hidden;
+    color: #d1ab58;
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-reference-achievement > small {
+    display: -webkit-box;
+    max-width: 100%;
+    margin-top: 4px;
+    overflow: hidden;
+    color: #938d87;
+    font-size: 0.67rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.profile-reference-empty {
+    grid-column: 1 / -1;
+    padding: 15px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.profile-reference-trophies {
+    margin-top: 13px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+.profile-reference-trophies > strong {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--gold-dark);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+}
+
+.profile-reference-trophies > span {
+    display: block;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-reference-trophies > span b {
+    margin-right: 6px;
+    color: var(--gold);
+}
+
+@media (max-width: 1100px) {
+    #game[data-screen="profile"][data-nav-position] {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .main-frame {
+        width: 100%;
+        min-height: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .main-content {
+        padding-left: clamp(10px, 3vw, 30px);
+        padding-right: clamp(10px, 3vw, 30px);
+    }
+
+    #game[data-screen="profile"][data-nav-position] .main-tabs {
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 400;
+        width: 100%;
+        height: clamp(88px, 10.55vw, 108px);
+        min-height: clamp(88px, 10.55vw, 108px);
+        padding: 8px 3%;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 0;
+        overflow: hidden;
+        border: 0;
+        background-color: #050609 !important;
+        background-image: url("../assets/ui/home-reference/bottom-nav.png") !important;
+        background-size: 100% 100%;
+        transform: none;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .drawer-header,
+    #game[data-screen="profile"][data-nav-position] .drawer-rule,
+    #game[data-screen="profile"][data-nav-position] .drawer-footer {
+        display: none;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .tab {
+        height: 80px;
+        min-height: 80px;
+        flex: 1 1 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 5px 4px;
+        border: 0;
+        border-radius: 0;
+        background: transparent !important;
+        color: #777474;
+        display: flex;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .tab-icon {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 50px !important;
+        height: 55px !important;
+        flex: 0 0 55px;
+        object-fit: contain;
+        visibility: visible !important;
+        mix-blend-mode: screen;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .tab-txt {
+        display: none !important;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .tab-label {
+        max-width: 130px;
+        flex: 0 0 auto;
+        opacity: 1;
+        transform: none;
+        color: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        visibility: visible !important;
+    }
+
+    #game[data-screen="profile"][data-nav-position] .tab.active {
+        color: var(--gold-light);
+        background: rgba(201, 168, 76, 0.06) !important;
+        box-shadow: inset 0 -2px var(--gold), 0 0 18px rgba(201, 168, 76, 0.08);
+    }
+
+    #game[data-screen="profile"][data-nav-position] .tab.active .tab-icon {
+        filter: sepia(1) saturate(2) brightness(1.3);
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .main-tabs {
+        inset: 0 auto 0 0;
+        width: min(86vw, 312px);
+        height: 100vh;
+        min-height: 100vh;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-color: #050609 !important;
+        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg") !important;
+        background-size: cover;
+        transform: translateX(0);
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-header,
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-rule,
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-footer {
+        display: flex;
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-rule {
+        display: block;
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .tab,
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-settings {
+        height: 54px;
+        min-height: 54px;
+        flex: 0 0 54px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 0 13px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent !important;
+        color: var(--text-muted);
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .tab-icon,
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-settings > img {
+        width: 30px !important;
+        height: 30px !important;
+        flex: 0 0 30px;
+        visibility: visible !important;
+        mix-blend-mode: screen;
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .tab-label,
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .drawer-settings .tab-label {
+        max-width: 190px;
+        flex: 1 1 auto;
+        opacity: 1;
+        transform: none;
+        visibility: visible !important;
+        font-size: 0.84rem;
+        letter-spacing: 0.02em;
+        text-transform: none;
+    }
+
+    #game[data-screen="profile"].nav-mobile-open[data-nav-position] .tab.active {
+        color: var(--gold-light);
+        border-color: var(--border-gold);
+        background-color: rgba(201, 168, 76, 0.1) !important;
+        box-shadow: inset 3px 0 var(--gold);
+    }
+
+    #game[data-screen="profile"][data-nav-position] .nav-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 350;
+        display: block;
+        background: rgba(2, 3, 8, 0.62);
+        backdrop-filter: blur(2px);
+    }
+
+    #game[data-screen="profile"][data-nav-position] .nav-scrim[hidden] {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    #game[data-screen="profile"] .topbar {
+        min-height: 122px;
+        padding: 18px 74px 8px 66px;
+    }
+
+    #game[data-screen="profile"] .home-logo-art {
+        width: min(230px, calc(100vw - 174px));
+    }
+
+    #game[data-screen="profile"] .mobile-nav-toggle,
+    #game[data-screen="profile"] .icon-button {
+        top: 20px;
+        width: 54px;
+        height: 54px;
+    }
+
+    #game[data-screen="profile"] .mobile-nav-toggle {
+        left: 12px;
+    }
+
+    #game[data-screen="profile"] .icon-button {
+        right: 12px;
+    }
+
+    #game[data-screen="profile"] .top-rank-badge {
+        top: 22px;
+        right: 72px;
+        width: 51px;
+        height: 58px;
+    }
+
+    #game[data-screen="profile"] .top-rank-badge span {
+        font-size: 0.43rem;
+    }
+
+    #game[data-screen="profile"] .top-rank-badge strong {
+        font-size: 1.2rem;
+    }
+
+    .profile-page--reference {
+        padding-bottom: 106px;
+    }
+
+    .profile-reference-hero {
+        min-height: 0;
+        padding: 24px 3% 26px;
+        grid-template-columns: 1fr;
+        gap: 22px;
+        text-align: center;
+    }
+
+    .profile-reference-hero__symbol {
+        top: 4px;
+        right: -50px;
+        width: 245px;
+        height: 245px;
+        opacity: 0.17;
+    }
+
+    .profile-reference-hero > .profile-avatar-wrap {
+        width: min(78vw, 300px);
+    }
+
+    .profile-reference-hero__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-reference-name {
+        justify-content: center;
+    }
+
+    .profile-reference-hero__content > p {
+        max-width: 510px;
+    }
+
+    .profile-reference-hero__stats {
+        width: 100%;
+        text-align: left;
+    }
+
+    .profile-reference-progression {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .profile-reference-attributes .profile-reference-card__header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .profile-reference-attribute-grid {
+        margin-top: 14px;
+    }
+
+    .profile-reference-attribute {
+        padding: 0 7px 3px;
+    }
+
+    .profile-reference-attribute__icon {
+        width: 55px;
+        height: 55px;
+    }
+
+    .profile-reference-attribute > strong {
+        font-size: 0.62rem;
+    }
+
+    .profile-reference-attribute > small {
+        font-size: 0.7rem;
+    }
+
+    .profile-reference-lower {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .profile-reference-about {
+        min-height: 175px;
+    }
+
+    .profile-reference-about__display,
+    .profile-about-editor {
+        padding-right: 0;
+    }
+
+    .profile-reference-about__display {
+        max-width: calc(100% - 12px);
+    }
+
+    .profile-reference-card__edit {
+        top: auto;
+        right: 9px;
+        bottom: 7px;
+        transform: none;
+    }
+
+    .profile-reference-hero__stats {
+        gap: 10px;
+    }
+
+    .profile-reference-hero__stats > span {
+        grid-template-columns: 25px minmax(0, 1fr);
+        column-gap: 6px;
+    }
+
+    .profile-reference-hero__stats > span > b {
+        font-size: 1.3rem;
+    }
+
+    .profile-reference-hero__stats small {
+        font-size: 0.56rem;
+    }
+
+    .profile-reference-hero__stats strong {
+        font-size: 0.76rem;
+    }
+
+    .profile-reference-next-rank {
+        min-height: 184px;
+    }
+}
+
+@media (max-width: 430px) {
+    .profile-reference-attribute-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 18px;
+    }
+
+    .profile-reference-attribute:nth-child(2) {
+        border-right: 0;
+    }
+
+    .profile-reference-attribute:nth-child(-n + 2) {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(201, 168, 76, 0.17);
+    }
+
+    .profile-reference-achievement-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 17px;
+    }
+
+    .profile-reference-name h1 {
+        font-size: 1.75rem;
+    }
+
+    .profile-reference-name > button {
+        width: 38px;
+        height: 38px;
+    }
+}

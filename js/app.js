@@ -32,6 +32,9 @@
         var audioButton = document.getElementById("audioToggleButton");
         var templateHint = document.getElementById("templateSelectHint");
         var navScaleControl = document.getElementById("navScaleControl");
+        var settingsRank = document.getElementById("settingsReferenceRank");
+        var settingsThemeName = document.getElementById("settingsReferenceThemeName");
+        var settingsPlayerName = modal ? modal.querySelector("[data-settings-player-name]") : null;
         var wallpaperSelectWrapper = document.getElementById("wallpaperSelect");
         var uploadWallpaperButton = document.getElementById("uploadWallpaperButton");
         var clearWallpaperButton = document.getElementById("clearWallpaperButton");
@@ -79,6 +82,9 @@
                     }
                     if (wrapper === templateWrapper && themeSelectUI) {
                         themeSelectUI.refresh();
+                    }
+                    if (wrapper === templateWrapper || wrapper === themeWrapper) {
+                        refreshReferenceVisuals();
                     }
                 });
                 menu.appendChild(el);
@@ -155,6 +161,52 @@
         buildFieldSelect(fontWrapper, Arquimago.TYPOGRAPHY, function () { return Arquimago.state.font; }, Arquimago.selectTypography, fontValue, fontValue);
         var wallpaperSelectUI = buildFieldSelect(wallpaperSelectWrapper, Arquimago.WALLPAPERS, function () { return Arquimago.state.wallpaper; }, Arquimago.selectWallpaper, templateValue, templateOption);
 
+        function refreshReferenceVisuals() {
+            if (!modal || !Arquimago.state) return;
+            var themeKey = Arquimago.state.theme || "current";
+            var visualThemeKey = themeKey === "dark" ? "current" : themeKey;
+            var themeNames = {
+                current: "Escuro",
+                dark: "Escuro",
+                arcane: "Arcano",
+                light: "Clássico"
+            };
+            modal.querySelectorAll("[data-settings-theme]").forEach(function (button) {
+                var active = button.getAttribute("data-settings-theme") === visualThemeKey;
+                button.classList.toggle("is-active", active);
+                button.setAttribute("aria-pressed", String(active));
+            });
+            if (settingsThemeName) settingsThemeName.textContent = themeNames[themeKey] || ((Arquimago.THEMES[themeKey] || {}).name || "Personalizado");
+            if (settingsPlayerName) settingsPlayerName.textContent = Arquimago.getDisplayName ? Arquimago.getDisplayName() : "Arquimago";
+            if (themeSelectUI) themeSelectUI.refresh();
+            if (settingsRank) {
+                var rank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(Arquimago.state) : null;
+                settingsRank.textContent = rank && rank.rank ? rank.rank : "D";
+            }
+        }
+
+        modal.querySelectorAll("[data-settings-theme]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                var themeKey = button.getAttribute("data-settings-theme");
+                if (!themeKey || !Arquimago.selectTheme) return;
+                Arquimago.playClick();
+                Arquimago.selectTheme(themeKey);
+                refreshReferenceVisuals();
+            });
+        });
+
+        modal.querySelectorAll("[data-settings-target]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                var target = document.getElementById(button.getAttribute("data-settings-target"));
+                if (!target) return;
+                Arquimago.playClick();
+                modal.querySelectorAll("[data-settings-target]").forEach(function (item) {
+                    item.classList.toggle("is-active", item === button);
+                });
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        });
+
         document.addEventListener("click", function () {
             closeAllMenus();
         });
@@ -207,6 +259,11 @@
                 Arquimago.saveState(Arquimago.state);
                 if (!toggle.checked) Arquimago.stopMusic();
                 else Arquimago.startMusic();
+                if (audioButton) {
+                    audioButton.classList.toggle("is-muted", !toggle.checked);
+                    audioButton.setAttribute("aria-pressed", String(toggle.checked));
+                    audioButton.innerHTML = toggle.checked ? "🔊 Som" : "🔈 Som";
+                }
             });
         }
 
@@ -224,22 +281,49 @@
                 Arquimago.saveState(Arquimago.state);
                 if (Arquimago.state.soundEnabled) Arquimago.startMusic();
                 else Arquimago.stopMusic();
+                if (toggle) toggle.checked = Arquimago.state.soundEnabled;
                 refreshAudioButton();
             });
         }
 
         if (modal) {
+            function closeSettings() {
+                modal.hidden = true;
+                document.body.classList.remove("settings-reference-open");
+            }
+
             function openSettings() {
                 Arquimago.playClick();
                 modal.hidden = false;
+                document.body.classList.add("settings-reference-open");
+                refreshReferenceVisuals();
+                refreshWallpaperButtons();
+                refreshNavControls();
+                var sidebar = modal.querySelector(".settings-reference-sidebar");
+                var content = modal.querySelector(".settings-reference-content");
+                if (sidebar) sidebar.scrollTop = 0;
+                if (content) content.scrollTop = 0;
+                modal.querySelectorAll("[data-settings-target]").forEach(function (item) {
+                    item.classList.toggle("is-active", item.getAttribute("data-settings-target") === "settingsThemeSection");
+                });
                 if (Arquimago.closeMobileNavigation) Arquimago.closeMobileNavigation();
             }
             if (btn) btn.addEventListener("click", openSettings);
             if (drawerSettingsButton) drawerSettingsButton.addEventListener("click", openSettings);
             modal.querySelectorAll("[data-close-modal]").forEach(function (el) {
                 el.addEventListener("click", function () {
-                    modal.hidden = true;
+                    closeSettings();
                 });
+            });
+            modal.querySelectorAll("[data-open-profile]").forEach(function (el) {
+                el.addEventListener("click", function () {
+                    closeSettings();
+                    var profileTab = document.querySelector('.tab[data-screen="profile"]');
+                    if (profileTab) profileTab.click();
+                });
+            });
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && !modal.hidden) closeSettings();
             });
         }
 

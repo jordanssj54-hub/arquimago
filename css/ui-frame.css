@@ -12,6 +12,12 @@
    O centro do PNG é transparente; somente a moldura externa é reutilizada.
    ------------------------------------------------------------------------- */
 
+/* O badge de rank usa o mesmo recorte chanfrado em todas as telas. */
+.top-rank-badge {
+    border-radius: 0;
+    clip-path: polygon(18% 0, 82% 0, 100% 28%, 100% 72%, 82% 100%, 18% 100%, 0 72%, 0 28%);
+}
+
 .main-frame {
     --frame-b: clamp(28px, 3.4vmin, 42px);
     --frame-s: clamp(24px, 2.8vmin, 36px);
