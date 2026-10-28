@@ -118,6 +118,7 @@
     function initSettings() {
         var btn = document.getElementById("settingsButton");
         var drawerSettingsButton = document.getElementById("drawerSettingsButton");
+        var drawerHelpButton = document.getElementById("drawerHelpButton");
         var modal = document.getElementById("settings-modal");
         var toggle = document.getElementById("soundToggle");
         var audioButton = document.getElementById("audioToggleButton");
@@ -401,6 +402,7 @@
             }
             if (btn) btn.addEventListener("click", openSettings);
             if (drawerSettingsButton) drawerSettingsButton.addEventListener("click", openSettings);
+            if (drawerHelpButton) drawerHelpButton.addEventListener("click", openSettings);
             modal.querySelectorAll("[data-close-modal]").forEach(function (el) {
                 el.addEventListener("click", function () {
                     closeSettings();

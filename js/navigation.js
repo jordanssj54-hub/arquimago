@@ -9,6 +9,32 @@
         return global.innerWidth <= 1100;
     }
 
+    Arquimago.refreshDrawerProfile = function () {
+        var state = Arquimago.state;
+        if (!state) return;
+
+        var name = Arquimago.getDisplayName ? Arquimago.getDisplayName() : "Arquimago";
+        var rankData = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D" };
+        var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { earned: 0, goal: 0, goalPercent: 0 };
+        var formatNumber = Arquimago.formatNumber || function (value) { return String(value || 0); };
+
+        document.querySelectorAll("[data-drawer-player-name]").forEach(function (el) {
+            el.textContent = name;
+        });
+        document.querySelectorAll("[data-drawer-rank]").forEach(function (el) {
+            el.textContent = rankData.rank || "D";
+        });
+        document.querySelectorAll("[data-drawer-xp]").forEach(function (el) {
+            el.textContent = formatNumber(monthly.earned) + " / " + formatNumber(monthly.goal) + " XP";
+        });
+        document.querySelectorAll("[data-drawer-xp-fill]").forEach(function (el) {
+            el.style.width = Math.min(100, Math.max(0, Number(monthly.goalPercent) || 0)) + "%";
+        });
+        document.querySelectorAll("[data-drawer-avatar]").forEach(function (el) {
+            el.src = state.customAvatar || "projeto/cardperfil.png";
+        });
+    };
+
     Arquimago.closeMobileNavigation = function () {
         var game = document.getElementById("game");
         var scrim = document.getElementById("navScrim");
@@ -77,9 +103,45 @@
             if (game && game.classList.contains("nav-mobile-open")) setMobileOpen(false);
         }
 
+        function selectScreen(id) {
+            var tab = document.querySelector('.tab[data-screen="' + id + '"]');
+            if (tab) tab.click();
+        }
+
+        function handleReferenceAction(action) {
+            if (action === "achievements") {
+                selectScreen("missions");
+                global.setTimeout(function () {
+                    var tab = document.querySelector('[data-mission-ref-tab="achievements"]');
+                    if (tab) tab.click();
+                }, 0);
+                return;
+            }
+
+            if (action === "attributes") {
+                selectScreen("profile");
+                global.setTimeout(function () {
+                    var target = document.querySelector(".profile-reference-attributes");
+                    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 0);
+                return;
+            }
+
+            if (Arquimago.showNotification) {
+                Arquimago.showNotification(action === "grimoire" ? "O Grimório será aberto em breve." : "A História será aberta em breve.", "xp");
+            }
+        }
+
         tabs.forEach(function (tab) {
             tab.addEventListener("click", function () {
                 openScreen(tab.dataset.screen);
+            });
+        });
+
+        document.querySelectorAll("[data-nav-action]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                Arquimago.playClick();
+                handleReferenceAction(button.getAttribute("data-nav-action"));
             });
         });
 
@@ -123,6 +185,7 @@
             if (game) game.setAttribute("data-screen", activeTab.dataset.screen);
             activeTab.setAttribute("aria-current", "page");
         }
+        Arquimago.refreshDrawerProfile();
     };
 
     global.Arquimago = Arquimago;

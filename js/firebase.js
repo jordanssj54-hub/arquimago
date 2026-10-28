@@ -731,30 +731,50 @@
     Arquimago.initAuthControls = function () {
         var card = document.getElementById("authAccountCard");
         var button = document.getElementById("authSignOutButton");
+        var drawerLogout = document.getElementById("drawerLogoutButton");
         if (!card || !button) return;
         refreshAuthControls();
-        if (button.dataset.bound === "true") return;
-        button.dataset.bound = "true";
-        button.addEventListener("click", function () {
-            button.disabled = true;
-            if (currentUser) {
-                Arquimago.flushCloudState().then(function () {
-                    return Arquimago.signOutFirebase();
+        if (button.dataset.bound !== "true") {
+            button.dataset.bound = "true";
+            button.addEventListener("click", function () {
+                button.disabled = true;
+                if (currentUser) {
+                    Arquimago.flushCloudState().then(function () {
+                        return Arquimago.signOutFirebase();
+                    }).catch(function (error) {
+                        button.disabled = false;
+                        if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
+                    });
+                    return;
+                }
+                Arquimago.signInWithGoogle().then(function (result) {
+                    if (result && result.user && Arquimago.onFirebaseUserChanged) {
+                        Arquimago.onFirebaseUserChanged(result.user);
+                    }
                 }).catch(function (error) {
                     button.disabled = false;
                     if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
                 });
-                return;
-            }
-            Arquimago.signInWithGoogle().then(function (result) {
-                if (result && result.user && Arquimago.onFirebaseUserChanged) {
-                    Arquimago.onFirebaseUserChanged(result.user);
-                }
-            }).catch(function (error) {
-                button.disabled = false;
-                if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
             });
-        });
+        }
+
+        if (drawerLogout && drawerLogout.dataset.bound !== "true") {
+            drawerLogout.dataset.bound = "true";
+            drawerLogout.addEventListener("click", function () {
+                drawerLogout.disabled = true;
+                if (!currentUser) {
+                    drawerLogout.disabled = false;
+                    if (Arquimago.showNotification) Arquimago.showNotification("Nenhuma conta conectada nesta jornada.", "boss");
+                    return;
+                }
+                Arquimago.flushCloudState().then(function () {
+                    return Arquimago.signOutFirebase();
+                }).catch(function (error) {
+                    drawerLogout.disabled = false;
+                    if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
+                });
+            });
+        }
     };
 
     global.Arquimago = Arquimago;

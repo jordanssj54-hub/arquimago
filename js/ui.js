@@ -343,6 +343,7 @@
         document.querySelectorAll("[data-player-name]").forEach(function (el) {
             el.textContent = name;
         });
+        if (Arquimago.refreshDrawerProfile) Arquimago.refreshDrawerProfile();
     };
 
     Arquimago.refreshAll = function (animateXp) {
@@ -352,6 +353,7 @@
         if (Arquimago.renderFinancas) Arquimago.renderFinancas();
         Arquimago.renderGrimoire();
         Arquimago.renderProfile();
+        if (Arquimago.refreshDrawerProfile) Arquimago.refreshDrawerProfile();
     };
 
     if (Arquimago.homeWidgets) {

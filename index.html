@@ -33,13 +33,13 @@
 <link rel="stylesheet" href="css/ui-frame.css?v=2">
 <link rel="stylesheet" href="css/ui-effects.css">
 <link rel="stylesheet" href="css/template-2.css">
-<link rel="stylesheet" href="css/navigation-drawer.css?v=3">
 <link rel="stylesheet" href="css/boss.css">
 <link rel="stylesheet" href="css/home-reference.css?v=5">
 <link rel="stylesheet" href="css/missions-reference.css?v=2">
 <link rel="stylesheet" href="css/profile-reference.css?v=2">
 <link rel="stylesheet" href="css/config-reference.css?v=1">
 <link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/navigation-drawer.css?v=4">
 </head>
 <body class="theme-black">
 
@@ -246,6 +246,17 @@
 </button>
 </div>
 <div class="drawer-rule" aria-hidden="true"></div>
+
+<section class="drawer-profile-card" aria-label="Resumo do perfil">
+<div class="drawer-profile-card__portrait"><img src="projeto/cardperfil.png" alt="Retrato do personagem" data-drawer-avatar></div>
+<div class="drawer-profile-card__content">
+<strong class="drawer-profile-card__name" data-drawer-player-name>Arquimago</strong>
+<div class="drawer-profile-card__rank"><span>RANK</span><b data-drawer-rank>D</b></div>
+<span class="drawer-profile-card__xp" data-drawer-xp>0 / 1.848 XP</span>
+<span class="drawer-profile-card__xp-track"><i data-drawer-xp-fill></i></span>
+</div>
+</section>
+
 <button class="tab active" data-screen="home" aria-label="Início" data-tooltip="Início" title="Início">
 <img class="tab-icon" src="assets/ui/home-reference/tab-home-icon.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-home.png" alt="" aria-hidden="true">
@@ -256,25 +267,42 @@
 <img class="tab-txt" src="assets/ui/tabs/reference/text-missions.png" alt="" aria-hidden="true">
 <span class="tab-label">Missões</span>
 </button>
-<button class="tab" data-screen="boss" aria-label="Boss" data-tooltip="Boss" title="Boss">
-<img class="tab-icon" src="assets/ui/home-reference/tab-boss-icon.png" alt="" aria-hidden="true">
-<span class="tab-label">Boss</span>
-</button>
 <button class="tab" data-screen="financas" aria-label="Finanças" data-tooltip="Finanças" title="Finanças">
 <img class="tab-icon" src="assets/ui/home-reference/tab-finance-icon.png" alt="" aria-hidden="true">
 <span class="tab-label">Finanças</span>
+</button>
+<button class="tab" data-screen="boss" aria-label="Boss" data-tooltip="Boss" title="Boss">
+<img class="tab-icon" src="assets/ui/home-reference/tab-boss-icon.png" alt="" aria-hidden="true">
+<span class="tab-label">Boss</span>
 </button>
 <button class="tab" data-screen="profile" aria-label="Perfil" data-tooltip="Perfil" title="Perfil">
 <img class="tab-icon" src="assets/ui/home-reference/tab-profile-icon.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-profile.png" alt="" aria-hidden="true">
 <span class="tab-label">Perfil</span>
 </button>
+
+<div class="drawer-reference-links" aria-label="Atalhos do Arquimago">
+<button class="drawer-reference-link" type="button" data-nav-action="achievements"><span class="drawer-reference-icon drawer-reference-icon--trophy" aria-hidden="true">&#9819;</span><span>Conquistas</span></button>
+<button class="drawer-reference-link" type="button" data-nav-action="attributes"><img src="assets/ui/profile-reference/discipline.svg" alt="" aria-hidden="true"><span>Atributos</span></button>
+<button class="drawer-reference-link" type="button" data-nav-action="grimoire"><img src="assets/ui/icons/icon-grimorio.png" alt="" aria-hidden="true"><span>Grimório</span></button>
+<button class="drawer-reference-link" type="button" data-nav-action="history"><img src="assets/ui/icons/icon-historia.png" alt="" aria-hidden="true"><span>História</span></button>
+</div>
+
 <div class="drawer-footer">
 <button class="drawer-settings" id="drawerSettingsButton" type="button" aria-label="Configurações" data-tooltip="Configurações" title="Configurações">
 <img src="assets/ui/home-reference/settings-icon.png" alt="" aria-hidden="true">
 <span class="tab-label">Configurações</span>
 </button>
+<button class="drawer-help" id="drawerHelpButton" type="button" aria-label="Ajuda e suporte" data-tooltip="Ajuda e suporte" title="Ajuda e suporte">
+<span class="drawer-help-icon" aria-hidden="true">?</span>
+<span class="tab-label">Ajuda e suporte</span>
+</button>
+<button class="drawer-logout" id="drawerLogoutButton" type="button" aria-label="Sair da conta" data-tooltip="Sair da conta" title="Sair da conta">
+<span class="drawer-logout-icon" aria-hidden="true">&#10132;</span>
+<span class="tab-label">SAIR DA JORNADA</span>
+</button>
 </div>
+<div class="drawer-sigil" aria-hidden="true"><img src="projeto/simbol-abas.png" alt=""></div>
 </nav>
 
 <div class="main-frame">

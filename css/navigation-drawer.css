@@ -535,3 +535,588 @@ body.nav-open {
         transition-duration: 0.01ms;
     }
 }
+
+/* Reference composition: a full-height character sidebar with the content
+   column kept clear for the topbar and the active screen. */
+#game {
+    --drawer-expanded-width: clamp(320px, 27.35vw, 420px);
+    --drawer-collapsed-width: clamp(76px, calc(82px * var(--nav-scale)), 112px);
+}
+
+@media (min-width: 769px) {
+    #game[data-nav-position] {
+        grid-template-columns: var(--drawer-width) minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas:
+            "drawer topbar"
+            "drawer content";
+    }
+}
+
+#game[data-nav-position] .main-tabs {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(199, 152, 55, 0.42) transparent;
+    background:
+        radial-gradient(circle at 10% 12%, rgba(199, 152, 55, 0.09), transparent 29%),
+        radial-gradient(circle at 88% 70%, rgba(104, 58, 155, 0.08), transparent 26%),
+        linear-gradient(180deg, #050609 0%, #080a0d 54%, #050609 100%) !important;
+    border-right: 1px solid rgba(199, 152, 55, 0.72);
+    box-shadow: 14px 0 34px rgba(0, 0, 0, 0.25);
+    padding: 28px 26px 22px;
+    gap: 0;
+}
+
+#game[data-nav-position] .main-tabs::-webkit-scrollbar {
+    width: 5px;
+}
+
+#game[data-nav-position] .main-tabs::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(199, 152, 55, 0.42);
+}
+
+#game[data-nav-position] .drawer-header {
+    min-height: 46px;
+    padding: 0 2px;
+}
+
+#game[data-nav-position] .drawer-brand {
+    gap: 0;
+}
+
+#game[data-nav-position] .drawer-brand > img {
+    display: none;
+}
+
+#game[data-nav-position] .drawer-brand-copy {
+    max-width: 260px;
+}
+
+#game[data-nav-position] .drawer-brand-copy strong {
+    color: #f2c45c;
+    font-size: clamp(1.22rem, 1.7vw, 1.72rem);
+    letter-spacing: 0.13em;
+    line-height: 1;
+}
+
+#game[data-nav-position] .drawer-brand-copy span {
+    margin-top: 7px;
+    color: #c99c48;
+    font-size: 0.59rem;
+    letter-spacing: 0.31em;
+}
+
+#game[data-nav-position] .drawer-toggle {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #d7a846;
+}
+
+#game[data-nav-position] .drawer-toggle:hover,
+#game[data-nav-position] .drawer-toggle:focus-visible {
+    background: rgba(199, 152, 55, 0.1);
+    box-shadow: none;
+}
+
+#game[data-nav-position] .drawer-toggle-icon {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    transform: none;
+}
+
+#game[data-nav-position] .drawer-toggle-icon::before,
+#game[data-nav-position] .drawer-toggle-icon::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 1px;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+#game[data-nav-position] .drawer-toggle-icon::before { transform: rotate(45deg); }
+#game[data-nav-position] .drawer-toggle-icon::after { transform: rotate(-45deg); }
+
+#game[data-nav-position] .drawer-rule {
+    margin: 25px 0 22px;
+    background: linear-gradient(90deg, transparent 0%, rgba(199, 152, 55, 0.72) 12%, rgba(199, 152, 55, 0.72) 88%, transparent 100%);
+}
+
+#game[data-nav-position] .drawer-profile-card {
+    position: relative;
+    min-height: 150px;
+    margin: 0 0 24px;
+    padding: 7px 0 22px;
+    display: grid;
+    grid-template-columns: 126px minmax(0, 1fr);
+    align-items: center;
+    gap: 19px;
+    border-bottom: 1px solid rgba(199, 152, 55, 0.26);
+}
+
+#game[data-nav-position] .drawer-profile-card::after {
+    content: "";
+    position: absolute;
+    left: -26px;
+    right: -26px;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(199, 152, 55, 0.36), transparent);
+}
+
+#game[data-nav-position] .drawer-profile-card__portrait {
+    width: 126px;
+    height: 126px;
+    overflow: hidden;
+    border: 1px solid rgba(215, 168, 70, 0.92);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(97, 60, 122, 0.24), #090a0d 69%);
+    box-shadow: 0 0 0 5px rgba(199, 152, 55, 0.08), 0 0 22px rgba(199, 152, 55, 0.16);
+}
+
+#game[data-nav-position] .drawer-profile-card__portrait img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+#game[data-nav-position] .drawer-profile-card__content {
+    min-width: 0;
+}
+
+#game[data-nav-position] .drawer-profile-card__name {
+    display: block;
+    overflow: hidden;
+    color: #f0e6d5;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.9vw, 1.75rem);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#game[data-nav-position] .drawer-profile-card__rank {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 9px;
+    color: #a59a8a;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+}
+
+#game[data-nav-position] .drawer-profile-card__rank b {
+    color: #dfa84a;
+    font-size: 1.02rem;
+    font-weight: 600;
+}
+
+#game[data-nav-position] .drawer-profile-card__xp {
+    display: block;
+    margin-top: 19px;
+    color: #a9a098;
+    font-size: 0.77rem;
+    letter-spacing: 0.06em;
+}
+
+#game[data-nav-position] .drawer-profile-card__xp-track {
+    display: block;
+    height: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+#game[data-nav-position] .drawer-profile-card__xp-track i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #a36a27, #edc15f);
+    transition: width 0.35s ease;
+}
+
+#game[data-nav-position] .tab,
+#game[data-nav-position] .drawer-settings,
+#game[data-nav-position] .drawer-help,
+#game[data-nav-position] .drawer-logout {
+    min-height: 62px;
+    height: 62px;
+    flex: 0 0 62px;
+    padding: 0 11px;
+    gap: 18px;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(199, 152, 55, 0.16);
+    border-radius: 0;
+    color: #b7b0a6;
+    font-family: var(--font-display);
+    font-size: 0.93rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+#game[data-nav-position] .tab:hover,
+#game[data-nav-position] .tab:focus-visible,
+#game[data-nav-position] .drawer-settings:hover,
+#game[data-nav-position] .drawer-settings:focus-visible,
+#game[data-nav-position] .drawer-help:hover,
+#game[data-nav-position] .drawer-help:focus-visible {
+    border-color: rgba(199, 152, 55, 0.34);
+    background: rgba(199, 152, 55, 0.07) !important;
+    color: #f1c45c;
+}
+
+#game[data-nav-position] .tab.active {
+    border-color: rgba(215, 168, 70, 0.68);
+    background: linear-gradient(90deg, rgba(129, 74, 180, 0.3), rgba(199, 152, 55, 0.12)) !important;
+    box-shadow: inset 4px 0 #d8a845, 0 0 18px rgba(130, 81, 176, 0.1);
+    color: #f0c45e;
+}
+
+#game[data-nav-position] .tab-icon,
+#game[data-nav-position] .drawer-settings > img {
+    width: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px;
+    filter: sepia(0.36) saturate(1.08) brightness(1.06);
+}
+
+#game[data-nav-position] .tab.active .tab-icon {
+    filter: sepia(0.55) saturate(1.18) brightness(1.13) drop-shadow(0 0 5px rgba(239, 185, 73, 0.32));
+}
+
+#game[data-nav-position] .drawer-reference-links {
+    margin-top: 19px;
+    padding: 7px 0 12px;
+    border-top: 1px solid rgba(199, 152, 55, 0.16);
+}
+
+#game[data-nav-position] .drawer-reference-link {
+    width: 100%;
+    min-height: 43px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    border: 0;
+    border-bottom: 1px solid rgba(199, 152, 55, 0.12);
+    background: transparent;
+    color: #a29b91;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+#game[data-nav-position] .drawer-reference-link:hover,
+#game[data-nav-position] .drawer-reference-link:focus-visible {
+    background: rgba(199, 152, 55, 0.06);
+    color: #e6bc61;
+    outline: none;
+}
+
+#game[data-nav-position] .drawer-reference-link img,
+#game[data-nav-position] .drawer-reference-icon {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: contain;
+    color: #d6a64d;
+    filter: sepia(0.65) saturate(1.15) brightness(1.08);
+}
+
+#game[data-nav-position] .drawer-reference-icon--trophy {
+    font-family: Georgia, serif;
+    font-size: 1.45rem;
+    line-height: 1;
+}
+
+#game[data-nav-position] .drawer-footer {
+    margin-top: auto;
+    padding-top: 13px;
+    border-top: 1px solid rgba(199, 152, 55, 0.26);
+}
+
+#game[data-nav-position] .drawer-settings,
+#game[data-nav-position] .drawer-help,
+#game[data-nav-position] .drawer-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    cursor: pointer;
+}
+
+#game[data-nav-position] .drawer-help-icon,
+#game[data-nav-position] .drawer-logout-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+#game[data-nav-position] .drawer-help-icon {
+    border-radius: 50%;
+}
+
+#game[data-nav-position] .drawer-logout {
+    color: #b76459;
+    border-bottom-color: transparent;
+}
+
+#game[data-nav-position] .drawer-logout:hover,
+#game[data-nav-position] .drawer-logout:focus-visible {
+    border-color: rgba(183, 100, 89, 0.42);
+    background: rgba(183, 100, 89, 0.08);
+    color: #e28b7c;
+    outline: none;
+}
+
+#game[data-nav-position] .drawer-logout-icon {
+    border: 0;
+    border-radius: 0;
+    font-size: 1.55rem;
+    transform: rotate(180deg);
+}
+
+#game[data-nav-position] .drawer-sigil {
+    width: 100%;
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+#game[data-nav-position] .drawer-sigil img {
+    width: min(220px, 76%);
+    height: auto;
+    display: block;
+    opacity: 0.62;
+    filter: sepia(0.62) saturate(1.2) brightness(0.94);
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-profile-card,
+#game.nav-collapsed[data-nav-position] .drawer-reference-links,
+#game.nav-collapsed[data-nav-position] .drawer-sigil {
+    display: none;
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-footer {
+    padding-top: 10px;
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-help,
+#game.nav-collapsed[data-nav-position] .drawer-logout {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#game.nav-collapsed[data-nav-position] .drawer-help .tab-label,
+#game.nav-collapsed[data-nav-position] .drawer-logout .tab-label {
+    max-width: 0;
+    flex: 0 0 0;
+    opacity: 0;
+    transform: translateX(-8px);
+}
+
+@media (max-width: 1100px) {
+    #game[data-screen][data-nav-position] {
+        display: flex !important;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    #game[data-screen][data-nav-position] .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    #game[data-screen][data-nav-position] .main-frame {
+        width: 100%;
+        min-height: calc(100vh - var(--topbar-height));
+        flex: 1 1 auto;
+        overflow: visible;
+    }
+
+    #game[data-screen][data-nav-position] .main-tabs {
+        position: fixed !important;
+        inset: 0 auto 0 0 !important;
+        z-index: 400;
+        width: min(89vw, 360px) !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        padding: 24px 22px 20px !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-color: #050609 !important;
+        background-image:
+            radial-gradient(circle at 10% 12%, rgba(199, 152, 55, 0.09), transparent 29%),
+            radial-gradient(circle at 88% 70%, rgba(104, 58, 155, 0.08), transparent 26%),
+            linear-gradient(180deg, #050609 0%, #080a0d 54%, #050609 100%) !important;
+        background-size: auto !important;
+        transform: translateX(-105%);
+    }
+
+    #game.nav-mobile-open[data-screen][data-nav-position] .main-tabs {
+        transform: translateX(0) !important;
+    }
+
+    #game[data-screen][data-nav-position] .drawer-header,
+    #game[data-screen][data-nav-position] .drawer-rule,
+    #game[data-screen][data-nav-position] .drawer-footer {
+        display: flex !important;
+    }
+
+    #game[data-screen][data-nav-position] .drawer-rule {
+        display: block !important;
+    }
+
+    #game[data-screen][data-nav-position] .drawer-footer {
+        flex-direction: column;
+    }
+
+    #game[data-screen][data-nav-position] .tab,
+    #game[data-screen][data-nav-position] .drawer-settings,
+    #game[data-screen][data-nav-position] .drawer-help,
+    #game[data-screen][data-nav-position] .drawer-logout {
+        height: 62px !important;
+        min-height: 62px !important;
+        flex: 0 0 62px !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 18px !important;
+        padding: 0 11px !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+    }
+
+    #game[data-screen][data-nav-position] .tab-icon,
+    #game[data-screen][data-nav-position] .drawer-settings > img {
+        width: 32px !important;
+        height: 32px !important;
+        flex: 0 0 32px !important;
+        visibility: visible !important;
+    }
+
+    #game[data-screen][data-nav-position] .tab-label,
+    #game[data-screen][data-nav-position] .drawer-settings .tab-label,
+    #game[data-screen][data-nav-position] .drawer-help .tab-label,
+    #game[data-screen][data-nav-position] .drawer-logout .tab-label {
+        max-width: 190px !important;
+        flex: 1 1 auto !important;
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+        font-size: 0.93rem !important;
+        letter-spacing: 0.07em !important;
+        text-transform: uppercase !important;
+    }
+
+    #game[data-screen][data-nav-position] .tab.active {
+        border-color: rgba(215, 168, 70, 0.68) !important;
+        background: linear-gradient(90deg, rgba(129, 74, 180, 0.3), rgba(199, 152, 55, 0.12)) !important;
+        box-shadow: inset 4px 0 #d8a845, 0 0 18px rgba(130, 81, 176, 0.1) !important;
+        color: #f0c45e !important;
+    }
+
+    #game[data-screen][data-nav-position] .mobile-nav-toggle {
+        position: static !important;
+        width: 40px !important;
+        height: 40px !important;
+        margin: 0 8px 0 0 !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.025) !important;
+    }
+
+    #game[data-screen][data-nav-position] .mobile-nav-toggle__image {
+        display: none !important;
+    }
+
+    #game[data-screen][data-nav-position] .mobile-nav-toggle__icon {
+        display: flex !important;
+    }
+
+    #game[data-screen][data-nav-position] ~ .nav-scrim,
+    .nav-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 350;
+        display: block;
+        background: rgba(2, 3, 8, 0.62);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+
+    .nav-scrim[hidden] {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #game[data-nav-position] .main-tabs {
+        width: min(89vw, 360px);
+        padding: 24px 22px 20px;
+    }
+
+    #game[data-nav-position] .drawer-profile-card {
+        grid-template-columns: 108px minmax(0, 1fr);
+        gap: 15px;
+    }
+
+    #game[data-nav-position] .drawer-profile-card__portrait {
+        width: 108px;
+        height: 108px;
+    }
+
+    #game[data-nav-position] .drawer-profile-card__name {
+        font-size: 1.3rem;
+    }
+
+    #game[data-nav-position] .drawer-profile-card::after {
+        left: -22px;
+        right: -22px;
+    }
+
+    #game[data-nav-position] .drawer-sigil img {
+        width: min(200px, 78%);
+    }
+}
