@@ -295,6 +295,7 @@
             var reader = new FileReader();
             reader.onload = function (event) {
                 Arquimago.state.customAvatar = event.target.result;
+                Arquimago.state.avatarProvider = "custom";
                 try {
                     Arquimago.saveState(Arquimago.state);
                 } catch (error) {

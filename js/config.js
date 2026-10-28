@@ -6,6 +6,16 @@
     Arquimago.STORAGE_KEY = "arquimago_recomeco_v3";
     Arquimago.MONTHLY_GOAL_FRACTION = 0.6;
 
+    /* Configure this policy before publishing email signup. Null deliberately blocks
+       signup until the product owner decides and documents the applicable age rule. */
+    Arquimago.AUTH_POLICY = {
+        minimumAge: null,
+        storeBirthDate: false,
+        legalDocumentsAvailable: false,
+        termsUrl: "",
+        privacyUrl: ""
+    };
+
     Arquimago.NAVIGATION = {
         position: "left",
         scale: 1.0

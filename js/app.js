@@ -5,6 +5,96 @@
     var playTimer = null;
     var dateSyncTimer = null;
     var dateSyncEventsBound = false;
+    var appStarted = false;
+    var authConnecting = false;
+    var offlineMode = false;
+    var initialLocalState = null;
+
+    function startApplication() {
+        if (appStarted) return;
+        appStarted = true;
+        document.body.classList.remove("auth-active");
+        var root = document.getElementById("intro-root");
+        if (root) root.innerHTML = "";
+        Arquimago.runIntro(function () {
+            Arquimago.enterGame();
+        });
+    }
+
+    function connectAuthenticatedUser(user) {
+        if (!user || authConnecting || (appStarted && !offlineMode)) return;
+        authConnecting = true;
+        if (Arquimago.setAuthGateStatus) Arquimago.setAuthGateStatus("Carregando sua jornada...");
+        var localState = offlineMode ? Arquimago.state : initialLocalState;
+        Arquimago.connectFirebaseUser(user, localState).then(function (state) {
+            authConnecting = false;
+            offlineMode = false;
+            initialLocalState = null;
+            Arquimago.state = state;
+            if (appStarted) {
+                Arquimago.applyAppearance();
+                Arquimago.refreshAll(false);
+                if (Arquimago.refreshAuthControls) Arquimago.refreshAuthControls();
+            } else {
+                startApplication();
+            }
+        }).catch(function (error) {
+            authConnecting = false;
+            Arquimago.setStorageUser("");
+            var syncMessage = Arquimago.getFirebaseSyncErrorMessage ? Arquimago.getFirebaseSyncErrorMessage(error) : "Nao foi possivel sincronizar sua jornada.";
+            if (!appStarted) {
+                Arquimago.state = initialLocalState || Arquimago.loadState();
+                if (Arquimago.showAuthGate) Arquimago.showAuthGate(syncMessage);
+            } else if (Arquimago.showNotification) {
+                Arquimago.showNotification(syncMessage, "boss");
+            }
+            console.error("Falha ao carregar a jornada do Firebase", {
+                code: error && error.code ? error.code : "unknown",
+                message: error && error.message ? error.message : String(error),
+                uid: user.uid
+            });
+        });
+    }
+
+    function stopApplicationForLogout() {
+        appStarted = false;
+        if (playTimer) clearInterval(playTimer);
+        if (dateSyncTimer) clearInterval(dateSyncTimer);
+        playTimer = null;
+        dateSyncTimer = null;
+        offlineMode = false;
+        if (Arquimago.stopMusic) Arquimago.stopMusic();
+        var game = document.getElementById("game");
+        if (game) {
+            game.hidden = true;
+            game.classList.remove("visible");
+        }
+        var modal = document.getElementById("settings-modal");
+        if (modal) modal.hidden = true;
+        document.body.classList.remove("settings-reference-open", "intro-active");
+        Arquimago.setStorageUser("");
+        Arquimago.state = JSON.parse(JSON.stringify(Arquimago.DEFAULT_STATE));
+        if (Arquimago.showAuthGate) Arquimago.showAuthGate("Sessao encerrada. Entre novamente para continuar sua jornada.");
+    }
+
+    Arquimago.onFirebaseUserChanged = function (user) {
+        if (Arquimago.refreshAuthControls) Arquimago.refreshAuthControls();
+        if (user) {
+            connectAuthenticatedUser(user);
+        } else if (appStarted) {
+            stopApplicationForLogout();
+        } else if (Arquimago.showAuthGate) {
+            Arquimago.showAuthGate();
+        }
+    };
+
+    Arquimago.onContinueOffline = function () {
+        if (appStarted) return;
+        offlineMode = true;
+        Arquimago.setStorageUser("");
+        Arquimago.state = initialLocalState || Arquimago.loadState();
+        startApplication();
+    };
 
     Arquimago.enterGame = function () {
         var game = document.getElementById("game");
@@ -20,6 +110,7 @@
         processPendingClassChanges();
         Arquimago.startMusic();
         initSettings();
+        if (Arquimago.initAuthControls) Arquimago.initAuthControls();
         startPlayTimer();
         startDateSyncTimer();
     };
@@ -399,11 +490,21 @@
     }
 
     Arquimago.init = function () {
-        Arquimago.state = Arquimago.loadState();
+        initialLocalState = Arquimago.loadState();
+        Arquimago.state = initialLocalState;
         Arquimago.saveState(Arquimago.state);
 
-        Arquimago.runIntro(function () {
-            Arquimago.enterGame();
+        Arquimago.initFirebase().then(function (result) {
+            if (result.configured && result.user) {
+                connectAuthenticatedUser(result.user);
+            } else if (result.configured) {
+                Arquimago.showAuthGate();
+            } else {
+                startApplication();
+            }
+        }).catch(function (error) {
+            console.error("Falha ao verificar a sessao do Firebase", error);
+            startApplication();
         });
     };
 

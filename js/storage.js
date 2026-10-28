@@ -2,6 +2,23 @@
     "use strict";
 
     var Arquimago = global.Arquimago || {};
+    var activeUserUid = "";
+
+    function storageKey(uid) {
+        return uid ? Arquimago.STORAGE_KEY + "_user_" + String(uid) : Arquimago.STORAGE_KEY;
+    }
+
+    function readStoredState(uid) {
+        var base = JSON.parse(JSON.stringify(Arquimago.DEFAULT_STATE));
+        var exists = false;
+        try {
+            var raw = localStorage.getItem(storageKey(uid));
+            exists = !!raw;
+            if (raw) Object.assign(base, JSON.parse(raw));
+        } catch (e) {}
+        if (Arquimago.normalizeState) Arquimago.normalizeState(base);
+        return { state: Arquimago.syncDates(base), exists: exists };
+    }
 
     function pad(value) {
         return String(value).padStart(2, "0");
@@ -50,22 +67,34 @@
     Arquimago.getMonthKey = function () { return monthKey(new Date()); };
     Arquimago.getBusinessDaysInMonth = businessDaysInMonth;
 
-    Arquimago.loadState = function () {
-        var base = JSON.parse(JSON.stringify(Arquimago.DEFAULT_STATE));
+    Arquimago.setStorageUser = function (uid) {
+        activeUserUid = uid ? String(uid) : "";
+    };
+
+    Arquimago.getStorageUser = function () {
+        return activeUserUid;
+    };
+
+    Arquimago.readStoredState = function (uid) {
+        return readStoredState(uid || "");
+    };
+
+    Arquimago.clearLegacyState = function () {
         try {
-            var raw = localStorage.getItem(Arquimago.STORAGE_KEY);
-            if (raw) {
-                Object.assign(base, JSON.parse(raw));
-            }
+            localStorage.removeItem(storageKey(""));
         } catch (e) {}
-        if (Arquimago.normalizeState) Arquimago.normalizeState(base);
-        return Arquimago.syncDates(base);
+    };
+
+    Arquimago.loadState = function () {
+        return readStoredState(activeUserUid).state;
     };
 
     Arquimago.saveState = function (state) {
         try {
-            localStorage.setItem(Arquimago.STORAGE_KEY, JSON.stringify(state));
+            localStorage.setItem(storageKey(activeUserUid), JSON.stringify(state));
         } catch (e) {}
+
+        if (Arquimago.queueCloudStateSave) Arquimago.queueCloudStateSave(state);
     };
 
     Arquimago.syncDates = function (state) {
