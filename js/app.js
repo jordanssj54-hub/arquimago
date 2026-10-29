@@ -505,15 +505,36 @@
         Arquimago.state = initialLocalState;
         Arquimago.saveState(Arquimago.state);
 
-        Arquimago.initFirebase().then(function (result) {
+        var startupResolved = false;
+        var startupTimedOut = false;
+        var startupTimer = global.setTimeout(function () {
+            if (startupResolved || appStarted) return;
+            startupTimedOut = true;
+            console.warn("A inicializacao online demorou; abrindo a jornada salva neste dispositivo.");
+            if (Arquimago.onContinueOffline) Arquimago.onContinueOffline();
+            else startApplication();
+        }, 7000);
+
+        var firebaseStartup = typeof Arquimago.initFirebase === "function" ?
+            Promise.resolve().then(function () { return Arquimago.initFirebase(); }) :
+            Promise.resolve({ configured: false, user: null });
+
+        firebaseStartup.then(function (result) {
             if (result.configured && result.user) {
                 connectAuthenticatedUser(result.user);
-            } else if (result.configured) {
-                Arquimago.showAuthGate();
+                return;
+            }
+
+            startupResolved = true;
+            global.clearTimeout(startupTimer);
+            if (result.configured) {
+                if (!(startupTimedOut && appStarted && offlineMode)) Arquimago.showAuthGate();
             } else {
                 startApplication();
             }
         }).catch(function (error) {
+            startupResolved = true;
+            global.clearTimeout(startupTimer);
             console.error("Falha ao verificar a sessao do Firebase", error);
             startApplication();
         });

@@ -1,3 +1,51 @@
+.app-boot {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    color: var(--gold-light, #e8cc7a);
+    background: #050508;
+    text-align: center;
+}
+
+.app-boot__emblem {
+    width: 74px;
+    height: 74px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 16px rgba(201, 168, 76, 0.3));
+}
+
+.app-boot__title {
+    font-family: var(--font-display, serif);
+    font-size: 1rem;
+    letter-spacing: 0.24em;
+}
+
+.app-boot__message {
+    color: var(--text-muted, #8a8890);
+    font: 500 0.68rem/1.5 var(--font-body, sans-serif);
+    letter-spacing: 0.12em;
+}
+
+.app-boot__spinner {
+    width: 23px;
+    height: 23px;
+    margin-top: 10px;
+    border: 2px solid rgba(201, 168, 76, 0.2);
+    border-top-color: var(--gold, #c9a84c);
+    border-radius: 50%;
+    animation: appBootSpin 0.9s linear infinite;
+}
+
+@keyframes appBootSpin {
+    to { transform: rotate(360deg); }
+}
+
 .intro {
     position: fixed;
     inset: 0;
