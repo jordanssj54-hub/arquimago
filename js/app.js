@@ -88,6 +88,15 @@
         }
     };
 
+    Arquimago.onFirebaseStateRestored = function (state) {
+        if (!state) return;
+        Arquimago.state = state;
+        if (!appStarted) return;
+        Arquimago.applyAppearance();
+        if (Arquimago.applyNavigationConfig) Arquimago.applyNavigationConfig();
+        Arquimago.refreshAll(false);
+    };
+
     Arquimago.onContinueOffline = function () {
         if (appStarted) return;
         offlineMode = true;

@@ -8,6 +8,17 @@
         return uid ? Arquimago.STORAGE_KEY + "_user_" + String(uid) : Arquimago.STORAGE_KEY;
     }
 
+    function syncMetadataKey(uid) {
+        return storageKey(uid) + "_sync_meta";
+    }
+
+    function setSyncDirty(uid, dirty) {
+        if (!uid) return;
+        try {
+            localStorage.setItem(syncMetadataKey(uid), JSON.stringify({ dirty: !!dirty }));
+        } catch (e) {}
+    }
+
     function readStoredState(uid) {
         var base = JSON.parse(JSON.stringify(Arquimago.DEFAULT_STATE));
         var exists = false;
@@ -79,6 +90,26 @@
         return readStoredState(uid || "");
     };
 
+    Arquimago.isStoredStateDirty = function (uid) {
+        if (!uid) return false;
+        try {
+            var metadata = JSON.parse(localStorage.getItem(syncMetadataKey(uid)) || "{}");
+            return metadata.dirty === true;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    Arquimago.markStoredStateSynced = function (uid, state) {
+        if (!uid) return;
+        try {
+            var localState = localStorage.getItem(storageKey(uid));
+            var expected = JSON.stringify(state);
+            var inMemoryState = Arquimago.state && JSON.stringify(Arquimago.state);
+            if (localState === expected || inMemoryState === expected) setSyncDirty(uid, false);
+        } catch (e) {}
+    };
+
     Arquimago.clearLegacyState = function () {
         try {
             localStorage.removeItem(storageKey(""));
@@ -90,9 +121,13 @@
     };
 
     Arquimago.saveState = function (state) {
+        var stored = false;
         try {
             localStorage.setItem(storageKey(activeUserUid), JSON.stringify(state));
+            stored = true;
         } catch (e) {}
+
+        if (activeUserUid && stored) setSyncDirty(activeUserUid, true);
 
         if (Arquimago.queueCloudStateSave) Arquimago.queueCloudStateSave(state);
     };

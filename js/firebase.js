@@ -4,10 +4,18 @@
     var Arquimago = global.Arquimago || {};
     var auth = null;
     var db = null;
+    var storage = null;
     var currentUser = null;
     var cloudWriteTimer = null;
+    var cloudReadRetryTimer = null;
+    var cloudWriteRetryCount = 0;
+    var cloudReadRetryCount = 0;
     var pendingCloudState = null;
     var cloudWriteInFlight = false;
+    var cloudWritePromise = null;
+    var cloudReconnectPromise = null;
+    var cloudSyncReady = false;
+    var mediaUrlCache = Object.create(null);
     var lastCloudError = "";
     var authMode = "landing";
     var pendingRegistrationProfile = null;
@@ -22,6 +30,90 @@
         } catch (e) {
             return value;
         }
+    }
+
+    function sameValue(first, second) {
+        if (first === second) return true;
+        if (first === null || second === null || typeof first !== "object" || typeof second !== "object") return false;
+        var firstIsArray = Array.isArray(first);
+        if (firstIsArray !== Array.isArray(second)) return false;
+        var firstKeys = Object.keys(first);
+        var secondKeys = Object.keys(second);
+        if (firstKeys.length !== secondKeys.length) return false;
+        for (var i = 0; i < firstKeys.length; i++) {
+            var key = firstKeys[i];
+            if (!Object.prototype.hasOwnProperty.call(second, key) || !sameValue(first[key], second[key])) return false;
+        }
+        return true;
+    }
+
+    function chooseValue(localValue, remoteValue, defaultValue, preferRemote) {
+        var localExists = localValue !== undefined;
+        var remoteExists = remoteValue !== undefined;
+        if (!localExists) return remoteExists ? clone(remoteValue) : clone(defaultValue);
+        if (!remoteExists) return clone(localValue);
+        if (sameValue(localValue, defaultValue)) return clone(remoteValue);
+        if (sameValue(remoteValue, defaultValue)) return clone(localValue);
+        return clone(preferRemote ? remoteValue : localValue);
+    }
+
+    function dataUrlInfo(value) {
+        var match = /^data:(image\/[a-z0-9.+-]+);base64,/i.exec(String(value || ""));
+        if (!match) return null;
+        var type = match[1].toLowerCase();
+        var extension = type === "image/jpeg" ? "jpg" : type.split("/")[1].replace("+xml", "");
+        return { type: type, extension: extension };
+    }
+
+    function mediaHash(value) {
+        var first = 2166136261;
+        var second = 2246822519;
+        for (var i = 0; i < value.length; i++) {
+            var code = value.charCodeAt(i);
+            first = Math.imul(first ^ code, 16777619);
+            second = Math.imul(second ^ (code + i), 3266489917);
+        }
+        return (first >>> 0).toString(36) + (second >>> 0).toString(36);
+    }
+
+    function uploadStateImage(value, uid, key) {
+        var info = dataUrlInfo(value);
+        if (!info) return Promise.resolve(value);
+        if (!storage) {
+            return Promise.reject({ code: "storage/unavailable", message: "O Firebase Storage não está disponível para sincronizar as imagens." });
+        }
+        var path = "users/" + encodeURIComponent(uid) + "/media/" + key + "-" + mediaHash(value) + "." + info.extension;
+        if (mediaUrlCache[path]) return Promise.resolve(mediaUrlCache[path]);
+        var reference = storage.ref(path);
+        return reference.getDownloadURL().catch(function () {
+            return reference.putString(value, "data_url", { contentType: info.type }).then(function (snapshot) {
+                return snapshot.ref.getDownloadURL();
+            });
+        }).then(function (url) {
+            mediaUrlCache[path] = url;
+            return url;
+        });
+    }
+
+    function cloudStateWithMedia(state, uid) {
+        var cloudState = clone(state) || {};
+        var uploads = [];
+        function externalize(parent, field, key) {
+            if (!parent || !dataUrlInfo(parent[field])) return;
+            uploads.push(uploadStateImage(parent[field], uid, key).then(function (url) {
+                parent[field] = url;
+            }));
+        }
+
+        externalize(cloudState, "customAvatar", "avatar");
+        externalize(cloudState, "customWallpaper", "wallpaper");
+        (cloudState.grimoireData || []).forEach(function (reward, index) {
+            if (!reward || typeof reward !== "object") return;
+            var rewardId = String(reward.id || index).replace(/[^a-zA-Z0-9_-]/g, "_");
+            externalize(reward, "imagem", "grimoire-" + rewardId);
+        });
+
+        return Promise.all(uploads).then(function () { return cloudState; });
     }
 
     function sanitizeForFirestore(value, stack, depth) {
@@ -136,6 +228,12 @@
         }
         if (code.indexOf("resource-exhausted") !== -1) {
             return "O limite do Firestore foi atingido. O progresso local foi preservado.";
+        }
+        if (code.indexOf("storage/unauthorized") !== -1) {
+            return "O Firebase Storage recusou a imagem. Confira as regras users/{uid} no Storage.";
+        }
+        if (code.indexOf("storage/") === 0) {
+            return "Nao foi possivel sincronizar uma imagem com o Firebase Storage. O progresso local foi preservado.";
         }
         if (code.indexOf("invalid-argument") !== -1) {
             return "Os dados do progresso possuem um valor que o Firestore nao aceita. O progresso local foi preservado.";
@@ -404,6 +502,7 @@
             if (!global.firebase.apps.length) global.firebase.initializeApp(global.ARQUIMAGO_FIREBASE_CONFIG);
             auth = global.firebase.auth();
             db = global.firebase.firestore();
+            storage = global.firebase.storage ? global.firebase.storage() : null;
             Arquimago.firebaseConfigured = true;
         } catch (error) {
             console.error("Falha ao inicializar o Firebase", error);
@@ -411,19 +510,33 @@
         }
 
         var persistence = auth.setPersistence ? auth.setPersistence(global.firebase.auth.Auth.Persistence.LOCAL) : Promise.resolve();
+        var firestorePersistence = db.enablePersistence ? Promise.resolve().then(function () {
+            return db.enablePersistence({ synchronizeTabs: true });
+        }).catch(function (error) {
+            console.warn("Nao foi possivel ativar o cache persistente do Firestore", error);
+        }) : Promise.resolve();
         return Promise.resolve(persistence).catch(function (error) {
             console.warn("Nao foi possivel ativar a persistencia local do Firebase", error);
+        }).then(function () {
+            return firestorePersistence;
         }).then(function () {
             return new Promise(function (resolve) {
                 var firstChange = true;
                 auth.onAuthStateChanged(function (user) {
+                    var previousUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
                     currentUser = user || null;
                     Arquimago.firebaseUser = currentUser;
-                    if (!currentUser) {
-                        activeProfile = null;
+                    var nextUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
+                    if (previousUid !== nextUid) {
+                        cloudSyncReady = false;
                         pendingCloudState = null;
                         if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
                         cloudWriteTimer = null;
+                        if (cloudReadRetryTimer) clearTimeout(cloudReadRetryTimer);
+                        cloudReadRetryTimer = null;
+                    }
+                    if (!currentUser) {
+                        activeProfile = null;
                     }
                     if (firstChange) {
                         firstChange = false;
@@ -433,6 +546,16 @@
                     if (Arquimago.onFirebaseUserChanged) Arquimago.onFirebaseUserChanged(currentUser);
                 });
             });
+        }).then(function (result) {
+            if (global.addEventListener) {
+                global.addEventListener("online", function () {
+                    if (currentUser) retryCloudConnection().catch(function () {});
+                });
+                global.addEventListener("focus", function () {
+                    if (currentUser && !cloudSyncReady) retryCloudConnection().catch(function () {});
+                });
+            }
+            return result;
         });
     };
 
@@ -539,11 +662,6 @@
         return result;
     }
 
-    function chooseText(localValue, remoteValue, defaultValue) {
-        if (localValue !== undefined && localValue !== null && localValue !== "" && localValue !== defaultValue) return clone(localValue);
-        return clone(remoteValue !== undefined ? remoteValue : localValue);
-    }
-
     function recalculateFinance(fin) {
         var saldo = Number(fin.saldoInicial) || 0;
         var guardado = Number(fin.guardadoInicial) || 0;
@@ -563,30 +681,38 @@
         fin.guardado = guardado;
     }
 
-    function mergeState(localState, remoteState) {
+    function mergeState(localState, remoteState, preferRemote) {
         var defaults = Arquimago.DEFAULT_STATE || {};
         var local = clone(localState || {});
         var remote = clone(remoteState || {});
         var result = clone(remote);
         var numericMax = ["level", "xp", "totalXP", "missionsCompleted", "missionsCompletedForLevel", "xpCompletedForLevel", "playTimeSeconds", "dailyXP", "dailyAvailableXP", "monthlyXP", "monthlyAvailableXP", "monthlyGoalXP", "daysUsingApp", "bestDailyRankPercent"];
         var booleanUnion = ["introSeen", "soundEnabled"];
-        var arrayFields = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone", "bossDamageEvents", "bossTrophies", "pendingClassChanges"];
+        var arrayFields = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone", "deletedMissionIds", "unlockedSpells", "achievements", "bossDamageEvents", "bossTrophies", "pendingClassChanges"];
 
         Object.keys(defaults).forEach(function (key) {
             if (numericMax.indexOf(key) !== -1) {
                 result[key] = Math.max(Number(remote[key]) || 0, Number(local[key]) || 0);
             } else if (booleanUnion.indexOf(key) !== -1) {
-                result[key] = key === "soundEnabled" ? (local[key] !== false && remote[key] !== false) : !!(local[key] || remote[key]);
+                result[key] = key === "soundEnabled" ? chooseValue(local[key], remote[key], defaults[key], preferRemote) : !!(local[key] || remote[key]);
             } else if (arrayFields.indexOf(key) !== -1) {
                 result[key] = mergeArray(remote[key], local[key], key === "bossTrophies" ? trophyKey : null);
             } else if (key === "dailyHistory" || key === "monthlyHistory") {
                 result[key] = mergeArray(remote[key], local[key], historyKey);
             } else if (key === "customMissions" || key === "grimoireData") {
-                result[key] = mergeArray(remote[key], local[key], function (item, index) { return item && item.id || itemKey(item, index); });
+                if (preferRemote) {
+                    result[key] = Array.isArray(remote[key]) && remote[key].length ? clone(remote[key]) : clone(local[key] || []);
+                } else {
+                    result[key] = mergeArray(remote[key], local[key], function (item, index) { return item && item.id || itemKey(item, index); });
+                }
             } else if (key === "missionCompletionCounts") {
                 result[key] = mergeMap(remote[key], local[key], true);
             } else if (key === "missionOverrides" || key === "grimoireFavs") {
-                result[key] = mergeMap(remote[key], local[key], false);
+                if (preferRemote) {
+                    result[key] = Object.keys(remote[key] || {}).length ? clone(remote[key]) : clone(local[key] || {});
+                } else {
+                    result[key] = mergeMap(remote[key], local[key], false);
+                }
             } else if (key === "attributes") {
                 result[key] = mergeMap(remote[key], local[key], false);
                 Object.keys(defaults.attributes || {}).forEach(function (attribute) {
@@ -604,13 +730,29 @@
                 result.financas = mergeMap(remoteFinance, localFinance, false);
                 result.financas.despesas = mergeArray(remoteFinance.despesas, localFinance.despesas, function (item, index) { return item && item.id || itemKey(item, index); });
                 result.financas.transacoes = mergeArray(remoteFinance.transacoes, localFinance.transacoes, function (item, index) { return item && item.id || itemKey(item, index); });
-                result.financas.saldoInicial = localFinance.saldoInicial || remoteFinance.saldoInicial || 0;
-                result.financas.guardadoInicial = localFinance.guardadoInicial || remoteFinance.guardadoInicial || 0;
+                result.financas.saldoInicial = chooseValue(localFinance.saldoInicial, remoteFinance.saldoInicial, 0, preferRemote);
+                result.financas.guardadoInicial = chooseValue(localFinance.guardadoInicial, remoteFinance.guardadoInicial, 0, preferRemote);
                 recalculateFinance(result.financas);
             } else {
-                result[key] = chooseText(local[key], remote[key], defaults[key]);
+                result[key] = chooseValue(local[key], remote[key], defaults[key], preferRemote);
             }
         });
+
+        var localHasCustomAvatar = !!(local.customAvatar && local.avatarProvider !== "google");
+        var remoteHasCustomAvatar = !!(remote.customAvatar && remote.avatarProvider !== "google");
+        if (remoteHasCustomAvatar && (!localHasCustomAvatar || preferRemote)) {
+            result.customAvatar = remote.customAvatar;
+            result.avatarProvider = remote.avatarProvider || "custom";
+        } else if (localHasCustomAvatar) {
+            result.customAvatar = local.customAvatar;
+            result.avatarProvider = local.avatarProvider || "custom";
+        } else if (remote.customAvatar) {
+            result.customAvatar = remote.customAvatar;
+            result.avatarProvider = remote.avatarProvider || "google";
+        } else {
+            result.customAvatar = local.customAvatar || "";
+            result.avatarProvider = local.avatarProvider || "";
+        }
 
         if (Arquimago.normalizeState) Arquimago.normalizeState(result);
         if (Arquimago.syncDates) Arquimago.syncDates(result);
@@ -619,11 +761,34 @@
 
     function hasMeaningfulState(state) {
         if (!state) return false;
-        return !!(state.name || state.introSeen || Number(state.level) > 1 || Number(state.totalXP) > 0 ||
-            Number(state.missionsCompleted) > 0 || (state.completedIds || []).length ||
-            (state.customMissions || []).length || (state.dailyHistory || []).length ||
-            (state.grimoireData || []).length || !!state.customAvatar ||
-            (state.financas && ((state.financas.transacoes || []).length || (state.financas.despesas || []).length)));
+        var defaults = Arquimago.DEFAULT_STATE || {};
+        return !!(state.name || state.aboutMe || state.introSeen ||
+            state.customAvatar || state.customWallpaper ||
+            (state.theme !== undefined && state.theme !== defaults.theme) ||
+            (state.font !== undefined && state.font !== defaults.font) ||
+            (state.template !== undefined && state.template !== defaults.template) ||
+            (state.wallpaper !== undefined && state.wallpaper !== defaults.wallpaper) ||
+            (state.navPosition !== undefined && state.navPosition !== defaults.navPosition) ||
+            (state.navCollapsed !== undefined && state.navCollapsed !== defaults.navCollapsed) ||
+            (state.navScale !== undefined && Number(state.navScale) !== Number(defaults.navScale)) ||
+            (state.soundEnabled !== undefined && state.soundEnabled !== defaults.soundEnabled) ||
+            Number(state.level) > 1 || Number(state.totalXP) > 0 ||
+            Number(state.xp) > 0 || Number(state.classIndex) > 0 || Number(state.streak) > 0 ||
+            Number(state.chapter) > 1 || Number(state.missionsCompleted) > 0 ||
+            Number(state.dailyXP) > 0 || Number(state.monthlyXP) > 0 ||
+            (state.completedIds || []).length || (state.dailyCompletedMissionIds || []).length || (state.dailyDone || []).length ||
+            (state.weeklyDone || []).length || (state.habitsDone || []).length ||
+            (state.customMissions || []).length || (state.hiddenMissionIds || []).length ||
+            (state.deletedMissionIds || []).length || Object.keys(state.missionOverrides || {}).length ||
+            (state.dailyHistory || []).length || (state.monthlyHistory || []).length ||
+            (state.bossDamageEvents || []).length || (state.bossTrophies || []).length ||
+            (state.unlockedSpells || []).some(function (spell) { return (defaults.unlockedSpells || []).indexOf(spell) === -1; }) ||
+            (state.achievements || []).some(function (achievement) { return (defaults.achievements || []).indexOf(achievement) === -1; }) ||
+            (state.grimoireData || []).length || Object.keys(state.grimoireFavs || {}).length ||
+            Object.keys(state.missionCompletionCounts || {}).length ||
+            (state.financas && (Number(state.financas.saldoInicial) !== 0 || Number(state.financas.guardadoInicial) !== 0 ||
+                Number(state.financas.saldo) !== 0 || Number(state.financas.guardado) !== 0 ||
+                (state.financas.transacoes || []).length || (state.financas.despesas || []).length)));
     }
 
     function cloudDocument(state) {
@@ -648,9 +813,21 @@
         };
     }
 
-    function writeCloudState(state) {
-        if (!db || !currentUser || !Arquimago.getStorageUser()) return Promise.resolve();
-        return db.collection(CLOUD_COLLECTION).doc(currentUser.uid).set(cloudDocument(state, activeProfile), { merge: true });
+    function writeCloudState(state, uid) {
+        uid = String(uid || "");
+        if (!db || !currentUser || !uid || String(currentUser.uid) !== uid || Arquimago.getStorageUser() !== uid || !cloudSyncReady) {
+            return Promise.reject({ code: "auth/user-changed", message: "A conta ativa mudou antes da sincronização." });
+        }
+        var user = currentUser;
+        var profile = activeProfile;
+        return cloudStateWithMedia(state, uid).then(function (cloudState) {
+            if (!currentUser || String(currentUser.uid) !== uid || Arquimago.getStorageUser() !== uid || !cloudSyncReady) {
+                throw { code: "auth/user-changed", message: "A conta ativa mudou antes da sincronização." };
+            }
+            return db.collection(CLOUD_COLLECTION).doc(uid).set(cloudDocument(cloudState, profile), { merge: true });
+        }).then(function () {
+            if (!currentUser || currentUser.uid !== user.uid) return;
+        });
     }
 
     Arquimago.connectFirebaseUser = function (user, legacyState) {
@@ -662,18 +839,25 @@
         var scoped = Arquimago.readStoredState(uid);
         var migrationUid = "";
         try { migrationUid = localStorage.getItem(LEGACY_MIGRATION_KEY) || ""; } catch (e) {}
-        var canMigrateLegacy = !migrationUid && !scoped.exists && hasMeaningfulState(legacyState);
-        var localState = canMigrateLegacy ? clone(legacyState) : scoped.state;
+        var legacyMigrationCandidate = !migrationUid && !scoped.exists && hasMeaningfulState(legacyState);
+        var localState = legacyMigrationCandidate ? clone(legacyState) : scoped.state;
         var fallbackState = localState;
         var fallbackProfile = null;
+        var cloudReadSucceeded = false;
+        cloudSyncReady = false;
 
         var tokenReady = typeof user.getIdToken === "function" ? user.getIdToken() : Promise.resolve();
         return Promise.resolve(tokenReady).then(function () {
             return db.collection(CLOUD_COLLECTION).doc(uid).get();
         }).then(function (snapshot) {
+            cloudReadSucceeded = true;
+            cloudSyncReady = true;
+            cloudReadRetryCount = 0;
             var remoteData = snapshot.exists && snapshot.data() ? snapshot.data() : {};
             var remoteState = remoteData.state || null;
-            var state = remoteState ? mergeState(localState, remoteState) : localState;
+            var canMigrateLegacy = !!(legacyMigrationCandidate && !remoteState);
+            var localStateIsDirty = !!(scoped.exists && Arquimago.isStoredStateDirty && Arquimago.isStoredStateDirty(uid));
+            var state = remoteState ? mergeState(localState, remoteState, !localStateIsDirty) : localState;
             fallbackState = state;
             activeProfile = mergeUserProfile(user, remoteData.profile, pendingRegistrationProfile);
             fallbackProfile = activeProfile;
@@ -681,7 +865,7 @@
             Arquimago.setStorageUser(uid);
             Arquimago.state = state;
             Arquimago.saveState(state);
-            return writeCloudState(state).then(function () {
+            return flushCloudState().then(function () {
                 if (canMigrateLegacy) {
                     try { localStorage.setItem(LEGACY_MIGRATION_KEY, uid); } catch (e) {}
                     Arquimago.clearLegacyState();
@@ -689,46 +873,171 @@
                 pendingRegistrationProfile = null;
                 lastCloudError = "";
                 return state;
+            }).catch(function (error) {
+                lastCloudError = error && error.message ? error.message : "Falha ao sincronizar.";
+                pendingRegistrationProfile = null;
+                return state;
             });
         }).catch(function (error) {
-            if (!isAuthSessionError(error)) {
+            if (isAuthSessionError(error)) {
+                cloudSyncReady = false;
+                Arquimago.setStorageUser("");
+                throw error;
+            }
+
+            if (cloudReadSucceeded) {
                 activeProfile = fallbackProfile || mergeUserProfile(user, {}, pendingRegistrationProfile);
                 applyProfileToState(fallbackState, activeProfile);
                 Arquimago.setStorageUser(uid);
                 Arquimago.state = fallbackState;
                 Arquimago.saveState(fallbackState);
+                scheduleCloudWriteRetry();
                 pendingRegistrationProfile = null;
                 lastCloudError = error && error.message ? error.message : "Falha ao sincronizar.";
                 return fallbackState;
             }
-            Arquimago.setStorageUser("");
-            throw error;
+
+            cloudSyncReady = false;
+            activeProfile = mergeUserProfile(user, {}, pendingRegistrationProfile);
+            applyProfileToState(fallbackState, activeProfile);
+            Arquimago.setStorageUser(uid);
+            Arquimago.state = fallbackState;
+            pendingRegistrationProfile = null;
+            lastCloudError = error && error.message ? error.message : "Falha ao carregar o save.";
+            scheduleCloudReadRetry();
+            return fallbackState;
         });
     };
 
+    function scheduleCloudWriteRetry() {
+        if (cloudWriteTimer || !pendingCloudState || !currentUser || !cloudSyncReady) return;
+        var delay = Math.min(60000, 1000 * Math.pow(2, Math.min(cloudWriteRetryCount, 6)));
+        cloudWriteRetryCount++;
+        cloudWriteTimer = setTimeout(function () {
+            cloudWriteTimer = null;
+            flushCloudState().catch(function () {});
+        }, delay);
+    }
+
+    function scheduleCloudReadRetry() {
+        if (cloudReadRetryTimer || !currentUser || cloudSyncReady) return;
+        var delay = Math.min(60000, 1500 * Math.pow(2, Math.min(cloudReadRetryCount, 5)));
+        cloudReadRetryCount++;
+        cloudReadRetryTimer = setTimeout(function () {
+            cloudReadRetryTimer = null;
+            retryCloudConnection().catch(function () {});
+        }, delay);
+    }
+
+    function retryCloudConnection() {
+        if (!currentUser || !db) return Promise.resolve();
+        if (cloudSyncReady) return flushCloudState();
+        if (cloudReconnectPromise) return cloudReconnectPromise;
+
+        var user = currentUser;
+        var uid = String(user.uid);
+        var tokenReady = typeof user.getIdToken === "function" ? user.getIdToken() : Promise.resolve();
+        var read = Promise.resolve(tokenReady).then(function () {
+            return db.collection(CLOUD_COLLECTION).doc(uid).get();
+        });
+
+        cloudReconnectPromise = read.then(function (snapshot) {
+            if (!currentUser || String(currentUser.uid) !== uid) return;
+            if (cloudReadRetryTimer) clearTimeout(cloudReadRetryTimer);
+            cloudReadRetryTimer = null;
+            cloudReadRetryCount = 0;
+            cloudSyncReady = true;
+
+            var remoteData = snapshot.exists && snapshot.data() ? snapshot.data() : {};
+            var remoteState = remoteData.state || null;
+            var localState = Arquimago.state || Arquimago.readStoredState(uid).state;
+            var localStateIsDirty = Arquimago.isStoredStateDirty && Arquimago.isStoredStateDirty(uid);
+            var state = remoteState ? mergeState(localState, remoteState, !localStateIsDirty) : localState;
+            activeProfile = mergeUserProfile(user, remoteData.profile, pendingRegistrationProfile);
+            applyProfileToState(state, activeProfile);
+            Arquimago.setStorageUser(uid);
+            Arquimago.state = state;
+            Arquimago.saveState(state);
+            pendingRegistrationProfile = null;
+            if (Arquimago.onFirebaseStateRestored) Arquimago.onFirebaseStateRestored(state);
+            return flushCloudState().catch(function (error) {
+                lastCloudError = error && error.message ? error.message : "Falha ao sincronizar.";
+                scheduleCloudWriteRetry();
+            });
+        }).catch(function (error) {
+            cloudSyncReady = false;
+            lastCloudError = error && error.message ? error.message : "Falha ao carregar o save.";
+            scheduleCloudReadRetry();
+            throw error;
+        }).then(function (result) {
+            cloudReconnectPromise = null;
+            return result;
+        }, function (error) {
+            cloudReconnectPromise = null;
+            throw error;
+        });
+
+        return cloudReconnectPromise;
+    }
+
     function flushCloudState() {
-        if (!pendingCloudState || cloudWriteInFlight || !currentUser || !db) return Promise.resolve();
-        var state = pendingCloudState;
+        if (!currentUser || !db) return Promise.resolve();
+        if (cloudWriteInFlight) {
+            return cloudWritePromise.then(function () {
+                return pendingCloudState ? flushCloudState() : undefined;
+            });
+        }
+        if (!cloudSyncReady) {
+            return pendingCloudState ? retryCloudConnection().then(function () { return flushCloudState(); }) : Promise.resolve();
+        }
+        if (!pendingCloudState) return Promise.resolve();
+
+        var uid = String(currentUser.uid);
+        if (pendingCloudState.uid !== uid || Arquimago.getStorageUser() !== uid) {
+            pendingCloudState = null;
+            return Promise.resolve();
+        }
+
+        if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
+        cloudWriteTimer = null;
+        var queued = pendingCloudState;
         pendingCloudState = null;
         cloudWriteInFlight = true;
-        return writeCloudState(state).then(function () {
+
+        var write = writeCloudState(queued.state, uid).then(function () {
+            if (Arquimago.markStoredStateSynced) Arquimago.markStoredStateSynced(uid, queued.state);
+            cloudWriteRetryCount = 0;
             lastCloudError = "";
         }).catch(function (error) {
+            if (!pendingCloudState) pendingCloudState = queued;
             lastCloudError = error && error.message ? error.message : "Falha ao sincronizar.";
             console.error("Falha ao sincronizar o estado do Arquimago", error);
-        }).then(function () {
-            cloudWriteInFlight = false;
-            if (pendingCloudState) return flushCloudState();
+            throw error;
         });
+
+        cloudWritePromise = write.then(function () {
+            cloudWriteInFlight = false;
+            cloudWritePromise = null;
+            if (pendingCloudState) return flushCloudState();
+        }, function (error) {
+            cloudWriteInFlight = false;
+            cloudWritePromise = null;
+            scheduleCloudWriteRetry();
+            throw error;
+        });
+        return cloudWritePromise;
     }
 
     Arquimago.queueCloudStateSave = function (state) {
         if (!currentUser || !db || !Arquimago.getStorageUser()) return;
-        pendingCloudState = clone(state);
+        var uid = String(Arquimago.getStorageUser());
+        if (String(currentUser.uid) !== uid) return;
+        pendingCloudState = { uid: uid, state: clone(state) };
+        if (!cloudSyncReady) return;
         if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
         cloudWriteTimer = setTimeout(function () {
             cloudWriteTimer = null;
-            flushCloudState();
+            flushCloudState().catch(function () {});
         }, 500);
     };
 
@@ -768,7 +1077,7 @@
                         return Arquimago.signOutFirebase();
                     }).catch(function (error) {
                         button.disabled = false;
-                        if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
+                        if (Arquimago.showNotification) Arquimago.showNotification(syncErrorMessage(error), "boss");
                     });
                     return;
                 }
@@ -796,7 +1105,7 @@
                     return Arquimago.signOutFirebase();
                 }).catch(function (error) {
                     drawerLogout.disabled = false;
-                    if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
+                    if (Arquimago.showNotification) Arquimago.showNotification(syncErrorMessage(error), "boss");
                 });
             });
         }
