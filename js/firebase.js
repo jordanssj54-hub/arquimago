@@ -16,6 +16,7 @@
     var cloudWritePromise = null;
     var cloudReconnectPromise = null;
     var cloudSyncReady = false;
+    var cloudHasUserState = false;
     var mediaUrlCache = Object.create(null);
     var lastCloudError = "";
     var authMode = "landing";
@@ -535,6 +536,7 @@
                 if (previousUid !== nextUid) {
                     authSessionGeneration++;
                     cloudSyncReady = false;
+                    cloudHasUserState = false;
                     pendingCloudState = null;
                     if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
                     cloudWriteTimer = null;
@@ -794,7 +796,8 @@
     function hasMeaningfulState(state) {
         if (!state) return false;
         var defaults = Arquimago.DEFAULT_STATE || {};
-        return !!(state.name || state.aboutMe || state.introSeen ||
+        return !!(state.name || state.aboutMe ||
+            (state.title !== undefined && state.title !== defaults.title) || state.introSeen ||
             state.customAvatar || state.customWallpaper ||
             (state.theme !== undefined && state.theme !== defaults.theme) ||
             (state.font !== undefined && state.font !== defaults.font) ||
@@ -820,7 +823,32 @@
             Object.keys(state.missionCompletionCounts || {}).length ||
             (state.financas && (Number(state.financas.saldoInicial) !== 0 || Number(state.financas.guardadoInicial) !== 0 ||
                 Number(state.financas.saldo) !== 0 || Number(state.financas.guardado) !== 0 ||
-                (state.financas.transacoes || []).length || (state.financas.despesas || []).length)));
+                 (state.financas.transacoes || []).length || (state.financas.despesas || []).length)));
+    }
+
+    function hasSubstantiveState(state) {
+        if (!state) return false;
+        var candidate = clone(state);
+        candidate.introSeen = false;
+        candidate.playTimeSeconds = 0;
+        candidate.daysUsingApp = 0;
+        candidate.dailyAvailableXP = 0;
+        candidate.monthlyAvailableXP = 0;
+        return hasMeaningfulState(candidate);
+    }
+
+    function remoteStateFromDocument(remoteData) {
+        if (!remoteData || typeof remoteData !== "object") return null;
+        var state = remoteData.state;
+        if (state && hasSubstantiveState(state)) return state;
+        if (hasSubstantiveState(remoteData)) {
+            var legacyState = {};
+            Object.keys(Arquimago.DEFAULT_STATE || {}).forEach(function (key) {
+                if (Object.prototype.hasOwnProperty.call(remoteData, key)) legacyState[key] = remoteData[key];
+            });
+            return legacyState;
+        }
+        return state || null;
     }
 
     function cloudDocument(state) {
@@ -866,6 +894,13 @@
         if (!db || !user) return Promise.reject(new Error("Firebase nao inicializado."));
 
         var uid = String(user.uid);
+        var previousUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
+        if (previousUid !== uid) {
+            authSessionGeneration++;
+            cloudSyncReady = false;
+            cloudHasUserState = false;
+            pendingCloudState = null;
+        }
         currentUser = user;
         var sessionGeneration = authSessionGeneration;
         Arquimago.firebaseUser = user;
@@ -884,7 +919,7 @@
             if (!currentUser || String(currentUser.uid) !== uid || authSessionGeneration !== sessionGeneration) {
                 throw { code: "auth/user-changed", message: "A conta ativa mudou antes de carregar o save." };
             }
-            return db.collection(CLOUD_COLLECTION).doc(uid).get();
+            return db.collection(CLOUD_COLLECTION).doc(uid).get({ source: "server" });
         }).then(function (snapshot) {
             if (!currentUser || String(currentUser.uid) !== uid || authSessionGeneration !== sessionGeneration) {
                 throw { code: "auth/user-changed", message: "A conta ativa mudou durante o carregamento do save." };
@@ -893,17 +928,19 @@
             cloudSyncReady = true;
             cloudReadRetryCount = 0;
             var remoteData = snapshot.exists && snapshot.data() ? snapshot.data() : {};
-            var remoteState = remoteData.state || null;
+            var remoteState = remoteStateFromDocument(remoteData);
             var canMigrateLegacy = !!(legacyMigrationCandidate && !remoteState);
             var localStateIsDirty = !!(scoped.exists && Arquimago.isStoredStateDirty && Arquimago.isStoredStateDirty(uid));
             var state = remoteState ? mergeState(localState, remoteState, !localStateIsDirty) : localState;
+            cloudHasUserState = hasSubstantiveState(remoteState) || hasSubstantiveState(state);
             fallbackState = state;
             activeProfile = mergeUserProfile(user, remoteData.profile, pendingRegistrationProfile);
             fallbackProfile = activeProfile;
             applyProfileToState(state, activeProfile);
             Arquimago.setStorageUser(uid);
             Arquimago.state = state;
-            Arquimago.saveState(state);
+            cloudHasUserState = cloudHasUserState || hasSubstantiveState(state);
+            if (cloudHasUserState) Arquimago.saveState(state);
             return flushCloudState().then(function () {
                 if (canMigrateLegacy) {
                     try { localStorage.setItem(LEGACY_MIGRATION_KEY, uid); } catch (e) {}
@@ -978,7 +1015,7 @@
         var uid = String(user.uid);
         var tokenReady = typeof user.getIdToken === "function" ? user.getIdToken() : Promise.resolve();
         var read = Promise.resolve(tokenReady).then(function () {
-            return db.collection(CLOUD_COLLECTION).doc(uid).get();
+            return db.collection(CLOUD_COLLECTION).doc(uid).get({ source: "server" });
         });
 
         cloudReconnectPromise = read.then(function (snapshot) {
@@ -989,15 +1026,17 @@
             cloudSyncReady = true;
 
             var remoteData = snapshot.exists && snapshot.data() ? snapshot.data() : {};
-            var remoteState = remoteData.state || null;
+            var remoteState = remoteStateFromDocument(remoteData);
             var localState = Arquimago.state || Arquimago.readStoredState(uid).state;
             var localStateIsDirty = Arquimago.isStoredStateDirty && Arquimago.isStoredStateDirty(uid);
             var state = remoteState ? mergeState(localState, remoteState, !localStateIsDirty) : localState;
+            cloudHasUserState = hasSubstantiveState(remoteState) || hasSubstantiveState(state);
             activeProfile = mergeUserProfile(user, remoteData.profile, pendingRegistrationProfile);
             applyProfileToState(state, activeProfile);
             Arquimago.setStorageUser(uid);
             Arquimago.state = state;
-            Arquimago.saveState(state);
+            cloudHasUserState = cloudHasUserState || hasSubstantiveState(state);
+            if (cloudHasUserState) Arquimago.saveState(state);
             pendingRegistrationProfile = null;
             if (Arquimago.onFirebaseStateRestored) Arquimago.onFirebaseStateRestored(state);
             return flushCloudState().catch(function (error) {
@@ -1072,6 +1111,8 @@
         if (!currentUser || !db || !Arquimago.getStorageUser()) return;
         var uid = String(Arquimago.getStorageUser());
         if (String(currentUser.uid) !== uid) return;
+        if (!cloudHasUserState && !hasSubstantiveState(state)) return;
+        if (!cloudHasUserState) cloudHasUserState = true;
         pendingCloudState = { uid: uid, state: clone(state) };
         if (!cloudSyncReady) return;
         if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
