@@ -1144,29 +1144,156 @@ body.nav-open {
     color: #f0c45e !important;
 }
 
-/* Keep the shared header above scrolling content without covering it with an opaque layer. */
+/* Use the same shared header on every screen: brand/actions, XP, then balances. */
 #game[data-screen] .topbar {
+    display: grid;
     position: sticky;
     top: 0;
     z-index: 300;
-    background-color: rgba(10, 10, 15, 0.34) !important;
+    grid-template-columns: minmax(0, 1fr) 56px 48px;
+    grid-template-areas:
+        "brand rank settings"
+        "xp xp xp"
+        "crystals crystals crystals";
+    align-items: center;
+    justify-content: stretch;
+    gap: 8px 16px;
+    min-height: 0;
+    padding: 16px clamp(16px, 3vw, 32px) 12px;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.14);
+    background-color: rgba(10, 10, 15, 0.22) !important;
     background-image: none !important;
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
 }
 
 #game[data-screen] .topbar.is-scrolled {
-    background-color: rgba(10, 10, 15, 0.42) !important;
+    background-color: rgba(10, 10, 15, 0.18) !important;
     background-image: none !important;
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border-bottom-color: rgba(201, 168, 76, 0.2);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-bottom-color: rgba(201, 168, 76, 0.14);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
-/* The reference logo PNG has a black canvas; lighten blends that canvas away. */
+/* The luminance mask turns the PNG's black canvas transparent without altering its artwork. */
 #game[data-screen] .home-logo-art {
-    mix-blend-mode: lighten;
+    mix-blend-mode: normal;
+    -webkit-mask-image: url("../assets/ui/home-reference/logo.png");
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-source-type: luminance;
+    -webkit-mask-size: 100% 100%;
+    mask-image: url("../assets/ui/home-reference/logo.png");
+    mask-mode: luminance;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+}
+
+#game[data-screen] .logo-container {
+    grid-area: brand;
+}
+
+#game[data-screen] .top-rank-badge {
+    display: flex !important;
+    position: static;
+    grid-area: rank;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+}
+
+#game[data-screen] .icon-button {
+    position: static;
+    grid-area: settings;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+}
+
+#game[data-screen] .xp-bar--top {
+    display: block !important;
+    grid-area: xp;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+#game[data-screen] .top-crystals {
+    display: grid !important;
+    grid-area: crystals;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+}
+
+#game[data-screen] .top-crystal {
+    min-width: 0;
+    justify-content: center;
+}
+
+@media (max-width: 1100px) {
+    #game[data-screen] .topbar {
+        grid-template-columns: 40px minmax(0, 1fr) 46px 46px;
+        grid-template-areas:
+            "menu brand rank settings"
+            "xp xp xp xp"
+            "crystals crystals crystals crystals";
+        gap: 8px;
+        padding: max(12px, env(safe-area-inset-top)) 12px 12px;
+    }
+
+    #game[data-screen] .mobile-nav-toggle {
+        position: static !important;
+        grid-area: menu;
+        left: auto !important;
+        top: auto !important;
+        width: 40px !important;
+        height: 40px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body:not([data-template="template-2"]) #game[data-screen] .logo-container {
+        gap: 7px;
+    }
+
+    body:not([data-template="template-2"]) #game[data-screen] .logo-emblem {
+        height: 42px;
+    }
+
+    body:not([data-template="template-2"]) #game[data-screen] .logo-area h1 {
+        font-size: 0.76rem;
+        letter-spacing: 0.12em;
+    }
+
+    body:not([data-template="template-2"]) #game[data-screen] .logo-area > span {
+        font-size: 0.5rem;
+        letter-spacing: 0.15em;
+    }
+
+    #game[data-screen] .top-rank-badge,
+    #game[data-screen] .icon-button {
+        width: 46px;
+        height: 46px;
+    }
+
+    #game[data-screen] .top-crystal {
+        gap: 6px;
+        padding: 4px 6px;
+    }
+
+    #game[data-screen] .top-crystal__value {
+        font-size: 0.72rem;
+    }
+}
+
+@media (max-width: 380px) {
+    body:not([data-template="template-2"]) #game[data-screen] .logo-area > span {
+        display: none !important;
+    }
 }
 
 @media (max-width: 1100px) {
