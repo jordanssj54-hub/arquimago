@@ -789,7 +789,7 @@ body.nav-open {
     width: 32px !important;
     height: 32px !important;
     flex: 0 0 32px;
-    filter: url("../assets/ui/home-reference/tab-icon-background-filter.svg#remove-dark-canvas") sepia(0.36) saturate(1.08) brightness(1.06);
+    filter: sepia(0.36) saturate(1.08) brightness(1.06);
 }
 
 #game[data-nav-position] .drawer-settings > img {
@@ -800,7 +800,7 @@ body.nav-open {
 }
 
 #game[data-nav-position] .tab.active .tab-icon {
-    filter: url("../assets/ui/home-reference/tab-icon-background-filter.svg#remove-dark-canvas") sepia(0.55) saturate(1.18) brightness(1.13) drop-shadow(0 0 5px rgba(239, 185, 73, 0.32));
+    filter: sepia(0.55) saturate(1.18) brightness(1.13) drop-shadow(0 0 5px rgba(239, 185, 73, 0.32));
 }
 
 #game[data-nav-position] .drawer-reference-links {
@@ -1161,19 +1161,19 @@ body.nav-open {
     min-height: 0;
     padding: 16px clamp(16px, 3vw, 32px) 12px;
     border-bottom: 1px solid rgba(201, 168, 76, 0.14);
-    background-color: rgba(10, 10, 15, 0.22) !important;
+    background-color: transparent !important;
     background-image: none !important;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
 }
 
 #game[data-screen] .topbar.is-scrolled {
-    background-color: rgba(10, 10, 15, 0.18) !important;
+    background-color: transparent !important;
     background-image: none !important;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
     border-bottom-color: rgba(201, 168, 76, 0.14);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    box-shadow: none;
 }
 
 /* The luminance mask turns the PNG's black canvas transparent without altering its artwork. */
@@ -1302,8 +1302,30 @@ body.nav-open {
     }
 }
 
-/* The reference icon canvas is keyed to transparency by the filter above. */
+/* Use sidebar crops only in the expanded drawer; preserve the compact tab icons. */
 #game[data-screen][data-nav-position] .tab-icon,
 #game[data-screen][data-nav-position] .drawer-settings > img {
     mix-blend-mode: lighten;
+}
+
+#game[data-nav-position] .tab-icon--bottom {
+    display: none !important;
+}
+
+@media (max-width: 1100px) {
+    #game[data-screen][data-nav-position]:not(.nav-mobile-open) .main-tabs .tab-icon--drawer {
+        display: none !important;
+    }
+
+    #game[data-screen][data-nav-position]:not(.nav-mobile-open) .main-tabs .tab-icon--bottom {
+        display: inline-flex !important;
+    }
+
+    #game.nav-mobile-open[data-screen][data-nav-position] .main-tabs .tab-icon--drawer {
+        display: inline-flex !important;
+    }
+
+    #game.nav-mobile-open[data-screen][data-nav-position] .main-tabs .tab-icon--bottom {
+        display: none !important;
+    }
 }
