@@ -941,19 +941,22 @@
             Arquimago.state = state;
             cloudHasUserState = cloudHasUserState || hasSubstantiveState(state);
             if (cloudHasUserState) Arquimago.saveState(state);
-            return flushCloudState().then(function () {
+            Promise.resolve().then(function () {
+                return flushCloudState();
+            }).then(function () {
                 if (canMigrateLegacy) {
                     try { localStorage.setItem(LEGACY_MIGRATION_KEY, uid); } catch (e) {}
                     Arquimago.clearLegacyState();
                 }
                 pendingRegistrationProfile = null;
                 lastCloudError = "";
-                return state;
             }).catch(function (error) {
                 lastCloudError = error && error.message ? error.message : "Falha ao sincronizar.";
                 pendingRegistrationProfile = null;
-                return state;
+                console.warn("O save local foi restaurado; a sincronizacao continuara depois", error);
             });
+            pendingRegistrationProfile = null;
+            return state;
         }).catch(function (error) {
             if (error && error.code === "auth/user-changed") throw error;
             if (isAuthSessionError(error)) {
@@ -1129,15 +1132,22 @@
 
     function flushBeforeSignOut() {
         try {
-            if (Arquimago.flushCloudState) {
-                Promise.resolve(Arquimago.flushCloudState()).catch(function (error) {
-                    console.warn("O save local foi preservado; a sincronizacao tentara novamente", error);
-                });
-            }
+            var flush = Arquimago.flushCloudState ? Arquimago.flushCloudState() : Promise.resolve();
+            var timeoutId;
+            var deadline = new Promise(function (resolve) {
+                timeoutId = setTimeout(resolve, 3000);
+            });
+            var saveAttempt = Promise.resolve(flush).catch(function (error) {
+                console.warn("O save local foi preservado; a sincronizacao tentara novamente", error);
+            });
+            return Promise.race([saveAttempt, deadline]).then(function (result) {
+                clearTimeout(timeoutId);
+                return result;
+            });
         } catch (error) {
             console.warn("Nao foi possivel iniciar a sincronizacao antes de sair", error);
+            return Promise.resolve();
         }
-        return Promise.resolve();
     }
 
     function signOutFromControl(button) {
