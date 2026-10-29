@@ -360,19 +360,7 @@
     pointer-events: none;
 }
 
-.missions-reference-journey__symbol {
-    position: absolute;
-    top: 7px;
-    left: 50%;
-    z-index: 3;
-    width: 31px;
-    height: 31px;
-    object-fit: contain;
-    transform: translateX(-50%);
-    pointer-events: none;
-}
-
-.missions-reference-journey > img {
+.missions-reference-journey__art {
     position: absolute;
     top: 16px;
     right: 18px;
@@ -382,6 +370,10 @@
     height: calc(100% - 33px);
     object-fit: cover;
     object-position: center;
+    opacity: 0.88;
+    mix-blend-mode: screen;
+    -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
+    mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
     pointer-events: none;
 }
 
@@ -1049,18 +1041,12 @@
         padding: 18px 4%;
     }
 
-    .missions-reference-journey > img {
+    .missions-reference-journey__art {
         top: 16px;
         right: 18px;
         bottom: 17px;
         width: 57%;
         height: calc(100% - 33px);
-    }
-
-    .missions-reference-journey__symbol {
-        top: 2px;
-        width: 23px;
-        height: 23px;
     }
 
     .missions-reference-journey__counter {

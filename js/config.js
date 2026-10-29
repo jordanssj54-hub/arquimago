@@ -127,6 +127,8 @@
         font: "classica",
         wallpaper: "auto",
         customWallpaper: "",
+        customAvatar: "",
+        avatarProvider: "",
         aboutMe: "",
         lastActiveDate: "",
         chapter: 1,

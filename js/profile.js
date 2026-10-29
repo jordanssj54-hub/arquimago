@@ -283,6 +283,37 @@
         });
     }
 
+    function readAvatarFile(file, done) {
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            var source = new Image();
+            var original = event.target.result;
+            source.onload = function () {
+                var maxDimension = 512;
+                if (file.size <= 400 * 1024 && source.width <= maxDimension && source.height <= maxDimension) {
+                    done(original);
+                    return;
+                }
+
+                var scale = Math.min(1, maxDimension / Math.max(source.width, source.height));
+                var canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(source.width * scale));
+                canvas.height = Math.max(1, Math.round(source.height * scale));
+                try {
+                    canvas.getContext("2d").drawImage(source, 0, 0, canvas.width, canvas.height);
+                    var compressed = canvas.toDataURL("image/jpeg", 0.82);
+                    done(compressed.length < original.length ? compressed : original);
+                } catch (error) {
+                    done(original);
+                }
+            };
+            source.onerror = function () { done(original); };
+            source.src = original;
+        };
+        reader.onerror = function () { done(""); };
+        reader.readAsDataURL(file);
+    }
+
     function bindAvatarUpload() {
         var btn = document.getElementById("avatarUploadBtn");
         var input = document.getElementById("avatarFileInput");
@@ -292,9 +323,9 @@
         input.addEventListener("change", function () {
             var file = input.files[0];
             if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function (event) {
-                Arquimago.state.customAvatar = event.target.result;
+            readAvatarFile(file, function (src) {
+                if (!src) return;
+                Arquimago.state.customAvatar = src;
                 Arquimago.state.avatarProvider = "custom";
                 try {
                     Arquimago.saveState(Arquimago.state);
@@ -302,9 +333,9 @@
                     if (error.name === "QuotaExceededError") alert("Imagem muito grande. Tente uma com resolução menor.");
                 }
                 Arquimago.refreshPlayerPhotos();
+                if (Arquimago.refreshDrawerProfile) Arquimago.refreshDrawerProfile();
                 if (Arquimago.renderProfile) Arquimago.renderProfile();
-            };
-            reader.readAsDataURL(file);
+            });
             input.value = "";
         });
     }

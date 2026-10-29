@@ -211,10 +211,18 @@
 }
 
 #game[data-screen="home"] .home-finance-card::after,
-#game[data-screen="home"] .home-journey-card::after,
 #game[data-screen="home"] .home-ascension-card::after,
 #game[data-screen="home"] .home-monthly-card::after {
     content: none;
+}
+
+#game[data-screen="home"] .home-journey-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(5, 6, 9, 0.78) 0%, rgba(5, 6, 9, 0.34) 52%, rgba(5, 6, 9, 0.62) 100%);
+    pointer-events: none;
 }
 
 #game[data-screen="home"] .home-journey-card:hover,
@@ -398,6 +406,7 @@
     min-height: 280px;
     padding: 38px 3.5%;
     overflow: hidden;
+    isolation: isolate;
 }
 
 #game[data-screen="home"] .home-journey-card__content {
@@ -408,14 +417,16 @@
 
 #game[data-screen="home"] .home-journey-card__art {
     position: absolute;
-    z-index: 1;
+    z-index: 0;
     top: 16px;
     right: 18px;
-    width: 48%;
+    width: 46%;
+    max-width: 520px;
     height: calc(100% - 33px);
     object-fit: cover;
     object-position: center;
-    opacity: 0.88;
+    display: block;
+    opacity: 0.56;
     mix-blend-mode: screen;
     -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
     mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
@@ -1073,9 +1084,11 @@
     #game[data-screen="home"] .home-journey-card__art {
         top: 16px;
         right: 18px;
-        width: 53%;
+        width: 44%;
+        max-width: 44%;
         height: calc(100% - 33px);
         object-position: center;
+        opacity: 0.46;
     }
 
     #game[data-screen="home"] .home-journey-card__stats {

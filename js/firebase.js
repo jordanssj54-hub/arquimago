@@ -78,11 +78,21 @@
     function applyProfileToState(state, profile) {
         var displayName = profile && (profile.displayName || profile.fullName);
         if (displayName && !String(state.name || "").trim()) state.name = displayName;
-        if (profile && profile.photoURL && (!state.customAvatar || state.avatarProvider === "google")) {
+        var hasPersonalizedAvatar = !!(state.customAvatar && state.avatarProvider !== "google");
+        if (profile && profile.photoURL && !hasPersonalizedAvatar) {
             state.customAvatar = profile.photoURL;
             state.avatarProvider = "google";
         }
         return state;
+    }
+
+    function isAuthSessionError(error) {
+        var code = error && error.code ? String(error.code) : "";
+        return code === "unauthenticated" ||
+            code.indexOf("auth/user-token-expired") !== -1 ||
+            code.indexOf("auth/invalid-user-token") !== -1 ||
+            code.indexOf("auth/user-disabled") !== -1 ||
+            code.indexOf("auth/user-not-found") !== -1;
     }
 
     function configured() {
@@ -612,7 +622,8 @@
         return !!(state.name || state.introSeen || Number(state.level) > 1 || Number(state.totalXP) > 0 ||
             Number(state.missionsCompleted) > 0 || (state.completedIds || []).length ||
             (state.customMissions || []).length || (state.dailyHistory || []).length ||
-            (state.grimoireData || []).length || (state.financas && ((state.financas.transacoes || []).length || (state.financas.despesas || []).length)));
+            (state.grimoireData || []).length || !!state.customAvatar ||
+            (state.financas && ((state.financas.transacoes || []).length || (state.financas.despesas || []).length)));
     }
 
     function cloudDocument(state) {
@@ -653,15 +664,19 @@
         try { migrationUid = localStorage.getItem(LEGACY_MIGRATION_KEY) || ""; } catch (e) {}
         var canMigrateLegacy = !migrationUid && !scoped.exists && hasMeaningfulState(legacyState);
         var localState = canMigrateLegacy ? clone(legacyState) : scoped.state;
+        var fallbackState = localState;
+        var fallbackProfile = null;
 
-        var tokenReady = typeof user.getIdToken === "function" ? user.getIdToken(true) : Promise.resolve();
+        var tokenReady = typeof user.getIdToken === "function" ? user.getIdToken() : Promise.resolve();
         return Promise.resolve(tokenReady).then(function () {
             return db.collection(CLOUD_COLLECTION).doc(uid).get();
         }).then(function (snapshot) {
             var remoteData = snapshot.exists && snapshot.data() ? snapshot.data() : {};
             var remoteState = remoteData.state || null;
             var state = remoteState ? mergeState(localState, remoteState) : localState;
+            fallbackState = state;
             activeProfile = mergeUserProfile(user, remoteData.profile, pendingRegistrationProfile);
+            fallbackProfile = activeProfile;
             applyProfileToState(state, activeProfile);
             Arquimago.setStorageUser(uid);
             Arquimago.state = state;
@@ -676,6 +691,16 @@
                 return state;
             });
         }).catch(function (error) {
+            if (!isAuthSessionError(error)) {
+                activeProfile = fallbackProfile || mergeUserProfile(user, {}, pendingRegistrationProfile);
+                applyProfileToState(fallbackState, activeProfile);
+                Arquimago.setStorageUser(uid);
+                Arquimago.state = fallbackState;
+                Arquimago.saveState(fallbackState);
+                pendingRegistrationProfile = null;
+                lastCloudError = error && error.message ? error.message : "Falha ao sincronizar.";
+                return fallbackState;
+            }
             Arquimago.setStorageUser("");
             throw error;
         });
