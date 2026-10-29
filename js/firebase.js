@@ -588,11 +588,13 @@
     Arquimago.signInWithGoogle = function () {
         if (!auth) return Promise.reject(new Error("Firebase nao configurado."));
         var provider = new global.firebase.auth.GoogleAuthProvider();
-        if (isIOSBrowser() && auth.signInWithRedirect) {
-            if (provider.setCustomParameters) provider.setCustomParameters({ prompt: "select_account" });
-            return auth.signInWithRedirect(provider);
-        }
-        return auth.signInWithPopup(provider);
+        if (provider.setCustomParameters) provider.setCustomParameters({ prompt: "select_account" });
+        return auth.signInWithPopup(provider).catch(function (error) {
+            var code = String(error && error.code || "");
+            var popupUnavailable = code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment";
+            if (isIOSBrowser() && popupUnavailable && auth.signInWithRedirect) return auth.signInWithRedirect(provider);
+            throw error;
+        });
     };
 
     Arquimago.signOutFirebase = function () {
@@ -1085,25 +1087,16 @@
     Arquimago.getFirebaseSyncErrorMessage = syncErrorMessage;
 
     function flushBeforeSignOut() {
-        var flush;
         try {
-            flush = Arquimago.flushCloudState ? Arquimago.flushCloudState() : Promise.resolve();
+            if (Arquimago.flushCloudState) {
+                Promise.resolve(Arquimago.flushCloudState()).catch(function (error) {
+                    console.warn("O save local foi preservado; a sincronizacao tentara novamente", error);
+                });
+            }
         } catch (error) {
-            console.warn("Nao foi possivel aguardar a sincronizacao antes de sair", error);
-            return Promise.resolve();
+            console.warn("Nao foi possivel iniciar a sincronizacao antes de sair", error);
         }
-
-        var timeoutId;
-        var deadline = new Promise(function (resolve) {
-            timeoutId = setTimeout(resolve, 2500);
-        });
-        var saveAttempt = Promise.resolve(flush).catch(function (error) {
-            console.warn("O save local foi preservado; a sincronizacao continuara depois", error);
-        });
-        return Promise.race([saveAttempt, deadline]).then(function (result) {
-            clearTimeout(timeoutId);
-            return result;
-        });
+        return Promise.resolve();
     }
 
     function signOutFromControl(button) {
