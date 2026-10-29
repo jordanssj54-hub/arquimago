@@ -1061,7 +1061,7 @@
     }
 
     #game[data-screen="profile"][data-nav-position] .tab.active .tab-icon {
-        filter: sepia(1) saturate(2) brightness(1.3);
+        filter: url("../assets/ui/home-reference/tab-icon-background-filter.svg#remove-dark-canvas") sepia(1) saturate(2) brightness(1.3);
     }
 
     #game[data-screen="profile"].nav-mobile-open[data-nav-position] .main-tabs {

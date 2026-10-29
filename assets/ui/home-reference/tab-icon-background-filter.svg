@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <filter id="remove-dark-canvas" color-interpolation-filters="sRGB">
+    <!-- The five reference PNGs have a near-black opaque canvas. Convert that
+         canvas to alpha while retaining the brighter icon artwork. -->
+    <feColorMatrix type="matrix" values="
+      1 0 0 0 0
+      0 1 0 0 0
+      0 0 1 0 0
+      2.55 8.58 0.87 0 -1.5" />
+  </filter>
+</svg>

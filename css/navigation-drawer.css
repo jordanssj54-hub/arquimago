@@ -785,7 +785,13 @@ body.nav-open {
     color: #f0c45e;
 }
 
-#game[data-nav-position] .tab-icon,
+#game[data-nav-position] .tab-icon {
+    width: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px;
+    filter: url("../assets/ui/home-reference/tab-icon-background-filter.svg#remove-dark-canvas") sepia(0.36) saturate(1.08) brightness(1.06);
+}
+
 #game[data-nav-position] .drawer-settings > img {
     width: 32px !important;
     height: 32px !important;
@@ -794,7 +800,7 @@ body.nav-open {
 }
 
 #game[data-nav-position] .tab.active .tab-icon {
-    filter: sepia(0.55) saturate(1.18) brightness(1.13) drop-shadow(0 0 5px rgba(239, 185, 73, 0.32));
+    filter: url("../assets/ui/home-reference/tab-icon-background-filter.svg#remove-dark-canvas") sepia(0.55) saturate(1.18) brightness(1.13) drop-shadow(0 0 5px rgba(239, 185, 73, 0.32));
 }
 
 #game[data-nav-position] .drawer-reference-links {
@@ -1138,14 +1144,29 @@ body.nav-open {
     color: #f0c45e !important;
 }
 
-/* Keep the shared header translucent and readable while either content area scrolls. */
-#game[data-screen][data-nav-position] .topbar.is-scrolled {
-    background-color: rgba(10, 10, 15, 0.6) !important;
-    background-image: linear-gradient(180deg, rgba(10, 10, 15, 0.78), rgba(10, 10, 15, 0.52)) !important;
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+/* Keep the shared header above scrolling content without covering it with an opaque layer. */
+#game[data-screen] .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 300;
+    background-color: rgba(10, 10, 15, 0.34) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+#game[data-screen] .topbar.is-scrolled {
+    background-color: rgba(10, 10, 15, 0.42) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
     border-bottom-color: rgba(201, 168, 76, 0.2);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* The reference logo PNG has a black canvas; lighten blends that canvas away. */
+#game[data-screen] .home-logo-art {
+    mix-blend-mode: lighten;
 }
 
 @media (max-width: 1100px) {
@@ -1154,7 +1175,7 @@ body.nav-open {
     }
 }
 
-/* The icon PNGs use near-black canvases; lighten blends them into the dark menu. */
+/* The reference icon canvas is keyed to transparency by the filter above. */
 #game[data-screen][data-nav-position] .tab-icon,
 #game[data-screen][data-nav-position] .drawer-settings > img {
     mix-blend-mode: lighten;

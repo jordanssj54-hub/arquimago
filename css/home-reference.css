@@ -697,19 +697,22 @@
 
 #game[data-screen="home"] .home-monthly-card__body {
     display: grid;
-    grid-template-columns: 64px minmax(0, 1fr) auto;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 18px;
+    gap: 16px;
     margin-top: 17px;
 }
 
 #game[data-screen="home"] .home-monthly-card__seal {
+    position: relative;
+    z-index: 1;
     display: block;
     width: 58px;
     height: 76px;
     border: 0;
     outline: 0;
-    overflow: hidden;
+    overflow: visible;
+    transform: translateY(7px);
 }
 
 #game[data-screen="home"] .home-monthly-card__seal img {
@@ -720,6 +723,8 @@
 }
 
 #game[data-screen="home"] .home-monthly-card__progress {
+    position: relative;
+    z-index: 2;
     min-width: 0;
 }
 
@@ -738,10 +743,10 @@
 #game[data-screen="home"] .home-monthly-card__bar {
     position: relative;
     display: block;
-    width: 100%;
+    width: calc(100% + 26px);
     height: auto;
     aspect-ratio: 1170 / 195;
-    margin: 10px 0 8px;
+    margin: 10px 0 8px -26px;
     overflow: visible;
     border: 0;
     border-radius: 0;
@@ -1188,7 +1193,7 @@
     }
 
     #game[data-screen="home"] .home-monthly-card__body {
-        grid-template-columns: 46px minmax(0, 1fr);
+        grid-template-columns: 38px minmax(0, 1fr);
         gap: 10px;
     }
 
@@ -1200,6 +1205,11 @@
     #game[data-screen="home"] .home-monthly-card__seal img {
         width: 43px;
         height: 56px;
+    }
+
+    #game[data-screen="home"] .home-monthly-card__bar {
+        width: calc(100% + 15px);
+        margin-left: -15px;
     }
 
     #game[data-screen="home"] .home-monthly-card__values strong {
