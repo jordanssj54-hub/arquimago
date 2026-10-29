@@ -78,6 +78,7 @@
         if (!state || Arquimago.isMissionDeleted(state, missionId)) return;
         if (!Array.isArray(state.hiddenMissionIds)) state.hiddenMissionIds = [];
         if (state.hiddenMissionIds.indexOf(missionId) === -1) state.hiddenMissionIds.push(missionId);
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
     };
 
@@ -85,6 +86,7 @@
         state = state || Arquimago.state;
         if (!state || !Array.isArray(state.hiddenMissionIds)) return;
         state.hiddenMissionIds = state.hiddenMissionIds.filter(function (id) { return id !== missionId; });
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
     };
 
@@ -94,6 +96,7 @@
         if (!Array.isArray(state.deletedMissionIds)) state.deletedMissionIds = [];
         state.hiddenMissionIds = Array.isArray(state.hiddenMissionIds) ? state.hiddenMissionIds.filter(function (id) { return id !== missionId; }) : [];
         if (state.deletedMissionIds.indexOf(missionId) === -1) state.deletedMissionIds.push(missionId);
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
     };
 
@@ -133,6 +136,7 @@
         }
         if (patch && patch.icon) ov.icon = String(patch.icon);
         state.missionOverrides[missionId] = ov;
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
     };
 
@@ -142,6 +146,7 @@
         if (state.missionOverrides && typeof state.missionOverrides === "object") {
             delete state.missionOverrides[missionId];
         }
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
     };
 
@@ -384,16 +389,24 @@
         return Math.ceil(Math.max(0, Number(availableXP) || 0) * (Arquimago.MONTHLY_GOAL_FRACTION || 0.6));
     };
 
+    Arquimago.refreshMissionAvailability = function (state) {
+        state = state || Arquimago.state;
+        if (!state) return;
+
+        var availableXP = Arquimago.getTotalAvailableMissionXP(state);
+        var monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP(state, state.monthlyKey);
+        state.dailyAvailableXP = availableXP;
+        state.monthlyAvailableXP = monthlyAvailableXP;
+        state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(monthlyAvailableXP);
+        return state;
+    };
+
     Arquimago.getMonthlyProgress = function (state) {
         state = state || Arquimago.state;
         var currentAvailable = Arquimago.getMonthlyAvailableMissionXP(state, state && state.monthlyKey);
-        var available = Math.max(0, Number(state && state.monthlyAvailableXP) || 0);
-        if (currentAvailable > available) {
-            state.monthlyAvailableXP = currentAvailable;
-            state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(currentAvailable);
-            available = currentAvailable;
-        }
-        var goal = Math.max(0, Number(state && state.monthlyGoalXP) || Arquimago.getMonthlyGoalXP(available));
+        var available = Math.max(0, Number(currentAvailable) || 0);
+        var goal = Arquimago.getMonthlyGoalXP(available);
+        if (state) Arquimago.refreshMissionAvailability(state);
         var earned = Math.max(0, Number(state && state.monthlyXP) || 0);
         var percent = available > 0 ? Math.min(100, Math.round((earned / available) * 100)) : 0;
         return {
@@ -474,11 +487,12 @@
             return { changed: true, changes: [] };
         }
         if (state.monthlyKey === month) {
-            if (!state.monthlyAvailableXP) {
-                state.monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP(state, month);
-                state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(state.monthlyAvailableXP);
-            }
-            return { changed: false, changes: [] };
+            var available = Arquimago.getMonthlyAvailableMissionXP(state, month);
+            var goal = Arquimago.getMonthlyGoalXP(available);
+            var changed = state.monthlyAvailableXP !== available || state.monthlyGoalXP !== goal;
+            state.monthlyAvailableXP = available;
+            state.monthlyGoalXP = goal;
+            return { changed: changed, changes: [] };
         }
         if (monthSerial(state.monthlyKey) > monthSerial(month)) {
             Arquimago.startMonthlyCycle(state, month);

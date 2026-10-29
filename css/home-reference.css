@@ -55,15 +55,21 @@
 #game[data-screen="home"] .home-edit-bar {
     position: relative;
     z-index: 20;
-    height: 0;
-    min-height: 0;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 4px 6px;
     overflow: visible;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
 }
 
 #game[data-screen="home"] .home-edit-trigger {
-    position: absolute;
-    top: 4px;
-    right: 0;
+    position: static;
+    margin: 0;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
     opacity: 0.72;
 }
 
@@ -409,6 +415,10 @@
     height: calc(100% - 33px);
     object-fit: cover;
     object-position: center;
+    opacity: 0.88;
+    mix-blend-mode: screen;
+    -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
+    mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
     pointer-events: none;
 }
 
@@ -618,13 +628,17 @@
 
 #game[data-screen="home"] .home-monthly-card__art {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 8px;
+    right: 3%;
     z-index: 0;
-    width: 27%;
-    height: 100%;
+    width: 32%;
+    height: calc(100% - 16px);
     object-fit: contain;
     object-position: right center;
+    opacity: 0.72;
+    mix-blend-mode: screen;
+    -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 20%, rgba(0, 0, 0, 0.82) 46%, transparent 82%);
+    mask-image: radial-gradient(ellipse at 58% 50%, #000 20%, rgba(0, 0, 0, 0.82) 46%, transparent 82%);
     pointer-events: none;
 }
 
@@ -700,7 +714,7 @@
     position: relative;
     display: block;
     width: 100%;
-    aspect-ratio: 1100 / 180;
+    aspect-ratio: 1170 / 195;
     margin: 10px 0 8px;
     overflow: visible;
     border: 0;
@@ -713,15 +727,14 @@
 }
 
 #game[data-screen="home"] .home-monthly-card__bar > .xp-fill {
-    left: 5%;
-    top: 31%;
+    left: 6%;
+    top: 29%;
     z-index: 3;
-    height: 38%;
-    max-width: 90%;
-    background-image: none;
-    background-color: #bd862f;
-    border-radius: 0;
-    box-shadow: none;
+    height: 42%;
+    max-width: 88%;
+    background: linear-gradient(90deg, #8c5b1f 0%, #d7a744 66%, #ffe9a0 100%);
+    border-radius: 999px;
+    box-shadow: 0 0 10px rgba(238, 190, 83, 0.62);
 }
 
 #game[data-screen="home"] .home-monthly-card__caption {

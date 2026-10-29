@@ -330,6 +330,7 @@
 
         mission.desc = mission.objective || mission.name;
         customs.unshift(mission);
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
         return mission;
     };
@@ -361,6 +362,7 @@
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
         }
 
+        if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
         Arquimago.saveState(state);
         if (!options || options.skipRefresh !== true) {
             if (Arquimago.refreshAll) Arquimago.refreshAll(false);
@@ -703,7 +705,7 @@
         if (missionSettingsOpen) {
             html += '<div class="missions-settings__menu" id="missions-settings-menu" role="menu">';
             html += '<button type="button" role="menuitem" id="clearCompletedMissions"' + (canClear ? "" : " disabled") + '>Desmarcar todas as concluídas</button>';
-            html += '<button type="button" role="menuitem" id="resetProgressButton">Restaurar XP e nível inicial</button>';
+            html += '<button type="button" role="menuitem" id="resetProgressButton">Zerar XP e retornar ao início</button>';
             html += '<span class="missions-settings__separator" aria-hidden="true"></span>';
             html += '<button type="button" role="menuitem" data-start-mission-management="hide">Ocultar missões</button>';
             html += '<button type="button" role="menuitem" data-start-mission-management="edit">Editar missões</button>';
@@ -897,13 +899,43 @@
     }
 
     function resetProgress(state) {
-        state.level = Arquimago.DEFAULT_STATE.level;
-        state.xp = Arquimago.DEFAULT_STATE.xp;
-        state.totalXP = Arquimago.DEFAULT_STATE.totalXP;
-        state.chapter = Arquimago.DEFAULT_STATE.chapter;
-        state.title = Arquimago.DEFAULT_STATE.title;
+        var defaults = Arquimago.DEFAULT_STATE;
+
+        state.completedIds = [];
+        state.dailyDone = [];
+        state.weeklyDone = [];
+        state.habitsDone = [];
+        state.dailyCompletedMissionIds = [];
+        state.level = defaults.level;
+        state.xp = defaults.xp;
+        state.totalXP = defaults.totalXP;
+        state.classIndex = defaults.classIndex;
+        state.chapter = defaults.chapter;
+        state.title = defaults.title;
+        state.missionsCompleted = 0;
+        state.streak = defaults.streak;
+        state.lastActiveDate = defaults.lastActiveDate;
         state.missionsCompletedForLevel = 0;
         state.xpCompletedForLevel = 0;
+
+        state.dailyXP = 0;
+        state.monthlyXP = 0;
+        state.missionCompletionCounts = {};
+        state.pendingClassChanges = [];
+        state.unlockedSpells = (defaults.unlockedSpells || []).slice();
+
+        state.attributes = {};
+        Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS || defaults.attributes || {}).forEach(function (key) {
+            state.attributes[key] = { level: 1, progress: 0, total: 0 };
+        });
+
+        state.bossDamageEvents = [];
+        state.weeklyBoss = state.weeklyDate && Arquimago.createWeeklyBoss ? Arquimago.createWeeklyBoss(state.weeklyDate) : null;
+
+        var availableXP = Arquimago.getTotalAvailableMissionXP ? Arquimago.getTotalAvailableMissionXP(state) : 0;
+        state.dailyAvailableXP = availableXP;
+        state.monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP ? Arquimago.getMonthlyAvailableMissionXP(state, state.monthlyKey) : availableXP;
+        state.monthlyGoalXP = Arquimago.getMonthlyGoalXP ? Arquimago.getMonthlyGoalXP(state.monthlyAvailableXP) : 0;
         Arquimago.saveState(state);
     }
 
@@ -914,7 +946,7 @@
             '<div class="modal-panel missions-confirm-panel">' +
             '<button type="button" class="modal-close-button" data-close-confirm aria-label="Fechar"><img src="assets/ui/icons/icon-close.png" alt=""></button>' +
             '<h3>Restaurar progresso</h3>' +
-            '<p>Restaurar XP, nível, capítulo e título para o início?</p>' +
+            '<p>Desmarcar as missões e restaurar XP, nível e indicadores para o início?</p>' +
             '<div class="missions-confirm-actions">' +
             '<button type="button" class="btn-primary compact" data-confirm-reset>Confirmar</button>' +
             '<button type="button" class="btn-secondary compact" data-close-confirm>Cancelar</button>' +
@@ -1358,7 +1390,8 @@
                 formCache.objective = "";
                 formCache.icon = "🎯";
                 formCache.attribute = "vitality";
-                Arquimago.renderMissions();
+                if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+                else Arquimago.renderMissions();
             });
         }
 

@@ -119,10 +119,8 @@
             state.habitsDone = [];
             state.weeklyDone = [];
             state.completedIds = [];
-            if (Arquimago.getTotalAvailableMissionXP) {
-                state.dailyAvailableXP = Arquimago.getTotalAvailableMissionXP(state);
-            }
-        } else if (!state.dailyAvailableXP && Arquimago.getTotalAvailableMissionXP) {
+        }
+        if (Arquimago.getTotalAvailableMissionXP) {
             state.dailyAvailableXP = Arquimago.getTotalAvailableMissionXP(state);
         }
 
