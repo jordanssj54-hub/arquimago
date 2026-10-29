@@ -56,6 +56,22 @@
         var drawerToggle = document.getElementById("navDrawerToggle");
         var mobileToggle = document.getElementById("mobileNavToggle");
         var scrim = document.getElementById("navScrim");
+        var mainContent = game ? game.querySelector(".main-content") : null;
+        var topbar = game ? game.querySelector(".topbar") : null;
+
+        function syncTopbarScrollState() {
+            if (!topbar) return;
+            var pageScroll = Math.max(
+                global.pageYOffset || 0,
+                document.documentElement.scrollTop || 0,
+                document.body.scrollTop || 0
+            );
+            var contentScroll = mainContent ? mainContent.scrollTop : 0;
+            topbar.classList.toggle("is-scrolled", pageScroll > 2 || contentScroll > 2);
+        }
+
+        if (mainContent) mainContent.addEventListener("scroll", syncTopbarScrollState, { passive: true });
+        global.addEventListener("scroll", syncTopbarScrollState, { passive: true });
 
         function setCollapsed(collapsed, persist) {
             if (!game || !drawer) return;
@@ -83,6 +99,7 @@
 
         function openScreen(id) {
             if (game) game.setAttribute("data-screen", id);
+            syncTopbarScrollState();
             screens.forEach(function (s) {
                 s.classList.remove("active", "entering");
                 if (s.id === id) {
@@ -180,6 +197,7 @@
         });
 
         setCollapsed(!!(Arquimago.state && Arquimago.state.navCollapsed), false);
+        syncTopbarScrollState();
         var activeTab = document.querySelector(".tab.active");
         if (activeTab) {
             if (game) game.setAttribute("data-screen", activeTab.dataset.screen);

@@ -217,12 +217,7 @@
 }
 
 #game[data-screen="home"] .home-journey-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(90deg, rgba(5, 6, 9, 0.78) 0%, rgba(5, 6, 9, 0.34) 52%, rgba(5, 6, 9, 0.62) 100%);
-    pointer-events: none;
+    content: none;
 }
 
 #game[data-screen="home"] .home-journey-card:hover,
@@ -418,19 +413,35 @@
 #game[data-screen="home"] .home-journey-card__art {
     position: absolute;
     z-index: 0;
-    top: 16px;
-    right: 18px;
-    width: 46%;
-    max-width: 520px;
-    height: calc(100% - 33px);
-    object-fit: cover;
+    top: 50%;
+    right: 2%;
+    width: auto;
+    height: clamp(150px, 18vw, 248px);
+    max-width: 55%;
+    object-fit: contain;
     object-position: center;
     display: block;
-    opacity: 0.56;
+    opacity: 0.52;
+    transform: translateY(-50%);
     mix-blend-mode: screen;
-    -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
-    mask-image: radial-gradient(ellipse at 58% 50%, #000 28%, rgba(0, 0, 0, 0.94) 47%, transparent 84%);
+    -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 42%, rgba(0, 0, 0, 0.9) 66%, transparent 100%);
+    mask-image: radial-gradient(ellipse at 58% 50%, #000 42%, rgba(0, 0, 0, 0.9) 66%, transparent 100%);
     pointer-events: none;
+}
+
+#game[data-screen="home"] .home-journey-card:has(.home-missions-details[open]) .home-journey-card__content {
+    width: 100%;
+}
+
+#game[data-screen="home"] .home-journey-card:has(.home-missions-details[open]) .home-journey-card__art {
+    opacity: 0.12;
+}
+
+#game[data-screen="home"] .home-journey-card:has(.home-missions-details[open]) .home-mission-copy strong,
+#game[data-screen="home"] .home-journey-card:has(.home-missions-details[open]) .home-mission-copy small {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
 }
 
 #game[data-screen="home"] .home-journey-card h2,
@@ -494,7 +505,8 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: fill;
+    object-fit: contain;
+    object-position: center;
 }
 
 #game[data-screen="home"] .home-missions-details {
@@ -639,17 +651,19 @@
 
 #game[data-screen="home"] .home-monthly-card__art {
     position: absolute;
-    top: 8px;
+    top: 50%;
     right: 3%;
     z-index: 0;
-    width: 32%;
-    height: calc(100% - 16px);
+    width: clamp(200px, 30vw, 300px);
+    max-width: 38%;
+    height: auto;
     object-fit: contain;
-    object-position: right center;
-    opacity: 0.72;
+    object-position: center;
+    opacity: 0.2;
+    transform: translateY(-50%);
     mix-blend-mode: screen;
-    -webkit-mask-image: radial-gradient(ellipse at 58% 50%, #000 20%, rgba(0, 0, 0, 0.82) 46%, transparent 82%);
-    mask-image: radial-gradient(ellipse at 58% 50%, #000 20%, rgba(0, 0, 0, 0.82) 46%, transparent 82%);
+    -webkit-mask-image: radial-gradient(circle at center, #000 52%, rgba(0, 0, 0, 0.82) 76%, transparent 100%);
+    mask-image: radial-gradient(circle at center, #000 52%, rgba(0, 0, 0, 0.82) 76%, transparent 100%);
     pointer-events: none;
 }
 
@@ -725,6 +739,7 @@
     position: relative;
     display: block;
     width: 100%;
+    height: auto;
     aspect-ratio: 1170 / 195;
     margin: 10px 0 8px;
     overflow: visible;
@@ -735,6 +750,7 @@
 
 #game[data-screen="home"] .home-monthly-card__bar > .xp-frame {
     z-index: 2;
+    object-fit: contain;
 }
 
 #game[data-screen="home"] .home-monthly-card__bar > .xp-fill {
@@ -1082,13 +1098,14 @@
     }
 
     #game[data-screen="home"] .home-journey-card__art {
-        top: 16px;
-        right: 18px;
-        width: 44%;
-        max-width: 44%;
-        height: calc(100% - 33px);
+        top: 50%;
+        right: 2%;
+        width: auto;
+        height: clamp(128px, 40vw, 180px);
+        max-width: 58%;
         object-position: center;
-        opacity: 0.46;
+        opacity: 0.38;
+        transform: translateY(-50%);
     }
 
     #game[data-screen="home"] .home-journey-card__stats {
@@ -1160,8 +1177,10 @@
     }
 
     #game[data-screen="home"] .home-monthly-card__art {
-        width: 32%;
-        opacity: 0.8;
+        right: 0;
+        width: clamp(168px, 44vw, 220px);
+        max-width: 62%;
+        opacity: 0.18;
     }
 
     #game[data-screen="home"] .home-monthly-card__head strong {
