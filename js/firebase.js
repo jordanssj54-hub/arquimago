@@ -6,6 +6,7 @@
     var db = null;
     var storage = null;
     var currentUser = null;
+    var authSessionGeneration = 0;
     var cloudWriteTimer = null;
     var cloudReadRetryTimer = null;
     var cloudWriteRetryCount = 0;
@@ -509,43 +510,60 @@
             return Promise.resolve({ configured: false, user: null, error: error });
         }
 
-        var persistence = auth.setPersistence ? auth.setPersistence(global.firebase.auth.Auth.Persistence.LOCAL) : Promise.resolve();
-        var firestorePersistence = db.enablePersistence ? Promise.resolve().then(function () {
-            return db.enablePersistence({ synchronizeTabs: true });
-        }).catch(function (error) {
-            console.warn("Nao foi possivel ativar o cache persistente do Firestore", error);
-        }) : Promise.resolve();
-        return Promise.resolve(persistence).catch(function (error) {
-            console.warn("Nao foi possivel ativar a persistencia local do Firebase", error);
-        }).then(function () {
-            return firestorePersistence;
-        }).then(function () {
-            return new Promise(function (resolve) {
-                var firstChange = true;
-                auth.onAuthStateChanged(function (user) {
-                    var previousUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
-                    currentUser = user || null;
-                    Arquimago.firebaseUser = currentUser;
-                    var nextUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
-                    if (previousUid !== nextUid) {
-                        cloudSyncReady = false;
-                        pendingCloudState = null;
-                        if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
-                        cloudWriteTimer = null;
-                        if (cloudReadRetryTimer) clearTimeout(cloudReadRetryTimer);
-                        cloudReadRetryTimer = null;
-                    }
-                    if (!currentUser) {
-                        activeProfile = null;
-                    }
-                    if (firstChange) {
-                        firstChange = false;
-                        resolve({ configured: true, user: currentUser });
-                        return;
-                    }
-                    if (Arquimago.onFirebaseUserChanged) Arquimago.onFirebaseUserChanged(currentUser);
-                });
+        if (auth.setPersistence) {
+            Promise.resolve().then(function () {
+                return auth.setPersistence(global.firebase.auth.Auth.Persistence.LOCAL);
+            }).catch(function (error) {
+                console.warn("Nao foi possivel ativar a persistencia local do Firebase", error);
             });
+        }
+        if (db.enablePersistence) {
+            Promise.resolve().then(function () {
+                return db.enablePersistence({ synchronizeTabs: true });
+            }).catch(function (error) {
+                console.warn("Nao foi possivel ativar o cache persistente do Firestore", error);
+            });
+        }
+
+        return new Promise(function (resolve) {
+            var firstChange = true;
+            function handleAuthState(user) {
+                var previousUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
+                currentUser = user || null;
+                Arquimago.firebaseUser = currentUser;
+                var nextUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
+                if (previousUid !== nextUid) {
+                    authSessionGeneration++;
+                    cloudSyncReady = false;
+                    pendingCloudState = null;
+                    if (cloudWriteTimer) clearTimeout(cloudWriteTimer);
+                    cloudWriteTimer = null;
+                    if (cloudReadRetryTimer) clearTimeout(cloudReadRetryTimer);
+                    cloudReadRetryTimer = null;
+                }
+                if (!currentUser) activeProfile = null;
+                if (firstChange) {
+                    firstChange = false;
+                    resolve({ configured: true, user: currentUser });
+                    return;
+                }
+                if (Arquimago.onFirebaseUserChanged) Arquimago.onFirebaseUserChanged(currentUser);
+            }
+
+            auth.onAuthStateChanged(handleAuthState, function (error) {
+                console.warn("Falha ao restaurar a sessao do Firebase", error);
+                if (firstChange) handleAuthState(auth.currentUser || null);
+            });
+            if (auth.getRedirectResult) {
+                Promise.resolve().then(function () { return auth.getRedirectResult(); }).then(function (result) {
+                    if (result && result.user && (!currentUser || String(currentUser.uid) !== String(result.user.uid))) {
+                        handleAuthState(result.user);
+                    }
+                }).catch(function (error) {
+                    console.error("Falha ao concluir o login Google por redirecionamento", error);
+                    if (Arquimago.showAuthGate) Arquimago.showAuthGate(authErrorMessage(error), "signin");
+                });
+            }
         }).then(function (result) {
             if (global.addEventListener) {
                 global.addEventListener("online", function () {
@@ -559,9 +577,21 @@
         });
     };
 
+    function isIOSBrowser() {
+        var nav = global.navigator;
+        if (!nav) return false;
+        var userAgent = String(nav.userAgent || "");
+        return /iPad|iPhone|iPod/i.test(userAgent) ||
+            (nav.platform === "MacIntel" && Number(nav.maxTouchPoints) > 1);
+    }
+
     Arquimago.signInWithGoogle = function () {
         if (!auth) return Promise.reject(new Error("Firebase nao configurado."));
         var provider = new global.firebase.auth.GoogleAuthProvider();
+        if (isIOSBrowser() && auth.signInWithRedirect) {
+            if (provider.setCustomParameters) provider.setCustomParameters({ prompt: "select_account" });
+            return auth.signInWithRedirect(provider);
+        }
         return auth.signInWithPopup(provider);
     };
 
@@ -835,6 +865,7 @@
 
         var uid = String(user.uid);
         currentUser = user;
+        var sessionGeneration = authSessionGeneration;
         Arquimago.firebaseUser = user;
         var scoped = Arquimago.readStoredState(uid);
         var migrationUid = "";
@@ -848,8 +879,14 @@
 
         var tokenReady = typeof user.getIdToken === "function" ? user.getIdToken() : Promise.resolve();
         return Promise.resolve(tokenReady).then(function () {
+            if (!currentUser || String(currentUser.uid) !== uid || authSessionGeneration !== sessionGeneration) {
+                throw { code: "auth/user-changed", message: "A conta ativa mudou antes de carregar o save." };
+            }
             return db.collection(CLOUD_COLLECTION).doc(uid).get();
         }).then(function (snapshot) {
+            if (!currentUser || String(currentUser.uid) !== uid || authSessionGeneration !== sessionGeneration) {
+                throw { code: "auth/user-changed", message: "A conta ativa mudou durante o carregamento do save." };
+            }
             cloudReadSucceeded = true;
             cloudSyncReady = true;
             cloudReadRetryCount = 0;
@@ -879,6 +916,7 @@
                 return state;
             });
         }).catch(function (error) {
+            if (error && error.code === "auth/user-changed") throw error;
             if (isAuthSessionError(error)) {
                 cloudSyncReady = false;
                 Arquimago.setStorageUser("");
@@ -1046,6 +1084,40 @@
     Arquimago.getFirebaseErrorMessage = authErrorMessage;
     Arquimago.getFirebaseSyncErrorMessage = syncErrorMessage;
 
+    function flushBeforeSignOut() {
+        var flush;
+        try {
+            flush = Arquimago.flushCloudState ? Arquimago.flushCloudState() : Promise.resolve();
+        } catch (error) {
+            console.warn("Nao foi possivel aguardar a sincronizacao antes de sair", error);
+            return Promise.resolve();
+        }
+
+        var timeoutId;
+        var deadline = new Promise(function (resolve) {
+            timeoutId = setTimeout(resolve, 2500);
+        });
+        var saveAttempt = Promise.resolve(flush).catch(function (error) {
+            console.warn("O save local foi preservado; a sincronizacao continuara depois", error);
+        });
+        return Promise.race([saveAttempt, deadline]).then(function (result) {
+            clearTimeout(timeoutId);
+            return result;
+        });
+    }
+
+    function signOutFromControl(button) {
+        if (button) button.disabled = true;
+        flushBeforeSignOut().then(function () {
+            return Arquimago.signOutFirebase();
+        }).then(function () {
+            if (button) button.disabled = false;
+        }).catch(function (error) {
+            if (button) button.disabled = false;
+            if (Arquimago.showNotification) Arquimago.showNotification(authErrorMessage(error), "boss");
+        });
+    }
+
     function refreshAuthControls() {
         var card = document.getElementById("authAccountCard");
         var name = document.getElementById("authAccountName");
@@ -1066,6 +1138,7 @@
         var card = document.getElementById("authAccountCard");
         var button = document.getElementById("authSignOutButton");
         var drawerLogout = document.getElementById("drawerLogoutButton");
+        var settingsExit = document.getElementById("settingsReferenceExitButton");
         if (!card || !button) return;
         refreshAuthControls();
         if (button.dataset.bound !== "true") {
@@ -1073,12 +1146,7 @@
             button.addEventListener("click", function () {
                 button.disabled = true;
                 if (currentUser) {
-                    Arquimago.flushCloudState().then(function () {
-                        return Arquimago.signOutFirebase();
-                    }).catch(function (error) {
-                        button.disabled = false;
-                        if (Arquimago.showNotification) Arquimago.showNotification(syncErrorMessage(error), "boss");
-                    });
+                    signOutFromControl(button);
                     return;
                 }
                 Arquimago.signInWithGoogle().then(function (result) {
@@ -1095,18 +1163,24 @@
         if (drawerLogout && drawerLogout.dataset.bound !== "true") {
             drawerLogout.dataset.bound = "true";
             drawerLogout.addEventListener("click", function () {
-                drawerLogout.disabled = true;
                 if (!currentUser) {
-                    drawerLogout.disabled = false;
                     if (Arquimago.showNotification) Arquimago.showNotification("Nenhuma conta conectada nesta jornada.", "boss");
                     return;
                 }
-                Arquimago.flushCloudState().then(function () {
-                    return Arquimago.signOutFirebase();
-                }).catch(function (error) {
-                    drawerLogout.disabled = false;
-                    if (Arquimago.showNotification) Arquimago.showNotification(syncErrorMessage(error), "boss");
-                });
+                signOutFromControl(drawerLogout);
+            });
+        }
+
+        if (settingsExit && settingsExit.dataset.bound !== "true") {
+            settingsExit.dataset.bound = "true";
+            settingsExit.addEventListener("click", function () {
+                if (currentUser) {
+                    signOutFromControl(settingsExit);
+                    return;
+                }
+                var modal = document.getElementById("settings-modal");
+                if (modal) modal.hidden = true;
+                document.body.classList.remove("settings-reference-open");
             });
         }
     };

@@ -7,6 +7,8 @@
     var dateSyncEventsBound = false;
     var appStarted = false;
     var authConnecting = false;
+    var authConnectingUid = "";
+    var authConnectionGeneration = 0;
     var offlineMode = false;
     var initialLocalState = null;
 
@@ -22,12 +24,31 @@
     }
 
     function connectAuthenticatedUser(user) {
-        if (!user || authConnecting || (appStarted && !offlineMode)) return;
+        if (!user || (appStarted && !offlineMode)) return;
+        var uid = String(user.uid || "");
+        if (!uid || (authConnecting && authConnectingUid === uid)) return;
+
+        var connectionGeneration = ++authConnectionGeneration;
         authConnecting = true;
+        authConnectingUid = uid;
         if (Arquimago.setAuthGateStatus) Arquimago.setAuthGateStatus("Carregando sua jornada...");
+
+        var scopedLocal = Arquimago.readStoredState ? Arquimago.readStoredState(uid) : null;
+        if (scopedLocal && scopedLocal.exists) {
+            Arquimago.setStorageUser(uid);
+            Arquimago.state = scopedLocal.state;
+            if (appStarted) {
+                Arquimago.applyAppearance();
+                if (Arquimago.applyNavigationConfig) Arquimago.applyNavigationConfig();
+                Arquimago.refreshAll(false);
+            }
+        }
+
         var localState = offlineMode ? Arquimago.state : initialLocalState;
         Arquimago.connectFirebaseUser(user, localState).then(function (state) {
+            if (connectionGeneration !== authConnectionGeneration) return;
             authConnecting = false;
+            authConnectingUid = "";
             offlineMode = false;
             initialLocalState = null;
             Arquimago.state = state;
@@ -39,7 +60,9 @@
                 startApplication();
             }
         }).catch(function (error) {
+            if (connectionGeneration !== authConnectionGeneration) return;
             authConnecting = false;
+            authConnectingUid = "";
             Arquimago.setStorageUser("");
             var syncMessage = Arquimago.getFirebaseSyncErrorMessage ? Arquimago.getFirebaseSyncErrorMessage(error) : "Nao foi possivel sincronizar sua jornada.";
             if (!appStarted) {
@@ -57,6 +80,9 @@
     }
 
     function stopApplicationForLogout() {
+        authConnectionGeneration++;
+        authConnecting = false;
+        authConnectingUid = "";
         appStarted = false;
         if (playTimer) clearInterval(playTimer);
         if (dateSyncTimer) clearInterval(dateSyncTimer);
@@ -81,10 +107,16 @@
         if (Arquimago.refreshAuthControls) Arquimago.refreshAuthControls();
         if (user) {
             connectAuthenticatedUser(user);
-        } else if (appStarted) {
-            stopApplicationForLogout();
-        } else if (Arquimago.showAuthGate) {
-            Arquimago.showAuthGate();
+        } else {
+            authConnectionGeneration++;
+            authConnecting = false;
+            authConnectingUid = "";
+            if (appStarted) {
+                stopApplicationForLogout();
+            } else {
+                Arquimago.setStorageUser("");
+                if (Arquimago.showAuthGate) Arquimago.showAuthGate();
+            }
         }
     };
 
