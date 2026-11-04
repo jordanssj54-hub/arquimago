@@ -763,212 +763,15 @@
     white-space: nowrap;
 }
 
-/* Reference navigation on tablet and mobile. */
+/* Keep the Home content aligned with the shared navigation on tablet and mobile. */
 @media (max-width: 1100px) {
-    #game[data-screen="home"][data-nav-position] {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        min-height: 100vh;
-        overflow: hidden;
-    }
-
-    #game[data-screen="home"][data-nav-position] .main-frame {
-        width: 100%;
-        min-height: 0;
-        flex: 1 1 auto;
-        grid-area: auto;
-        overflow: hidden;
-    }
-
     #game[data-screen="home"] .main-content {
         padding-left: clamp(10px, 3vw, 30px);
         padding-right: clamp(10px, 3vw, 30px);
     }
 }
 
-@media (max-width: 1100px) {
-    #game[data-screen="home"][data-nav-position] .main-tabs {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: auto;
-        z-index: 400;
-        width: 100%;
-        height: clamp(88px, 10.55vw, 108px);
-        min-height: clamp(88px, 10.55vw, 108px);
-        padding: 8px 3%;
-        display: flex;
-        flex-direction: row;
-        align-items: stretch;
-        gap: 0;
-        overflow: hidden;
-        border-top: 0;
-        border-right: 0;
-        background-color: #050609 !important;
-        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg");
-        background-size: cover;
-        box-shadow: none;
-        transform: none;
-    }
-
-    #game[data-screen="home"][data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] {
-        background-image: url("../assets/ui/home-reference/bottom-nav.png");
-        background-size: 100% 100%;
-    }
-
-    #game[data-screen="home"][data-nav-position] .drawer-header,
-    #game[data-screen="home"][data-nav-position] .drawer-rule,
-    #game[data-screen="home"][data-nav-position] .drawer-footer {
-        display: none;
-    }
-
-    #game[data-screen="home"][data-nav-position] .tab {
-        height: 80px;
-        min-height: 80px;
-        flex: 1 1 0;
-        justify-content: center;
-        gap: 4px;
-        padding: 5px 4px;
-        flex-direction: column;
-        border: 0;
-        border-radius: 0;
-        background: transparent !important;
-        color: #777474;
-        display: flex;
-    }
-
-    #game[data-screen="home"][data-nav-position] .tab-icon {
-        position: relative;
-        top: auto;
-        left: auto;
-        width: 50px !important;
-        height: 55px !important;
-        flex: 0 0 55px;
-        object-fit: contain;
-    }
-
-    #game[data-screen="home"][data-nav-position] .tab-txt {
-        display: none !important;
-    }
-
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab-icon,
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab-label {
-        visibility: hidden;
-    }
-
-    #game[data-screen="home"][data-nav-position] .tab-label {
-        max-width: 130px;
-        flex: 0 0 auto;
-        opacity: 1;
-        transform: none;
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-    }
-
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order="home,missions,boss,financas,profile"] .tab.active {
-        color: transparent;
-        border: 0;
-        background-color: transparent !important;
-        box-shadow: none;
-        filter: none;
-    }
-
-    #game[data-screen="home"][data-nav-position] .main-tabs:not([data-home-order="home,missions,boss,financas,profile"]) .tab-icon,
-    #game[data-screen="home"][data-nav-position] .main-tabs:not([data-home-order="home,missions,boss,financas,profile"]) .tab-label {
-        visibility: visible;
-    }
-
-    #game[data-screen="home"][data-nav-position] .main-tabs:not([data-home-order="home,missions,boss,financas,profile"]) .tab.active {
-        color: var(--gold-light);
-        background-color: rgba(201, 168, 76, 0.08) !important;
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .main-tabs {
-        top: 0;
-        right: auto;
-        bottom: 0;
-        left: 0;
-        width: min(86vw, 312px);
-        height: 100vh;
-        min-height: 100vh;
-        padding: 16px 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 4px;
-        overflow-x: hidden;
-        overflow-y: auto;
-        background-color: #050609 !important;
-        background-image: url("../assets/ui/tabs/reference/planodefundo.jpg") !important;
-        background-size: cover;
-        transform: translateX(0);
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-header,
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-rule,
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-footer {
-        display: flex;
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-rule {
-        display: block;
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .tab,
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-settings {
-        height: 54px;
-        min-height: 54px;
-        flex: 0 0 54px;
-        flex-direction: row;
-        justify-content: flex-start;
-        gap: 12px;
-        padding: 0 13px;
-        border: 1px solid transparent;
-        border-radius: 12px;
-        background: transparent !important;
-        color: var(--text-muted);
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .tab-icon,
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .tab-fallback-icon,
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-settings > img {
-        width: 28px !important;
-        height: 28px !important;
-        flex: 0 0 28px;
-        position: relative;
-        top: auto;
-        left: auto;
-        visibility: visible;
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .tab-label,
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .drawer-settings .tab-label {
-        max-width: 190px;
-        flex: 1 1 auto;
-        opacity: 1;
-        transform: none;
-        font-size: 0.84rem;
-        letter-spacing: 0.02em;
-        text-transform: none;
-        visibility: visible;
-    }
-
-    #game[data-screen="home"].nav-mobile-open[data-nav-position] .tab.active {
-        color: var(--gold-light);
-        border-color: var(--border-gold);
-        background-color: rgba(201, 168, 76, 0.1) !important;
-        box-shadow: inset 3px 0 var(--gold);
-    }
-}
-
 @media (max-width: 768px) {
-    #game[data-screen="home"][data-nav-position] .main-tabs {
-        padding: 4px 1%;
-    }
-
     #game[data-screen="home"] .topbar {
         min-height: 111px;
         padding: 18px 66px 8px;
@@ -1886,38 +1689,6 @@
     width: 0 !important;
 }
 
-@media (max-width: 1100px) {
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs {
-        height: clamp(118px, 16.6vw, 180px);
-        min-height: clamp(118px, 16.6vw, 180px);
-        padding: 8px 3% max(8px, env(safe-area-inset-bottom));
-        border-top: 1px solid rgba(190, 180, 165, 0.28);
-        border-radius: 30px 30px 0 0;
-        background: #090a0c !important;
-        background-image: none !important;
-        box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.28);
-    }
-
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .tab {
-        height: 100%;
-        min-height: 0;
-    }
-
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order] .tab-icon,
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order] .tab-label {
-        visibility: visible !important;
-    }
-
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order] .tab-label {
-        color: #9c9997 !important;
-        text-transform: none;
-    }
-
-    #game[data-screen="home"]:not(.nav-mobile-open)[data-nav-position] .main-tabs[data-home-order] .tab.active {
-        color: #f0c45e !important;
-    }
-}
-
 #game[data-screen="home"] .home-missions-open {
     width: min(100%, 1200px);
     margin: 0 auto;
@@ -2150,14 +1921,6 @@
         font-size: 1.18rem;
     }
 
-    #game[data-screen="home"] .main-tabs[data-home-order] .tab-icon,
-    #game[data-screen="home"] .main-tabs[data-home-order] .tab-label {
-        visibility: visible !important;
-    }
-
-    #game[data-screen="home"] .main-tabs[data-home-order] .tab.active {
-        color: #f0c45e !important;
-    }
 }
 
 @media (max-width: 640px) {
@@ -2216,26 +1979,4 @@
         font-size: 1.75rem;
     }
 
-    #game[data-screen="home"] .main-tabs {
-        height: 118px;
-        min-height: 118px;
-    }
-
-    #game[data-screen="home"] .tab {
-        height: 100%;
-        min-height: 0;
-        gap: 0;
-    }
-
-    #game[data-screen="home"] .tab-icon {
-        width: 45px !important;
-        height: 48px !important;
-        flex: 0 0 48px;
-    }
-
-    #game[data-screen="home"] .tab-label {
-        font-size: 0.66rem;
-        letter-spacing: 0.04em;
-        text-transform: none;
-    }
 }
