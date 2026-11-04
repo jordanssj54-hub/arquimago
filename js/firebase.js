@@ -715,14 +715,35 @@
         fin.guardado = guardado;
     }
 
+    function storedAttributeTotal(value) {
+        if (value && typeof value === "object") value = value.total;
+        return Math.max(0, Number(value) || 0);
+    }
+
+    function migratedAttributeTotal(attributes, key) {
+        attributes = attributes && typeof attributes === "object" ? attributes : {};
+        if (Object.prototype.hasOwnProperty.call(attributes, key)) return storedAttributeTotal(attributes[key]);
+        if (key === "physical") {
+            var strengthKey = Object.prototype.hasOwnProperty.call(attributes, "strength") ? "strength" : "discipline";
+            var vitalityKey = Object.prototype.hasOwnProperty.call(attributes, "vitality") ? "vitality" : "consistency";
+            return storedAttributeTotal(attributes[strengthKey]) + storedAttributeTotal(attributes[vitalityKey]);
+        }
+        if (key === "mental") {
+            var mentalKey = Object.prototype.hasOwnProperty.call(attributes, "intelligence") ? "intelligence" : "wisdom";
+            return storedAttributeTotal(attributes[mentalKey]);
+        }
+        if (key === "habits") return storedAttributeTotal(attributes.spirit);
+        return 0;
+    }
+
     function mergeState(localState, remoteState, preferRemote) {
         var defaults = Arquimago.DEFAULT_STATE || {};
         var local = clone(localState || {});
         var remote = clone(remoteState || {});
         var result = clone(remote);
-        var numericMax = ["level", "xp", "totalXP", "missionsCompleted", "missionsCompletedForLevel", "xpCompletedForLevel", "playTimeSeconds", "dailyXP", "dailyAvailableXP", "monthlyXP", "monthlyAvailableXP", "monthlyGoalXP", "daysUsingApp", "bestDailyRankPercent"];
+        var numericMax = ["level", "xp", "totalXP", "missionsCompleted", "playTimeSeconds", "dailyXP", "dailyAvailableXP", "monthlyXP", "monthlyAvailableXP", "monthlyGoalXP", "daysUsingApp"];
         var booleanUnion = ["introSeen", "soundEnabled"];
-        var arrayFields = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone", "deletedMissionIds", "unlockedSpells", "achievements", "bossDamageEvents", "bossTrophies", "pendingClassChanges"];
+        var arrayFields = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone", "deletedMissionIds", "unlockedSpells", "achievements", "bossDamageEvents", "bossTrophies"];
 
         Object.keys(defaults).forEach(function (key) {
             if (numericMax.indexOf(key) !== -1) {
@@ -748,15 +769,12 @@
                     result[key] = mergeMap(remote[key], local[key], false);
                 }
             } else if (key === "attributes") {
-                result[key] = mergeMap(remote[key], local[key], false);
+                result[key] = {};
                 Object.keys(defaults.attributes || {}).forEach(function (attribute) {
-                    var remoteAttribute = (remote.attributes || {})[attribute] || {};
-                    var localAttribute = (local.attributes || {})[attribute] || {};
-                    result[key][attribute] = {
-                        level: Math.max(Number(remoteAttribute.level) || 1, Number(localAttribute.level) || 1),
-                        progress: Math.max(Number(remoteAttribute.progress) || 0, Number(localAttribute.progress) || 0),
-                        total: Math.max(Number(remoteAttribute.total) || 0, Number(localAttribute.total) || 0)
-                    };
+                    result[key][attribute] = { total: Math.max(
+                        migratedAttributeTotal(remote.attributes, attribute),
+                        migratedAttributeTotal(local.attributes, attribute)
+                    ) };
                 });
             } else if (key === "financas") {
                 var remoteFinance = remote.financas || {};
@@ -808,7 +826,7 @@
             (state.navScale !== undefined && Number(state.navScale) !== Number(defaults.navScale)) ||
             (state.soundEnabled !== undefined && state.soundEnabled !== defaults.soundEnabled) ||
             Number(state.level) > 1 || Number(state.totalXP) > 0 ||
-            Number(state.xp) > 0 || Number(state.classIndex) > 0 || Number(state.streak) > 0 ||
+            Number(state.xp) > 0 || Number(state.streak) > 0 ||
             Number(state.chapter) > 1 || Number(state.missionsCompleted) > 0 ||
             Number(state.dailyXP) > 0 || Number(state.monthlyXP) > 0 ||
             (state.completedIds || []).length || (state.dailyCompletedMissionIds || []).length || (state.dailyDone || []).length ||

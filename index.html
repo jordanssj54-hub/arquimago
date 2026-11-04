@@ -17,12 +17,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;600;700&family=Alegreya+SC:wght@400;500;700&family=Caveat:wght@400;600;700&family=Chakra+Petch:wght@400;500;600;700&family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Cormorant:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=EB+Garamond:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&family=Great+Vibes:wght@400&family=IBM+Plex+Mono:wght@400;500;600&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC:wght@400&family=Inter:wght@300;400;500;600;700&family=Klee+One:wght@400;600&family=Lora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=MedievalSharp:wght@400&family=Noto+Sans+JP:wght@400;500;700&family=Old+Standard+TT:wght@400;700&family=Orbitron:wght@500;600;700;900&family=Oxanium:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono:wght@400&family=Shippori+Mincho:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Spectral:wght@400;500;600&family=UnifrakturMaguntia:wght@400&family=Yuji+Syuku:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/base.css?v=4">
 <link rel="stylesheet" href="css/templates.css">
 <link rel="stylesheet" href="css/intro.css?v=2">
-<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/home.css?v=4">
 <link rel="stylesheet" href="css/slideshow.css">
-<link rel="stylesheet" href="css/home-widgets.css?v=3">
+<link rel="stylesheet" href="css/home-widgets.css?v=4">
 <link rel="stylesheet" href="css/missions.css">
 <link rel="stylesheet" href="css/grimoire.css">
 <link rel="stylesheet" href="css/avatar.css">
@@ -30,16 +30,16 @@
 <link rel="stylesheet" href="css/progression.css">
 <link rel="stylesheet" href="css/overlays.css">
 <link rel="stylesheet" href="css/financas.css">
-<link rel="stylesheet" href="css/ui-frame.css?v=2">
+<link rel="stylesheet" href="css/ui-frame.css?v=3">
 <link rel="stylesheet" href="css/ui-effects.css">
-<link rel="stylesheet" href="css/template-2.css">
+<link rel="stylesheet" href="css/template-2.css?v=2">
 <link rel="stylesheet" href="css/boss.css">
-<link rel="stylesheet" href="css/home-reference.css?v=5">
-<link rel="stylesheet" href="css/missions-reference.css?v=4">
-<link rel="stylesheet" href="css/profile-reference.css?v=4">
+<link rel="stylesheet" href="css/missions-reference.css?v=5">
+<link rel="stylesheet" href="css/profile-reference.css?v=5">
 <link rel="stylesheet" href="css/config-reference.css?v=1">
 <link rel="stylesheet" href="css/auth.css">
-<link rel="stylesheet" href="css/navigation-drawer.css?v=8">
+<link rel="stylesheet" href="css/navigation-drawer.css?v=9">
+<link rel="stylesheet" href="css/home-reference.css?v=7">
 </head>
 <body class="theme-black">
 
@@ -75,7 +75,7 @@
 <img src="projeto/cardperfil.png" alt="Retrato do personagem" class="settings-reference-profile__portrait">
 <div class="settings-reference-profile__copy">
 <strong data-settings-player-name>Jordan</strong>
-<span>RANK <b id="settingsReferenceRank">D</b></span>
+<span>LEVEL <b id="settingsLevel">1</b></span>
 <button type="button" class="settings-reference-profile__button" data-open-profile>VER PERFIL <b aria-hidden="true">&rsaquo;</b></button>
 </div>
 </div>
@@ -219,9 +219,9 @@
 <img class="xp-frame" src="assets/frames/xp_frame.png" alt="">
 <div class="xp-text">0 / 0 XP</div>
 </div>
-<div class="top-rank-badge" data-rank="D" aria-label="Rank de hoje">
-<span>RANK</span>
-<strong id="topDailyRank">D</strong>
+<div class="top-level-badge" aria-label="Level atual">
+<span>LEVEL</span>
+<strong id="topLevel">1</strong>
 </div>
 <div class="top-crystals">
     <div class="top-crystal is-emerald" title="Saldo Disponível" aria-label="Saldo disponível">
@@ -235,6 +235,7 @@
 </div>
 <button id="settingsButton" class="icon-button" aria-label="Configurações">
 <img class="icon-button-icon" src="assets/ui/home-reference/settings-button.png" alt="" aria-hidden="true">
+<svg class="home-bell-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M12 20a12 12 0 0 1 24 0c0 14 5 14 5 17H7c0-3 5-3 5-17ZM19 42h10"></path></svg><span class="home-bell-dot" aria-hidden="true"></span>
 </button>
 </header>
 
@@ -258,17 +259,17 @@
 <div class="drawer-profile-card__portrait"><img src="projeto/cardperfil.png" alt="Retrato do personagem" data-drawer-avatar></div>
 <div class="drawer-profile-card__content">
 <strong class="drawer-profile-card__name" data-drawer-player-name>Arquimago</strong>
-<div class="drawer-profile-card__rank"><span>RANK</span><b data-drawer-rank>D</b></div>
+<div class="drawer-profile-card__level"><span>LEVEL</span><b data-drawer-level>1</b></div>
 <span class="drawer-profile-card__xp" data-drawer-xp>0 / 0 XP</span>
 <span class="drawer-profile-card__xp-track"><i data-drawer-xp-fill></i></span>
 </div>
 </section>
 
-<button class="tab active" data-screen="home" aria-label="Início" data-tooltip="Início" title="Início">
+<button class="tab active" data-screen="home" aria-label="Home" data-tooltip="Home" title="Home">
 <img class="tab-icon tab-icon--drawer" src="assets/ui/home-reference/drawer-icon-home.png" alt="" aria-hidden="true">
 <img class="tab-icon tab-icon--bottom" src="assets/ui/home-reference/tab-home-icon.png" alt="" aria-hidden="true">
 <img class="tab-txt" src="assets/ui/tabs/reference/text-home.png" alt="" aria-hidden="true">
-<span class="tab-label">Início</span>
+<span class="tab-label">Home</span>
 </button>
 <button class="tab" data-screen="missions" aria-label="Missões" data-tooltip="Missões" title="Missões">
 <img class="tab-icon tab-icon--drawer" src="assets/ui/home-reference/drawer-icon-missions.png" alt="" aria-hidden="true">
@@ -281,10 +282,10 @@
 <img class="tab-icon tab-icon--bottom" src="assets/ui/home-reference/tab-finance-icon.png" alt="" aria-hidden="true">
 <span class="tab-label">Finanças</span>
 </button>
-<button class="tab" data-screen="boss" aria-label="Boss" data-tooltip="Boss" title="Boss">
+<button class="tab" data-screen="boss" aria-label="Bosses" data-tooltip="Bosses" title="Bosses">
 <img class="tab-icon tab-icon--drawer" src="assets/ui/home-reference/drawer-icon-boss.png" alt="" aria-hidden="true">
 <img class="tab-icon tab-icon--bottom" src="assets/ui/home-reference/tab-boss-icon.png" alt="" aria-hidden="true">
-<span class="tab-label">Boss</span>
+<span class="tab-label">Bosses</span>
 </button>
 <button class="tab" data-screen="profile" aria-label="Perfil" data-tooltip="Perfil" title="Perfil">
 <img class="tab-icon tab-icon--drawer" src="assets/ui/home-reference/drawer-icon-profile.png" alt="" aria-hidden="true">
@@ -333,28 +334,28 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js"></script>
-<script src="js/config.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/progression.js"></script>
-<script src="js/firebase.js?v=6"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/storage.js?v=2"></script>
+<script src="js/progression.js?v=2"></script>
+<script src="js/firebase.js?v=7"></script>
 <script src="js/themes.js"></script>
 <script src="js/audio.js"></script>
-<script src="js/effects.js"></script>
-<script src="js/xp.js"></script>
-<script src="js/missions.js?v=2"></script>
+<script src="js/effects.js?v=2"></script>
+<script src="js/xp.js?v=2"></script>
+<script src="js/missions.js?v=3"></script>
 <script src="js/grimoire.js"></script>
-<script src="js/profile.js?v=2"></script>
+<script src="js/profile.js?v=3"></script>
 <script src="js/avatar.js"></script>
 <script src="js/slideshow.js"></script>
-<script src="js/home-widgets.js?v=3"></script>
-<script src="js/ui.js?v=5"></script>
-<script src="js/navigation.js"></script>
+<script src="js/home-widgets.js?v=4"></script>
+<script src="js/ui.js?v=6"></script>
+<script src="js/navigation.js?v=2"></script>
 <script src="js/tabs.js"></script>
 <script src="js/narrative.js"></script>
 <script src="js/engine/cinematic.js"></script>
 <script src="js/intro.js"></script>
 <script src="js/boss.js"></script>
 <script src="js/financas.js"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>

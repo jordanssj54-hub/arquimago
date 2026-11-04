@@ -95,31 +95,6 @@
     filter: brightness(1.16);
 }
 
-#game[data-screen="profile"] .top-rank-badge {
-    position: absolute;
-    right: 150px;
-    top: 26px;
-    width: 96px;
-    height: 96px;
-    margin: 0;
-    border: 0;
-    background-color: #050609;
-    background-image: var(--top-rank-badge-image);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    box-shadow: none;
-}
-
-#game[data-screen="profile"] .top-rank-badge span {
-    font-size: 0.66rem;
-}
-
-#game[data-screen="profile"] .top-rank-badge strong {
-    margin-top: 4px;
-    font-size: 1.9rem;
-}
-
 #game[data-screen="profile"] .top-crystals,
 #game[data-screen="profile"] .xp-bar--top {
     display: none;
@@ -501,88 +476,18 @@
 .profile-reference-progression {
     margin-top: 30px;
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(285px, 0.9fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
     gap: clamp(18px, 4vw, 42px);
 }
 
-.profile-reference-section-heading {
-    padding-left: 5px;
-}
-
-.profile-reference-rank-track {
-    position: relative;
-    margin-top: 23px;
-    padding: 0 2%;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    align-items: start;
-    background: linear-gradient(90deg, transparent 3%, rgba(174, 125, 39, 0.5) 14%, rgba(174, 125, 39, 0.5) 86%, transparent 97%) center 47px / 100% 1px no-repeat;
-}
-
-.profile-reference-rank {
-    position: relative;
-    z-index: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.profile-reference-rank > span {
-    display: block;
-    width: clamp(56px, 9vw, 88px);
-    height: clamp(56px, 9vw, 88px);
-}
-
-.profile-reference-rank > span img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    mix-blend-mode: screen;
-}
-
-.profile-reference-rank.is-active > span {
-    width: clamp(74px, 11vw, 106px);
-    height: clamp(74px, 11vw, 106px);
-    margin-top: -9px;
-    filter: drop-shadow(0 0 8px rgba(229, 173, 55, 0.6));
-}
-
-.profile-reference-rank.is-active > span img {
-    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-}
-
-
-.profile-reference-rank > strong {
-    margin-top: 4px;
-    color: #d5af58;
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.profile-reference-rank.is-active > strong {
-    margin-top: 2px;
-    font-size: 1.2rem;
-}
-
-.profile-reference-rank > small {
-    margin-top: 1px;
-    color: #b7b1a9;
-    font-size: 0.65rem;
-    letter-spacing: 0.14em;
-}
-
-.profile-reference-next-rank {
+.profile-reference-level-progress {
     min-height: 202px;
     padding: 16px 22px;
     overflow: hidden;
 }
 
-.profile-reference-next-rank > header {
+.profile-reference-level-progress > header {
     position: relative;
     z-index: 1;
     display: flex;
@@ -594,7 +499,7 @@
     letter-spacing: 0.12em;
 }
 
-.profile-reference-next-rank__symbol {
+.profile-reference-level-progress__symbol {
     position: absolute;
     right: -82px;
     bottom: -104px;
@@ -608,16 +513,16 @@
     pointer-events: none;
 }
 
-.profile-reference-next-rank > strong,
-.profile-reference-next-rank > b,
-.profile-reference-next-rank > p,
-.profile-reference-next-rank__bar {
+.profile-reference-level-progress > strong,
+.profile-reference-level-progress > b,
+.profile-reference-level-progress > p,
+.profile-reference-level-progress__bar {
     position: relative;
     z-index: 1;
     display: block;
 }
 
-.profile-reference-next-rank > strong {
+.profile-reference-level-progress > strong {
     margin-top: -10px;
     color: #a36cdf;
     font-family: var(--font-display);
@@ -626,7 +531,7 @@
     letter-spacing: 0.12em;
 }
 
-.profile-reference-next-rank > b {
+.profile-reference-level-progress > b {
     margin-top: 8px;
     color: #e3ddd5;
     font-family: var(--font-display);
@@ -634,7 +539,7 @@
     font-weight: 400;
 }
 
-.profile-reference-next-rank__bar {
+.profile-reference-level-progress__bar {
     height: 9px;
     margin: 12px 0 9px;
     overflow: hidden;
@@ -643,13 +548,13 @@
     background: rgba(0, 0, 0, 0.45);
 }
 
-.profile-reference-next-rank__bar i {
+.profile-reference-level-progress__bar i {
     display: block;
     height: 100%;
     background: linear-gradient(90deg, #8a5d25, #d8a544);
 }
 
-.profile-reference-next-rank > p {
+.profile-reference-level-progress > p {
     color: #a8a09a;
     font-size: 0.82rem;
 }
@@ -685,7 +590,7 @@
 .profile-reference-attribute-grid {
     margin-top: 21px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .profile-reference-attribute {
@@ -1174,21 +1079,6 @@
         right: 12px;
     }
 
-    #game[data-screen="profile"] .top-rank-badge {
-        top: 22px;
-        right: 72px;
-        width: 54px;
-        height: 54px;
-    }
-
-    #game[data-screen="profile"] .top-rank-badge span {
-        font-size: 0.43rem;
-    }
-
-    #game[data-screen="profile"] .top-rank-badge strong {
-        font-size: 1.2rem;
-    }
-
     .profile-page--reference {
         padding-bottom: 106px;
     }
@@ -1311,7 +1201,7 @@
         font-size: 0.76rem;
     }
 
-    .profile-reference-next-rank {
+    .profile-reference-level-progress {
         min-height: 184px;
     }
 }

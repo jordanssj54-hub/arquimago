@@ -148,7 +148,6 @@
         Arquimago.applyAppearance();
         if (Arquimago.applyNavigationConfig) Arquimago.applyNavigationConfig();
         Arquimago.refreshAll();
-        processPendingClassChanges();
         Arquimago.startMusic();
         initSettings();
         if (Arquimago.initAuthControls) Arquimago.initAuthControls();
@@ -165,7 +164,7 @@
         var audioButton = document.getElementById("audioToggleButton");
         var templateHint = document.getElementById("templateSelectHint");
         var navScaleControl = document.getElementById("navScaleControl");
-        var settingsRank = document.getElementById("settingsReferenceRank");
+        var settingsLevel = document.getElementById("settingsLevel");
         var settingsThemeName = document.getElementById("settingsReferenceThemeName");
         var settingsPlayerName = modal ? modal.querySelector("[data-settings-player-name]") : null;
         var wallpaperSelectWrapper = document.getElementById("wallpaperSelect");
@@ -312,10 +311,7 @@
             if (settingsThemeName) settingsThemeName.textContent = themeNames[themeKey] || ((Arquimago.THEMES[themeKey] || {}).name || "Personalizado");
             if (settingsPlayerName) settingsPlayerName.textContent = Arquimago.getDisplayName ? Arquimago.getDisplayName() : "Arquimago";
             if (themeSelectUI) themeSelectUI.refresh();
-            if (settingsRank) {
-                var rank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(Arquimago.state) : null;
-                settingsRank.textContent = rank && rank.rank ? rank.rank : "D";
-            }
+            if (settingsLevel) settingsLevel.textContent = Arquimago.formatNumber(Arquimago.state.level || 1);
         }
 
         modal.querySelectorAll("[data-settings-theme]").forEach(function (button) {
@@ -495,19 +491,6 @@
         }, 30000);
     }
 
-    function processPendingClassChanges() {
-        var changes = Arquimago.state && Arquimago.state.pendingClassChanges;
-        if (!changes || !changes.length) return;
-        var change = changes[changes.length - 1];
-        Arquimago.state.pendingClassChanges = [];
-        Arquimago.saveState(Arquimago.state);
-        if (Arquimago.showClassChange) Arquimago.showClassChange(change);
-        if (Arquimago.showNotification) {
-            Arquimago.showNotification((change.direction > 0 ? "Classe elevada: " : "Classe reduzida: ") + change.currentClass, "xp");
-        }
-    }
-    Arquimago.processPendingClassChanges = processPendingClassChanges;
-
     function startDateSyncTimer() {
         if (dateSyncTimer) clearInterval(dateSyncTimer);
         function syncCurrentDates() {
@@ -519,7 +502,6 @@
             if (oldDay !== state.dailyDate || oldMonth !== state.monthlyKey) {
                 Arquimago.saveState(state);
                 Arquimago.refreshAll(false);
-                processPendingClassChanges();
             }
         }
         dateSyncTimer = setInterval(syncCurrentDates, 60000);

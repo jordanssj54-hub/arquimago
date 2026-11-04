@@ -2,14 +2,6 @@
     "use strict";
 
     var Arquimago = global.Arquimago || {};
-    var RANKS = [
-        { id: "D", min: 0 },
-        { id: "C", min: 70 },
-        { id: "B", min: 80 },
-        { id: "A", min: 90 },
-        { id: "S", min: 100 }
-    ];
-
     function todayKey() {
         if (Arquimago.getTodayKey) return Arquimago.getTodayKey();
         var d = new Date();
@@ -27,10 +19,6 @@
 
     function validAttribute(key) {
         return !!(Arquimago.ATTRIBUTE_DEFINITIONS && Arquimago.ATTRIBUTE_DEFINITIONS[key]);
-    }
-
-    function validRank(rank) {
-        return RANKS.some(function (item) { return item.id === rank; });
     }
 
     function doneArray(state, type) {
@@ -106,7 +94,12 @@
     };
 
     Arquimago.clampMissionXp = function (xp) {
-        return Math.max(1, Math.min(10, parseInt(xp, 10) || 4));
+        var config = Arquimago.LEVEL_PROGRESSION || {};
+        var minimum = Math.max(1, Number(config.customMissionXPMin) || 1);
+        var maximum = Math.max(minimum, Number(config.customMissionXPMax) || 100);
+        var value = parseInt(xp, 10);
+        if (!isFinite(value)) value = 4;
+        return Math.max(minimum, Math.min(maximum, value));
     };
 
     Arquimago.applyMissionOverrides = function (mission, state) {
@@ -179,29 +172,7 @@
         return Arquimago.getAllMissionEntries(state);
     };
 
-    Arquimago.getRankForPercentage = function (percent) {
-        var rank = RANKS[0].id;
-        RANKS.forEach(function (item) {
-            if (percent >= item.min) rank = item.id;
-        });
-        return rank;
-    };
-
-    Arquimago.getRankMinimum = function (rank) {
-        for (var i = 0; i < RANKS.length; i++) {
-            if (RANKS[i].id === rank) return RANKS[i].min;
-        }
-        return 0;
-    };
-
-    Arquimago.getNextRank = function (rank) {
-        for (var i = 0; i < RANKS.length; i++) {
-            if (RANKS[i].id === rank) return RANKS[i + 1] || null;
-        }
-        return RANKS[1];
-    };
-
-    Arquimago.getDailyRankData = function (state) {
+    Arquimago.getDailyMissionProgress = function (state) {
         state = state || Arquimago.state;
         var entries = Arquimago.getDailyMissionEntries(state);
         var completed = entries.filter(function (entry) {
@@ -209,39 +180,13 @@
         }).length;
         var total = entries.length;
         var percent = total ? Math.round((completed / total) * 100) : 0;
-        var rank = Arquimago.getRankForPercentage(percent);
-        var next = Arquimago.getNextRank(rank);
-        var missionsToNext = 0;
-
-        if (next) {
-            missionsToNext = Math.max(0, Math.ceil((next.min / 100) * total) - completed);
-            if (missionsToNext === 0 && percent < next.min) missionsToNext = 1;
-        }
-
         return {
             completed: completed,
             total: total,
             remaining: Math.max(0, total - completed),
             percent: percent,
-            rank: rank,
-            nextRank: next ? next.id : null,
-            nextMinimum: next ? next.min : 100,
-            missionsToNext: missionsToNext,
             isComplete: total > 0 && completed === total
         };
-    };
-
-    Arquimago.updateDailyRank = function (state) {
-        state = state || Arquimago.state;
-        if (!state) return Arquimago.getDailyRankData(state);
-        var data = Arquimago.getDailyRankData(state);
-        var currentBest = validRank(state.bestDailyRank) ? state.bestDailyRank : "D";
-        var bestMinimum = Arquimago.getRankMinimum(currentBest);
-        if (data.percent > (state.bestDailyRankPercent || 0) || Arquimago.getRankMinimum(data.rank) > bestMinimum) {
-            state.bestDailyRank = data.rank;
-            state.bestDailyRankPercent = data.percent;
-        }
-        return data;
     };
 
     Arquimago.getAttributeRequirement = function (level) {
@@ -292,7 +237,7 @@
     };
 
     /* ============================================================
-       Progressão de nível baseada em missões (60% das disponíveis)
+       Progressão de nível adaptada ao conjunto ativo de cada usuário.
        ============================================================ */
     Arquimago.getAvailableMissionCount = function (state) {
         return Arquimago.getAllMissionEntries(state).length;
@@ -307,14 +252,30 @@
         return total;
     };
 
-    Arquimago.getMissionLevelRequirement = function (state) {
-        var total = Arquimago.getAvailableMissionCount(state);
-        return Math.ceil(total * 0.6);
+    Arquimago.getDailyMissionXpPotential = function (state) {
+        var entries = Arquimago.getAllMissionEntries(state);
+        return entries.reduce(function (total, entry) {
+            var xp = Math.max(0, Number(entry.mission && entry.mission.xp) || 0);
+            var isWeekly = entry.type === "weekly" || entry.type === "custom_weekly" || entry.mission.frequency === "weekly";
+            return total + (isWeekly ? xp / 7 : xp);
+        }, 0);
     };
 
-    Arquimago.getMissionXPRequirement = function (state) {
-        var totalXP = Arquimago.getTotalAvailableMissionXP(state);
-        return Math.ceil(totalXP * 0.6);
+    Arquimago.getLevelXpRequirement = function (state, level, missionXpBasis) {
+        state = state || Arquimago.state;
+        var config = Arquimago.LEVEL_PROGRESSION || {};
+        var maxLevel = Math.max(1, Number(config.maxLevel) || 1000000000);
+        level = Math.max(1, Math.floor(Number(level) || Number(state && state.level) || 1));
+        if (level >= maxLevel) return 0;
+
+        var baseRequirement = Math.max(1, Number(Arquimago.xpRequiredForLevel(level)) || 1);
+        var reference = Math.max(1, Number(config.referenceDailyXP) || 85);
+        var basis = Number(missionXpBasis);
+        if (!(basis > 0)) basis = Number(state && state.levelMissionXpBasis);
+        if (!(basis > 0)) basis = Arquimago.getDailyMissionXpPotential(state);
+        if (!(basis > 0)) basis = reference;
+
+        return Math.max(1, Math.ceil(baseRequirement * (basis / reference)));
     };
 
     Arquimago.getCompletedAvailableMissions = function (state) {
@@ -326,28 +287,43 @@
         return completed;
     };
 
-    Arquimago.getMissionLevelProgress = function (state) {
-        var required = Arquimago.getMissionLevelRequirement(state);
-        var completed = Arquimago.getCompletedAvailableMissions(state);
-        var percent = required > 0 ? Math.min(100, Math.round((completed / required) * 100)) : 0;
-        return {
-            completed: completed,
-            required: required,
-            percent: percent,
-            isMet: completed >= required && required > 0
-        };
-    };
-
-    Arquimago.getMissionXPProgress = function (state) {
-        var requiredXP = Arquimago.getMissionXPRequirement(state);
-        var earnedXP = Number(state.xpCompletedForLevel) || 0;
-        var percent = requiredXP > 0 ? Math.min(100, Math.round((earnedXP / requiredXP) * 100)) : 0;
+    Arquimago.getLevelProgress = function (state) {
+        state = state || Arquimago.state;
+        var config = Arquimago.LEVEL_PROGRESSION || {};
+        var maxLevel = Math.max(1, Number(config.maxLevel) || 1000000000);
+        var level = Math.max(1, Math.min(maxLevel, Math.floor(Number(state && state.level) || 1)));
+        var requiredXP = Arquimago.getLevelXpRequirement(state, level);
+        var earnedXP = Math.max(0, Number(state && state.xp) || 0);
+        var percent = requiredXP > 0 ? Math.min(100, (earnedXP / requiredXP) * 100) : 100;
         return {
             earned: earnedXP,
             required: requiredXP,
             percent: percent,
-            isMet: earnedXP >= requiredXP && requiredXP > 0
+            remaining: Math.max(0, requiredXP - earnedXP),
+            level: level,
+            nextLevel: level < maxLevel ? level + 1 : maxLevel,
+            maxed: level >= maxLevel,
+            dailyMissionXp: Arquimago.getDailyMissionXpPotential(state)
         };
+    };
+
+    Arquimago.syncLevelMissionXpBasis = function (state) {
+        state = state || Arquimago.state;
+        if (!state) return;
+        var currentBasis = Arquimago.getDailyMissionXpPotential(state);
+        if (!(currentBasis > 0)) return;
+
+        var previousBasis = Number(state.levelMissionXpBasis);
+        if (previousBasis > 0 && Math.abs(previousBasis - currentBasis) > 0.000001) {
+            if (Arquimago.applyPendingLevelUps) Arquimago.applyPendingLevelUps(state);
+            var oldRequirement = Arquimago.getLevelXpRequirement(state, state.level, previousBasis);
+            var newRequirement = Arquimago.getLevelXpRequirement(state, state.level, currentBasis);
+            var progressRatio = oldRequirement > 0 ? Math.max(0, Math.min(1, (Number(state.xp) || 0) / oldRequirement)) : 0;
+            state.xp = Math.min(Math.max(0, newRequirement - 1), Math.floor(progressRatio * newRequirement));
+        }
+
+        state.levelMissionXpBasis = currentBasis;
+        return currentBasis;
     };
 
     function monthKeyFromValue(value) {
@@ -393,11 +369,12 @@
         state = state || Arquimago.state;
         if (!state) return;
 
-        var availableXP = Arquimago.getTotalAvailableMissionXP(state);
+        var availableXP = Arquimago.getDailyMissionXpPotential(state);
         var monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP(state, state.monthlyKey);
         state.dailyAvailableXP = availableXP;
         state.monthlyAvailableXP = monthlyAvailableXP;
         state.monthlyGoalXP = Arquimago.getMonthlyGoalXP(monthlyAvailableXP);
+        Arquimago.syncLevelMissionXpBasis(state);
         return state;
     };
 
@@ -420,25 +397,6 @@
         };
     };
 
-    function classChangeForCycle(state, met, month) {
-        var beforeIndex = Arquimago.getClassIndex(state);
-        var direction = met ? 1 : -1;
-        var afterIndex = Math.max(0, Math.min(Arquimago.CLASS_DEFINITIONS.length - 1, beforeIndex + direction));
-        if (afterIndex === beforeIndex) return null;
-
-        var before = Arquimago.getClassDefinition(state);
-        state.classIndex = afterIndex;
-        var after = Arquimago.getClassDefinition(state);
-        if (!Array.isArray(state.pendingClassChanges)) state.pendingClassChanges = [];
-        state.pendingClassChanges.push({
-            month: month,
-            direction: direction,
-            previousClass: before.name,
-            currentClass: after.name
-        });
-        return { direction: direction, previousClass: before.name, currentClass: after.name, month: month };
-    }
-
     Arquimago.finalizeMonthlyCycle = function (state, month) {
         state = state || Arquimago.state;
         month = monthKeyFromValue(month);
@@ -451,9 +409,6 @@
         var goal = Arquimago.getMonthlyGoalXP(available);
         var percent = available > 0 ? Math.min(100, Math.round((earned / available) * 100)) : 0;
         var met = goal > 0 && earned >= goal;
-        var classBefore = Arquimago.getCharacterClass(state);
-        var classIndexBefore = Arquimago.getClassIndex(state);
-        var classChange = classChangeForCycle(state, met, month);
 
         state.monthlyHistory.push({
             month: month,
@@ -462,8 +417,6 @@
             goalXP: goal,
             percentage: percent,
             goalMet: met,
-            class: classBefore,
-            classIndex: classIndexBefore,
             closedAt: todayKey()
         });
         return state.monthlyHistory[state.monthlyHistory.length - 1];
@@ -484,7 +437,7 @@
         month = monthKeyFromValue(month);
         if (!state.monthlyKey || !/^\d{4}-\d{2}$/.test(state.monthlyKey)) {
             Arquimago.startMonthlyCycle(state, month);
-            return { changed: true, changes: [] };
+            return { changed: true };
         }
         if (state.monthlyKey === month) {
             var available = Arquimago.getMonthlyAvailableMissionXP(state, month);
@@ -492,27 +445,22 @@
             var changed = state.monthlyAvailableXP !== available || state.monthlyGoalXP !== goal;
             state.monthlyAvailableXP = available;
             state.monthlyGoalXP = goal;
-            return { changed: changed, changes: [] };
+            return { changed: changed };
         }
         if (monthSerial(state.monthlyKey) > monthSerial(month)) {
             Arquimago.startMonthlyCycle(state, month);
-            return { changed: true, changes: [] };
+            return { changed: true };
         }
 
-        var changes = [];
         var cursor = state.monthlyKey;
         var guard = 0;
         while (cursor && cursor !== month && guard < 240) {
-            var record = Arquimago.finalizeMonthlyCycle(state, cursor);
-            if (record) {
-                var change = state.pendingClassChanges[state.pendingClassChanges.length - 1];
-                if (change && change.month === cursor) changes.push(change);
-            }
+            Arquimago.finalizeMonthlyCycle(state, cursor);
             cursor = nextMonthKey(cursor);
             Arquimago.startMonthlyCycle(state, cursor);
             guard++;
         }
-        return { changed: true, changes: changes };
+        return { changed: true };
     };
 
     Arquimago.changeAttributeProgress = function (state, mission, delta) {
@@ -618,15 +566,35 @@
     Arquimago.applyMissionProgress = function (state, mission) {
         var attribute = Arquimago.changeAttributeProgress(state, mission, 1);
         var boss = Arquimago.damageWeeklyBoss(state, mission);
-        var rank = Arquimago.updateDailyRank(state);
-        return { attribute: attribute, boss: boss, rank: rank };
+        return { attribute: attribute, boss: boss };
     };
 
     Arquimago.revertMissionProgress = function (state, mission) {
-        var result = Arquimago.changeAttributeProgress(state, mission, -1);
-        result.rank = Arquimago.updateDailyRank(state);
-        return result;
+        return Arquimago.changeAttributeProgress(state, mission, -1);
     };
+
+    function storedAttributeTotal(value) {
+        if (value && typeof value === "object") value = value.total;
+        return Math.max(0, Math.floor(Number(value) || 0));
+    }
+
+    function migratedAttributeTotal(previous, currentKey, legacyKeys) {
+        if (Object.prototype.hasOwnProperty.call(previous, currentKey)) {
+            return storedAttributeTotal(previous[currentKey]);
+        }
+        return legacyKeys.reduce(function (total, key) {
+            if (!Object.prototype.hasOwnProperty.call(previous, key)) return total;
+            return total + storedAttributeTotal(previous[key]);
+        }, 0);
+    }
+
+    function migrateMissionAttribute(key) {
+        if (key === "physical" || key === "mental" || key === "habits") return key;
+        if (key === "strength" || key === "vitality" || key === "discipline" || key === "consistency") return "physical";
+        if (key === "intelligence" || key === "wisdom") return "mental";
+        if (key === "spirit") return "habits";
+        return "habits";
+    }
 
     Arquimago.normalizeState = function (state) {
         if (typeof state.navCollapsed !== "boolean") state.navCollapsed = false;
@@ -637,7 +605,6 @@
         state.dailyCompletedMissionIds = Array.isArray(state.dailyCompletedMissionIds) ? state.dailyCompletedMissionIds : [];
         state.dailyHistory = Array.isArray(state.dailyHistory) ? state.dailyHistory : [];
         state.monthlyHistory = Array.isArray(state.monthlyHistory) ? state.monthlyHistory : [];
-        state.pendingClassChanges = Array.isArray(state.pendingClassChanges) ? state.pendingClassChanges : [];
         state.customMissions = Array.isArray(state.customMissions) ? state.customMissions : [];
         state.hiddenMissionIds = Array.isArray(state.hiddenMissionIds) ? state.hiddenMissionIds : [];
         state.deletedMissionIds = Array.isArray(state.deletedMissionIds) ? state.deletedMissionIds : [];
@@ -649,39 +616,33 @@
         state.missionCompletionCounts = state.missionCompletionCounts && typeof state.missionCompletionCounts === "object" ? state.missionCompletionCounts : {};
 
         var previous = state.attributes && typeof state.attributes === "object" ? state.attributes : {};
-        var legacyMap = {
-            strength: "discipline",
-            intelligence: "wisdom",
-            vitality: "consistency",
-            spirit: null
-        };
         var attributes = {};
-        Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS || {}).forEach(function (key) {
-            var raw = previous[key];
-            var total;
-            if (raw && typeof raw === "object") {
-                total = Number(raw.total);
-                if (!isFinite(total)) total = 0;
-            } else if (typeof raw === "number") {
-                total = raw;
-            } else if (legacyMap[key] && typeof previous[legacyMap[key]] === "number") {
-                total = previous[legacyMap[key]];
-            } else {
-                total = 0;
-            }
-            attributes[key] = { total: Math.max(0, Math.floor(total)) };
-        });
+        attributes.physical = {
+            total: migratedAttributeTotal(previous, "physical", ["strength", "discipline"]) +
+                migratedAttributeTotal(previous, "vitality", ["vitality", "consistency"])
+        };
+        attributes.mental = {
+            total: migratedAttributeTotal(previous, "mental", ["intelligence", "wisdom"])
+        };
+        attributes.habits = {
+            total: migratedAttributeTotal(previous, "habits", ["spirit"])
+        };
         state.attributes = attributes;
         Object.keys(attributes).forEach(function (key) { Arquimago.getAttributeProgress(state, key); });
 
         state.customMissions.forEach(function (mission) {
-            mission.xp = Math.max(2, Math.min(8, parseInt(mission.xp, 10) || 4));
+            mission.xp = Arquimago.clampMissionXp(mission.xp);
             mission.bossDamage = Math.max(5, Math.min(35, parseInt(mission.bossDamage, 10) || 10));
-            if (!validAttribute(mission.attribute)) mission.attribute = "vitality";
+            mission.attribute = migrateMissionAttribute(mission.attribute);
+            if (!validAttribute(mission.attribute)) mission.attribute = "habits";
         });
 
-        state.bestDailyRank = validRank(state.bestDailyRank) ? state.bestDailyRank : "D";
-        state.bestDailyRankPercent = Math.max(0, Math.min(100, Number(state.bestDailyRankPercent) || 0));
+        delete state.bestDailyRank;
+        delete state.bestDailyRankPercent;
+        delete state.classIndex;
+        delete state.pendingClassChanges;
+        delete state.missionsCompletedForLevel;
+        delete state.xpCompletedForLevel;
         state.daysUsingApp = Math.max(0, Number(state.daysUsingApp) || 0);
         if (typeof state.lastUsageDate !== "string") state.lastUsageDate = "";
         if (typeof state.dailyDate !== "string") state.dailyDate = "";
@@ -691,13 +652,19 @@
         state.monthlyXP = Math.max(0, Number(state.monthlyXP) || 0);
         state.monthlyAvailableXP = Math.max(0, Number(state.monthlyAvailableXP) || 0);
         state.monthlyGoalXP = Math.max(0, Number(state.monthlyGoalXP) || 0);
-        state.classIndex = Arquimago.getClassIndex(state);
-        if (typeof state.level !== "number" || state.level < 1) state.level = 1;
+        var maxLevel = Math.max(1, Number((Arquimago.LEVEL_PROGRESSION || {}).maxLevel) || 1000000000);
+        state.level = Math.max(1, Math.min(maxLevel, Math.floor(Number(state.level) || 1)));
         if (typeof state.xp !== "number" || state.xp < 0) state.xp = 0;
         if (typeof state.totalXP !== "number" || state.totalXP < 0) state.totalXP = 0;
+        state.levelMissionXpBasis = Math.max(0, Number(state.levelMissionXpBasis) || 0);
         if (typeof state.missionsCompleted !== "number" || state.missionsCompleted < 0) state.missionsCompleted = 0;
-        if (typeof state.missionsCompletedForLevel !== "number" || state.missionsCompletedForLevel < 0) state.missionsCompletedForLevel = 0;
-        if (typeof state.xpCompletedForLevel !== "number" || state.xpCompletedForLevel < 0) state.xpCompletedForLevel = 0;
+        var dailyMissionXp = Arquimago.getDailyMissionXpPotential(state);
+        if (!(state.levelMissionXpBasis > 0)) {
+            state.levelMissionXpBasis = dailyMissionXp || Number((Arquimago.LEVEL_PROGRESSION || {}).referenceDailyXP) || 85;
+        } else {
+            Arquimago.syncLevelMissionXpBasis(state);
+        }
+        if (Arquimago.applyPendingLevelUps) Arquimago.applyPendingLevelUps(state, { silent: true });
         if (Arquimago.normalizeFinancas) Arquimago.normalizeFinancas(state);
         return state;
     };

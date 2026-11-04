@@ -20,10 +20,9 @@
     }
 
     var PROFILE_ATTRIBUTE_ICONS = {
-        strength: "discipline.svg",
-        spirit: "focus.svg",
-        vitality: "vitality.svg",
-        intelligence: "intelligence.svg"
+        physical: "discipline.svg",
+        mental: "intelligence.svg",
+        habits: "focus.svg"
     };
 
     function profileDateLabel(state) {
@@ -110,20 +109,6 @@
         return html;
     }
 
-    function rankTrackHtml(current) {
-        var ranks = ["D", "C", "B", "A", "S"];
-        var files = { D: "rank_D", C: "rank_C", B: "rank_B", A: "rank_A", S: "rank_S" };
-        return ranks.map(function (rank) {
-            var active = rank === current;
-            var image = active && rank === "D" ? "assets/ui/home-reference/rank-d-active.png" : "assets/ranks/" + files[rank] + ".png";
-            var label = active && rank === "D" ? "RANK D" : rank;
-            return '<div class="profile-reference-rank' + (active ? ' is-active' : '') + '">' +
-                '<span><img src="' + image + '" alt="Rank ' + rank + '"></span>' +
-                '<strong>' + label + '</strong>' + (active ? '<small>ATUAL</small>' : '') +
-                '</div>';
-        }).join('');
-    }
-
     function achievementsHtml(state, trophies) {
         var definitions = Arquimago.ACHIEVEMENTS || [];
         var unlockedIds = state.achievements || [];
@@ -152,19 +137,8 @@
 
         var state = Arquimago.state;
         var trophies = state.bossTrophies || [];
-        var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { month: "", earned: 0, available: 0, goal: 0, percent: 0, isMet: false };
+        var levelProgress = Arquimago.getLevelProgress ? Arquimago.getLevelProgress(state) : { level: state.level || 1, earned: state.xp || 0, required: 0, percent: 0, remaining: 0, nextLevel: (state.level || 1) + 1, maxed: false };
         var aboutMe = state.aboutMe || "";
-
-        var currentClass = Arquimago.getCharacterClass();
-        var dailyRank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: currentClass };
-        var topRank = document.getElementById("topDailyRank");
-        if (topRank) {
-            topRank.textContent = dailyRank.rank;
-            var topRankBadge = topRank.closest(".top-rank-badge");
-            if (topRankBadge) topRankBadge.dataset.rank = dailyRank.rank;
-        }
-        var nextRank = Arquimago.getNextRank ? Arquimago.getNextRank(currentClass) : null;
-        var monthlyRemaining = Math.max(0, Number(monthly.goal) - Number(monthly.earned));
         var html = '<div class="profile-page profile-page--reference">';
 
         html += '<section class="profile-reference-hero">';
@@ -174,16 +148,15 @@
 
         html += '<section class="profile-reference-card profile-reference-about"><header class="profile-reference-card__header"><h2><span aria-hidden="true">♟</span> SOBRE VOCÊ</h2></header><div class="profile-reference-about__display' + (aboutMe ? '' : ' is-placeholder') + '" id="aboutMeDisplay">' + (aboutMe ? escapeHtml(aboutMe) : 'Escreva um pouco sobre você (opcional). Conte sua história, sua motivação e o que te trouxe até aqui.') + '</div><button type="button" class="profile-reference-card__edit" id="editAboutMe"><span aria-hidden="true">✎</span> EDITAR</button><div class="profile-about-editor" id="aboutMeEditor" hidden><textarea id="aboutMeInput" class="profile-about__input" placeholder="Quem é você? O que te motiva? Escreva sobre si, seus objetivos ou sua jornada..." rows="3" maxlength="300">' + escapeHtml(aboutMe) + '</textarea><div class="profile-about__footer"><span id="aboutMeCount">' + aboutMe.length + '/300</span><button type="button" class="btn-primary compact" id="saveAboutMe">Salvar</button></div></div></section>';
 
-        html += '<section class="profile-reference-progression"><section class="profile-reference-ascension"><header class="profile-reference-section-heading"><h2><span aria-hidden="true">✧</span> SUA ASCENSÃO</h2></header><div class="profile-reference-rank-track">' + rankTrackHtml(currentClass) + '</div></section>';
-        html += '<section class="profile-reference-card profile-reference-next-rank"><header><span>PRÓXIMO RANK</span><img class="profile-reference-next-rank__symbol" src="projeto/simbol-abas.png" alt="" aria-hidden="true"></header><strong>RANK ' + escapeHtml(nextRank ? nextRank.id : currentClass) + '</strong><b>' + Arquimago.formatNumber(monthly.earned) + ' / ' + Arquimago.formatNumber(monthly.goal) + ' XP</b><div class="profile-reference-next-rank__bar"><i style="width:' + (monthly.goal ? Math.min(100, Math.round((monthly.earned / monthly.goal) * 100)) : 0) + '%"></i></div><p>' + (nextRank ? 'Faltam ' + Arquimago.formatNumber(monthlyRemaining) + ' XP para o Rank ' + nextRank.id : 'Rank máximo alcançado') + '</p></section></section>';
+        html += '<section class="profile-reference-progression"><section class="profile-reference-card profile-reference-level-progress"><header><span>PROGRESSO DO LEVEL</span><img class="profile-reference-level-progress__symbol" src="projeto/simbol-abas.png" alt="" aria-hidden="true"></header><strong>LEVEL ' + Arquimago.formatNumber(levelProgress.level) + '</strong><b>' + (levelProgress.maxed ? "LEVEL MÁXIMO" : Arquimago.formatNumber(levelProgress.earned) + ' / ' + Arquimago.formatNumber(levelProgress.required) + ' XP') + '</b><div class="profile-reference-level-progress__bar"><i style="width:' + levelProgress.percent + '%"></i></div><p>' + (levelProgress.maxed ? 'Teto de level alcançado' : 'Faltam ' + Arquimago.formatNumber(levelProgress.remaining) + ' XP para o Level ' + Arquimago.formatNumber(levelProgress.nextLevel)) + '</p></section></section>';
 
-        html += '<section class="profile-reference-card profile-reference-attributes"><header class="profile-reference-card__header"><h2><span aria-hidden="true">✥</span> ATRIBUTOS</h2><p>Atributos evoluem a cada missão concluída. <b aria-label="Informações">i</b></p></header><div class="profile-reference-attribute-grid">';
-        Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS).forEach(function (key) {
-            html += attributeCardReference(state, key);
-        });
-        html += '</div><div class="profile-reference-card__action profile-reference-attributes__history">VER HISTÓRICO DE ATRIBUTOS <span aria-hidden="true">›</span></div>';
-        html += '<div id="profileAttributeDetail"></div>';
-        html += '</section>';
+        if (Arquimago.attributeProgressCardHtml) {
+            html += Arquimago.attributeProgressCardHtml(state, { title: "Atributos", interactive: true, profile: true, detail: true });
+        } else {
+            html += '<section class="profile-reference-card profile-reference-attributes"><header class="profile-reference-card__header"><h2>ATRIBUTOS</h2></header><div class="profile-reference-attribute-grid">';
+            Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS).forEach(function (key) { html += attributeCardReference(state, key); });
+            html += '</div><div id="profileAttributeDetail"></div></section>';
+        }
 
         html += '<section class="profile-reference-lower"><section class="profile-reference-card profile-reference-statistics"><header class="profile-reference-card__header"><h2><span aria-hidden="true">♙</span> ESTATÍSTICAS</h2></header><div class="profile-reference-stat-list"><span><b aria-hidden="true">✥</b><label>Missões Concluídas</label><strong>' + Arquimago.formatNumber(state.missionsCompleted) + '</strong></span><span><b aria-hidden="true">✧</b><label>XP Total</label><strong>' + Arquimago.formatNumber(state.totalXP) + '</strong></span><span><b aria-hidden="true">◷</b><label>Sequência Atual</label><strong>' + state.streak + ' dias</strong></span><span><b aria-hidden="true">♞</b><label>Bosses Derrotados</label><strong>' + trophies.length + '</strong></span><span><b aria-hidden="true">◉</b><label>Recursos Obtidos</label><strong>' + resourcesObtained(state) + '</strong></span></div><div class="profile-reference-card__action">VER MAIS ESTATÍSTICAS <span aria-hidden="true">›</span></div></section>' + achievementsHtml(state, trophies) + '</section>';
 

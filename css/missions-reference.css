@@ -92,31 +92,6 @@
     object-fit: fill;
 }
 
-#game[data-screen="missions"] .top-rank-badge {
-    position: absolute;
-    right: 150px;
-    top: 26px;
-    width: 96px;
-    height: 96px;
-    margin: 0;
-    border: 0;
-    background-color: #050609;
-    background-image: var(--top-rank-badge-image);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    box-shadow: none;
-}
-
-#game[data-screen="missions"] .top-rank-badge span {
-    font-size: 0.66rem;
-}
-
-#game[data-screen="missions"] .top-rank-badge strong {
-    margin-top: 4px;
-    font-size: 1.9rem;
-}
-
 #game[data-screen="missions"] .top-crystals,
 #game[data-screen="missions"] .xp-bar--top {
     display: none;
@@ -929,21 +904,6 @@
 
     #game[data-screen="missions"] .icon-button {
         right: 12px;
-    }
-
-    #game[data-screen="missions"] .top-rank-badge {
-        top: 22px;
-        right: 72px;
-        width: 54px;
-        height: 54px;
-    }
-
-    #game[data-screen="missions"] .top-rank-badge span {
-        font-size: 0.43rem;
-    }
-
-    #game[data-screen="missions"] .top-rank-badge strong {
-        font-size: 1.2rem;
     }
 
     #game[data-screen="missions"] .missions-page--reference {

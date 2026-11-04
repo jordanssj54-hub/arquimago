@@ -5,6 +5,14 @@
 
     Arquimago.STORAGE_KEY = "arquimago_recomeco_v3";
     Arquimago.MONTHLY_GOAL_FRACTION = 0.6;
+    Arquimago.LEVEL_PROGRESSION = {
+        maxLevel: 1000000000,
+        referenceDailyXP: 85,
+        customMissionXPMin: 1,
+        customMissionXPMax: 100,
+        earlyLevelRequirements: [30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+        longTermLogGrowth: 30
+    };
 
     /* Configure this policy before publishing email signup. Null deliberately blocks
        signup until the product owner decides and documents the applicable age rule. */
@@ -22,33 +30,26 @@
     };
 
     Arquimago.ATTRIBUTE_DEFINITIONS = {
-        strength: {
-            name: "Força",
+        physical: {
+            name: "Físico",
             icon: "💪",
-            color: "#e88b5c",
-            description: "O corpo que se move, resiste e ganha presença.",
-            missionIds: ["main_treino", "main_caminhada", "main_alongamento"]
+            color: "#65b4ff",
+            description: "O corpo que se move, se fortalece e recebe cuidado.",
+            missionIds: ["daily_movimente_corpo", "daily_autocuidado"]
         },
-        intelligence: {
-            name: "Inteligência",
+        mental: {
+            name: "Mental",
             icon: "🧠",
-            color: "#7ca9e8",
-            description: "A mente que aprende, investiga e transforma curiosidade em domínio.",
-            missionIds: ["daily_leitura", "daily_estudo", "daily_diario", "weekly_planejamento", "weekly_trabalho", "weekly_projeto", "weekly_organizacao", "weekly_revisao"]
+            color: "#b176f4",
+            description: "A mente que encontra foco, aprende e ganha clareza.",
+            missionIds: ["daily_meditacao", "daily_leitura", "daily_sem_distracoes", "daily_aprenda_algo"]
         },
-        vitality: {
-            name: "Vitalidade",
-            icon: "❤️",
-            color: "#e47783",
-            description: "A energia protegida por cuidado, descanso e escolhas conscientes.",
-            missionIds: ["main_agua", "main_alimentacao", "main_sono", "habit_descanso"]
-        },
-        spirit: {
-            name: "Espírito",
-            icon: "🧘",
-            color: "#b795e8",
-            description: "A presença que encontra calma, gratidão e sentido no caminho.",
-            missionIds: ["daily_meditacao", "daily_gratidao", "habit_limpeza", "habit_familia", "habit_lazer"]
+        habits: {
+            name: "Hábitos",
+            icon: "▱",
+            color: "#f0b15c",
+            description: "Pequenas escolhas consistentes que sustentam sua jornada.",
+            missionIds: ["daily_tempo_qualidade", "daily_cuide_espaco", "daily_planeje_dia", "daily_encerre_dia"]
         }
     };
 
@@ -60,17 +61,17 @@
             image: "assets/boss/preguiça.png",
             maxHp: 300,
             description: "Uma sombra pesada que sussurra para deixar o próximo passo para depois.",
-            weaknesses: ["main_treino", "weekly_planejamento", "main_sono"],
+            weaknesses: ["daily_movimente_corpo", "daily_planeje_dia", "daily_encerre_dia"],
             reward: "Troféu da Vontade Desperta"
         },
         {
             id: "procrastinacao",
             name: "Procrastinação",
             icon: "🕷️",
-            image: "assets/boss/procrastinação.png",
+            image: "projeto/refs%20novas/1.%20boss-procrastinacao.png",
             maxHp: 300,
             description: "Tece desculpas entre você e aquilo que realmente importa.",
-            weaknesses: ["daily_estudo", "daily_leitura", "weekly_projeto"],
+            weaknesses: ["daily_leitura", "daily_aprenda_algo", "daily_sem_distracoes"],
             reward: "Troféu do Primeiro Passo"
         },
         {
@@ -79,7 +80,7 @@
             icon: "🌪️",
             maxHp: 300,
             description: "Uma tempestade interna que tenta roubar o espaço do presente.",
-            weaknesses: ["daily_meditacao", "daily_gratidao", "main_sono"],
+            weaknesses: ["daily_meditacao", "daily_encerre_dia", "daily_autocuidado"],
             reward: "Troféu da Mente Serena"
         },
         {
@@ -89,7 +90,7 @@
             image: "assets/boss/sedenterismo.png",
             maxHp: 300,
             description: "Pedra antiga que torna cada movimento mais difícil do que deveria ser.",
-            weaknesses: ["main_treino", "main_caminhada", "main_alongamento"],
+            weaknesses: ["daily_movimente_corpo"],
             reward: "Troféu do Corpo Desperto"
         },
         {
@@ -99,7 +100,7 @@
             image: "assets/boss/desorganização.png",
             maxHp: 300,
             description: "Mistura caminhos, acumula ruídos e esconde o que merece sua atenção.",
-            weaknesses: ["weekly_organizacao", "weekly_planejamento", "daily_diario"],
+            weaknesses: ["daily_cuide_espaco", "daily_planeje_dia", "daily_encerre_dia"],
             reward: "Troféu da Clareza"
         },
         {
@@ -109,7 +110,7 @@
             image: "assets/boss/estresse.png",
             maxHp: 300,
             description: "Uma chama que consome a paz de pequenos gestos ao longo do dia.",
-            weaknesses: ["daily_meditacao", "daily_leitura", "habit_lazer"],
+            weaknesses: ["daily_meditacao", "daily_leitura", "daily_tempo_qualidade"],
             reward: "Troféu da Calma Restaurada"
         }
     ];
@@ -120,7 +121,7 @@
         level: 1,
         xp: 0,
         totalXP: 0,
-        classIndex: 0,
+        levelMissionXpBasis: 0,
         streak: 0,
         template: "default",
         theme: "current",
@@ -134,8 +135,6 @@
         chapter: 1,
         completedIds: [],
         missionsCompleted: 0,
-        missionsCompletedForLevel: 0,
-        xpCompletedForLevel: 0,
         playTimeSeconds: 0,
         introSeen: false,
         soundEnabled: true,
@@ -160,17 +159,14 @@
         grimoireData: [],
         grimoireFavs: {},
         attributes: {
-            strength: { level: 1, progress: 0, total: 0 },
-            intelligence: { level: 1, progress: 0, total: 0 },
-            vitality: { level: 1, progress: 0, total: 0 },
-            spirit: { level: 1, progress: 0, total: 0 }
+            physical: { level: 1, progress: 0, total: 0 },
+            mental: { level: 1, progress: 0, total: 0 },
+            habits: { level: 1, progress: 0, total: 0 }
         },
         missionCompletionCounts: {},
         weeklyBoss: null,
         bossDamageEvents: [],
         bossTrophies: [],
-        bestDailyRank: "D",
-        bestDailyRankPercent: 0,
         daysUsingApp: 0,
         lastUsageDate: "",
         monthlyKey: "",
@@ -178,7 +174,6 @@
         monthlyAvailableXP: 0,
         monthlyGoalXP: 0,
         monthlyHistory: [],
-        pendingClassChanges: [],
         financas: {
             saldo: 0,
             guardado: 0,
@@ -208,14 +203,6 @@
         { level: 10, title: "Forjado nas Montanhas" },
         { level: 15, title: "Rompedor do Eclipse" },
         { level: 20, title: "Arquimago Supremo" }
-    ];
-
-    Arquimago.CLASS_DEFINITIONS = [
-        { id: "D", name: "D" },
-        { id: "C", name: "C" },
-        { id: "B", name: "B" },
-        { id: "A", name: "A" },
-        { id: "S", name: "S" }
     ];
 
     Arquimago.SPELLS = [
@@ -360,79 +347,34 @@
     };
 
     Arquimago.MISSIONS = {
-        main: [
-            { id: "main_treino", name: "Treino", desc: "Uma sessão de treino completa para fortalecer o corpo.", objective: "Realizar uma sessão completa de exercícios", category: "Corpo", xp: 7, bossDamage: 30, attribute: "strength", icon: "🏋️" },
-            { id: "main_caminhada", name: "Caminhada", desc: "Uma caminhada longa para clarear a mente e o corpo.", objective: "Fazer uma caminhada longa ao ar livre", category: "Corpo", xp: 5, bossDamage: 20, attribute: "strength", icon: "🚶" },
-            { id: "main_alongamento", name: "Alongamento", desc: "Movimentos suaves para liberar tensões e preparar o espírito.", objective: "Praticar movimentos de alongamento", category: "Corpo", xp: 4, bossDamage: 15, attribute: "strength", icon: "🤸" },
-            { id: "main_agua", name: "Água", desc: "Hidrate-se com consistência ao longo do dia.", objective: "Manter-se hidratado durante o dia", category: "Corpo", xp: 2, bossDamage: 10, attribute: "vitality", icon: "💧" },
-            { id: "main_alimentacao", name: "Alimentação", desc: "Escolha uma refeição equilibrada e consciente.", objective: "Escolher uma refeição equilibrada", category: "Corpo", xp: 4, bossDamage: 18, attribute: "vitality", icon: "🍎" },
-            { id: "main_sono", name: "Sono", desc: "Descanse em hora adequada para recuperar força.", objective: "Dormir em horário adequado", category: "Corpo", xp: 5, bossDamage: 35, attribute: "vitality", icon: "😴" }
-        ],
+        main: [],
         daily: [
-            { id: "daily_tempo_qualidade", name: "Tempo de qualidade", desc: "Momento presente e gratuito com quem importa.", objective: "Dedicar tempo de qualidade a alguém", category: "Vida", xp: 3, bossDamage: 12, attribute: "spirit", icon: "⏳" },
-            { id: "daily_pesquisa_vagabond", name: "Pesquisa Vagabond", desc: "Aprofunde-se na história e nos temas de Vagabond.", objective: "Pesquisar sobre o mangá Vagabond", category: "Mente", xp: 4, bossDamage: 16, attribute: "intelligence", icon: "🗡️" },
-            { id: "daily_primeiro_manga", name: "1er mangá", desc: "Dê o primeiro passo na leitura do seu mangá.", objective: "Ler o primeiro mangá", category: "Mente", xp: 4, bossDamage: 14, attribute: "intelligence", icon: "📖" },
-            { id: "daily_tres_bencoes", name: "3 bençãos", desc: "Reconheça e registre três bênçãos do dia.", objective: "Anotar 3 bençãos do dia", category: "Mente", xp: 3, bossDamage: 15, attribute: "spirit", icon: "❤️‍🔥" },
-            { id: "daily_podcast", name: "Podcast", desc: "Aprenda algo novo enquanto ouve um podcast.", objective: "Ouvir um episódio de podcast", category: "Mente", xp: 4, bossDamage: 16, attribute: "intelligence", icon: "🧠" },
-            { id: "daily_musculacao", name: "Musculação", desc: "Sessão focada para construir força e presença.", objective: "Treinar musculação no dia", category: "Corpo", xp: 5, bossDamage: 22, attribute: "strength", icon: "🏆" },
-            { id: "daily_the_news", name: "The news", desc: "Fique por dentro das notícias do mundo.", objective: "Acompanhar as notícias do dia", category: "Mente", xp: 3, bossDamage: 12, attribute: "intelligence", icon: "📰" },
-            { id: "daily_chess", name: "Chess", desc: "Um jogo de xadrez para treinar a mente.", objective: "Jogar uma partida de xadrez", category: "Mente", xp: 4, bossDamage: 14, attribute: "intelligence", icon: "♟️" },
-            { id: "daily_conteudo_barbearia", name: "Criação de conteúdo barbearia", desc: "Produza conteúdo para crescer a barbearia.", objective: "Criar conteúdo para a barbearia", category: "Produtividade", xp: 5, bossDamage: 18, attribute: "intelligence", icon: "📈" },
-            { id: "daily_leitura_diaria", name: "Leitura diária", desc: "Leia por 20 minutos e amplie sua visão.", objective: "Ler por 20 minutos", category: "Mente", xp: 5, bossDamage: 20, attribute: "intelligence", icon: "📚" },
-            { id: "daily_estudo_dia", name: "Estudo do dia", desc: "Dedique um tempo a aprender algo novo.", objective: "Aprender algo novo hoje", category: "Mente", xp: 6, bossDamage: 24, attribute: "intelligence", icon: "📖" },
-            { id: "daily_bonus_dia", name: "Bônus: Missão do dia", desc: "Uma missão bônus para turbinar o progresso de hoje.", objective: "Completar a missão bônus do dia", category: "Mente", xp: 6, bossDamage: 20, attribute: "spirit", icon: "📜" },
-            { id: "daily_contabilidade", name: "Contabilidade diária", desc: "Registre e acompanhe as finanças do dia.", objective: "Atualizar a contabilidade do dia", category: "Produtividade", xp: 4, bossDamage: 16, attribute: "intelligence", icon: "💸" },
-            { id: "daily_frio", name: "Frio", desc: "Encare o frio por alguns instantes e desperte o corpo.", objective: "Enfrentar o frio hoje", category: "Corpo", xp: 3, bossDamage: 14, attribute: "vitality", icon: "🥶" },
-            { id: "daily_meditacao_10min", name: "Meditação (10 minutos)", desc: "10 minutos de silêncio para acalmar a mente.", objective: "Meditar por 10 minutos", category: "Mente", xp: 4, bossDamage: 20, attribute: "spirit", icon: "🪷" },
-            { id: "daily_mentalizacao", name: "Mentalização", desc: "Visualize com clareza o dia e os seus objetivos.", objective: "Praticar a mentalização do dia", category: "Mente", xp: 3, bossDamage: 15, attribute: "spirit", icon: "☁️" }
+            { id: "daily_meditacao", name: "Meditação diária", desc: "Meditar por 5 minutos.", objective: "Meditar por 5 minutos", category: "Mente", xp: 10, bossDamage: 20, attribute: "mental", icon: "🧘" },
+            { id: "daily_leitura", name: "Leitura diária", desc: "Ler por 10 minutos.", objective: "Ler por 10 minutos", category: "Mente", xp: 10, bossDamage: 20, attribute: "mental", icon: "📖" },
+            { id: "daily_movimente_corpo", name: "Movimente o corpo", desc: "Fazer 15 minutos de atividade física.", objective: "Fazer 15 minutos de atividade física", category: "Corpo", xp: 10, bossDamage: 25, attribute: "physical", icon: "🏃" },
+            { id: "daily_tempo_qualidade", name: "Tempo de qualidade", desc: "Dedicar 20 minutos a alguém importante.", objective: "Dedicar 20 minutos a alguém importante", category: "Vida", xp: 10, bossDamage: 18, attribute: "habits", icon: "❤️" },
+            { id: "daily_cuide_espaco", name: "Cuide do seu espaço", desc: "Organizar algum ambiente da casa.", objective: "Organizar algum ambiente da casa", category: "Casa", xp: 10, bossDamage: 18, attribute: "habits", icon: "🏠" },
+            { id: "daily_planeje_dia", name: "Planeje seu dia", desc: "Definir 3 prioridades.", objective: "Definir 3 prioridades", category: "Produtividade", xp: 5, bossDamage: 12, attribute: "habits", icon: "🎯" },
+            { id: "daily_sem_distracoes", name: "Vença as distrações", desc: "Ficar 20 minutos sem distrações digitais.", objective: "Ficar 20 minutos sem distrações digitais", category: "Foco", xp: 10, bossDamage: 20, attribute: "mental", icon: "📵" },
+            { id: "daily_autocuidado", name: "Cuide de si", desc: "Dedicar um momento ao autocuidado.", objective: "Dedicar um momento ao autocuidado", category: "Bem-estar", xp: 5, bossDamage: 12, attribute: "physical", icon: "🚿" },
+            { id: "daily_aprenda_algo", name: "Aprenda algo novo", desc: "Dedicar 15 minutos ao aprendizado.", objective: "Dedicar 15 minutos ao aprendizado", category: "Mente", xp: 10, bossDamage: 20, attribute: "mental", icon: "🧠" },
+            { id: "daily_encerre_dia", name: "Encerre seu dia", desc: "Revisar o dia e preparar o próximo.", objective: "Revisar o dia e preparar o próximo", category: "Produtividade", xp: 5, bossDamage: 12, attribute: "habits", icon: "🌙" }
         ],
-        weekly: [
-            { id: "weekly_planejamento", name: "Planejamento", desc: "Organize seus objetivos da semana com clareza.", objective: "Organizar objetivos da semana", category: "Produtividade", xp: 6, bossDamage: 24, attribute: "intelligence", icon: "🎯" },
-            { id: "weekly_trabalho", name: "Trabalho", desc: "Conclua uma etapa importante de seu projeto.", objective: "Concluir uma etapa importante", category: "Produtividade", xp: 8, bossDamage: 28, attribute: "intelligence", icon: "💼" },
-            { id: "weekly_projeto", name: "Projeto Arquimago", desc: "Acelere um avanço concreto no projeto da jornada.", objective: "Acelerar avanço no projeto", category: "Produtividade", xp: 8, bossDamage: 30, attribute: "intelligence", icon: "🔮" },
-            { id: "weekly_organizacao", name: "Organização", desc: "Revise e organize seu espaço e suas prioridades.", objective: "Revisar e organizar espaço", category: "Produtividade", xp: 5, bossDamage: 22, attribute: "intelligence", icon: "🗂️" },
-            { id: "weekly_revisao", name: "Revisão", desc: "Reveja seu progresso e ajuste sua direção.", objective: "Rever progresso e ajustar direção", category: "Produtividade", xp: 5, bossDamage: 20, attribute: "intelligence", icon: "🔍" }
-        ],
-        habits: [
-            { id: "habit_limpeza", name: "Limpeza", desc: "Mantenha seu ambiente mais sereno e ordenado.", objective: "Manter ambiente sereno e ordenado", category: "Vida", xp: 4, bossDamage: 16, attribute: "spirit", icon: "🧹" },
-            { id: "habit_familia", name: "Família", desc: "Reserve um tempo para quem é importante.", objective: "Reservar tempo para entes queridos", category: "Vida", xp: 4, bossDamage: 18, attribute: "spirit", icon: "👨‍👩‍👧" },
-            { id: "habit_lazer", name: "Lazer saudável", desc: "Descanse com algo leve e prazeroso.", objective: "Descansar com algo leve e prazeroso", category: "Vida", xp: 3, bossDamage: 12, attribute: "spirit", icon: "🎮" },
-            { id: "habit_descanso", name: "Descanso", desc: "Pare por um tempo e recupere sua energia.", objective: "Parar e recuperar energia", category: "Vida", xp: 4, bossDamage: 22, attribute: "vitality", icon: "🛌" }
-        ]
+        weekly: [],
+        habits: []
     };
 
     Arquimago.NATIVE_MISSION_ICONS = {
-        main_treino: "🏋️",
-        main_caminhada: "🚶",
-        main_alongamento: "🤸",
-        main_agua: "💧",
-        main_alimentacao: "🍎",
-        main_sono: "😴",
-        daily_tempo_qualidade: "⏳",
-        daily_pesquisa_vagabond: "🗡️",
-        daily_primeiro_manga: "📖",
-        daily_tres_bencoes: "❤️‍🔥",
-        daily_podcast: "🧠",
-        daily_musculacao: "🏆",
-        daily_the_news: "📰",
-        daily_chess: "♟️",
-        daily_conteudo_barbearia: "📈",
-        daily_leitura_diaria: "📚",
-        daily_estudo_dia: "📖",
-        daily_bonus_dia: "📜",
-        daily_contabilidade: "💸",
-        daily_frio: "🥶",
-        daily_meditacao_10min: "🪷",
-        daily_mentalizacao: "☁️",
-        weekly_planejamento: "🎯",
-        weekly_trabalho: "💼",
-        weekly_projeto: "🔮",
-        weekly_organizacao: "🗂️",
-        weekly_revisao: "🔍",
-        habit_limpeza: "🧹",
-        habit_familia: "👨‍👩‍👧",
-        habit_lazer: "🎮",
-        habit_descanso: "🛌"
+        daily_meditacao: "🧘",
+        daily_leitura: "📖",
+        daily_movimente_corpo: "🏃",
+        daily_tempo_qualidade: "❤️",
+        daily_cuide_espaco: "🏠",
+        daily_planeje_dia: "🎯",
+        daily_sem_distracoes: "📵",
+        daily_autocuidado: "🚿",
+        daily_aprenda_algo: "🧠",
+        daily_encerre_dia: "🌙"
     };
 
     Arquimago.MISSION_ICON_CATEGORIES = [
@@ -547,8 +489,13 @@
     ];
 
     Arquimago.xpRequiredForLevel = function (level) {
-        var step = Math.max(0, level - 1);
-        return Math.floor(100 + (step * 30) + (step * step * 5));
+        var rules = Arquimago.LEVEL_PROGRESSION;
+        var currentLevel = Math.max(1, Math.floor(Number(level) || 1));
+        var index = currentLevel - 1;
+        var early = rules.earlyLevelRequirements || [];
+        if (index < early.length) return early[index];
+        var excessLevels = Math.max(1, index - early.length + 2);
+        return early[early.length - 1] + Math.floor((rules.longTermLogGrowth || 30) * Math.log10(excessLevels));
     };
 
     Arquimago.getTitleForLevel = function (level) {
@@ -583,21 +530,6 @@
         return false;
     };
 
-    Arquimago.getClassIndex = function (state) {
-        state = state || Arquimago.state;
-        var index = state ? parseInt(state.classIndex, 10) : 0;
-        if (!isFinite(index)) index = 0;
-        return Math.max(0, Math.min(Arquimago.CLASS_DEFINITIONS.length - 1, index));
-    };
-
-    Arquimago.getClassDefinition = function (state) {
-        return Arquimago.CLASS_DEFINITIONS[Arquimago.getClassIndex(state)] || Arquimago.CLASS_DEFINITIONS[0];
-    };
-
-    Arquimago.getCharacterClass = function (state) {
-        return Arquimago.getClassDefinition(state).name;
-    };
-
     Arquimago.getCharacterName = function () {
         var name = (Arquimago.state && Arquimago.state.name) || "";
         name = String(name).trim();
@@ -606,7 +538,7 @@
     };
 
     Arquimago.getDisplayName = function () {
-        return Arquimago.getCharacterName() || Arquimago.getCharacterClass();
+        return Arquimago.getCharacterName() || "Arquimago";
     };
 
     Arquimago.getMageImageSrc = function () {
@@ -618,7 +550,7 @@
     };
 
     Arquimago.getMageImage = function () {
-        return '<img src="' + Arquimago.getMageImageSrc() + '" alt="' + Arquimago.getCharacterClass() + '" class="mage-avatar-img">';
+        return '<img src="' + Arquimago.getMageImageSrc() + '" alt="' + Arquimago.getDisplayName() + '" class="mage-avatar-img">';
     };
 
     global.Arquimago = Arquimago;

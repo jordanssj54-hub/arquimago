@@ -4,19 +4,18 @@
     var Arquimago = global.Arquimago || {};
 
     var ATTR_NAMES = {
-        strength: "Força",
-        intelligence: "Inteligência",
-        vitality: "Vitalidade",
-        spirit: "Espírito"
+        physical: "Físico",
+        mental: "Mental",
+        habits: "Hábitos"
     };
 
     var FREQ_MAP = {
         main: { label: "Diária", css: "special" },
         daily: { label: "Diária", css: "daily" },
-        weekly: { label: "Diária", css: "weekly" },
+        weekly: { label: "Semanal", css: "weekly" },
         habits: { label: "Diária", css: "habit" },
         custom_daily: { label: "Diária", css: "daily" },
-        custom_weekly: { label: "Diária", css: "weekly" },
+        custom_weekly: { label: "Semanal", css: "weekly" },
         custom_free: { label: "Diária", css: "free" }
     };
 
@@ -51,7 +50,7 @@
         freq: "daily",
         objective: "",
         icon: "🎯",
-        attribute: "vitality"
+        attribute: "habits"
     };
 
     var FORM_FIELD_IDS = ["customName", "customXp", "customFreq", "customObjective", "customAttribute"];
@@ -221,7 +220,6 @@
     Arquimago.setMissionComplete = function (mission, type, isComplete, anchor) {
         var state = Arquimago.state;
         if (Arquimago.syncDates) Arquimago.syncDates(state);
-        if (Arquimago.processPendingClassChanges) Arquimago.processPendingClassChanges();
         var item = anchorItem(anchor);
         var now = new Date();
         var completionDate = Arquimago.getTodayKey ? Arquimago.getTodayKey() : now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
@@ -232,8 +230,6 @@
             if (!Array.isArray(state.dailyCompletedMissionIds)) state.dailyCompletedMissionIds = [];
             if (state.dailyCompletedMissionIds.indexOf(mission.id) === -1) state.dailyCompletedMissionIds.push(mission.id);
             state.missionsCompleted += 1;
-            state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) + 1);
-            state.xpCompletedForLevel = Math.max(0, (state.xpCompletedForLevel || 0) + (Number(mission.xp) || 0));
 
             var progression = Arquimago.applyMissionProgress ? Arquimago.applyMissionProgress(state, mission) : null;
 
@@ -271,8 +267,6 @@
                 state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (id) { return id !== mission.id; });
             }
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
-            state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) - 1);
-            state.xpCompletedForLevel = Math.max(0, (state.xpCompletedForLevel || 0) - (Number(mission.xp) || 0));
 
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
 
@@ -317,11 +311,11 @@
         var mission = {
             id: "custom_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
             name: String(opts.name || "").trim(),
-            xp: Math.max(2, Math.min(8, parseInt(opts.xp, 10) || 4)),
+            xp: Arquimago.clampMissionXp(opts.xp),
             frequency: "daily",
             objective: String(opts.objective || "").trim(),
             icon: String(opts.icon || "🎯"),
-            attribute: Arquimago.ATTRIBUTE_DEFINITIONS[opts.attribute] ? opts.attribute : "vitality",
+            attribute: Arquimago.ATTRIBUTE_DEFINITIONS[opts.attribute] ? opts.attribute : "habits",
             bossDamage: Math.max(5, Math.min(35, parseInt(opts.bossDamage, 10) || 10)),
             category: "Personalizada",
             createdAt: Date.now()
@@ -473,7 +467,8 @@
             '</div>' +
              '<div class="missions-form__field">' +
              '<label for="customXp">XP</label>' +
-             '<input type="number" id="customXp" min="2" max="8" inputmode="numeric" value="' + escapeHtml(formCache.xp) + '" required>' +
+             '<input type="number" id="customXp" min="1" max="100" inputmode="numeric" value="' + escapeHtml(formCache.xp) + '" required>' +
+             '<small class="missions-edit__hint">De 1 a 100 XP. O progresso de level se ajusta às suas missões ativas.</small>' +
              '</div>' +
             '<div class="missions-form__field">' +
             '<label for="customFreq">Frequência</label>' +
@@ -616,7 +611,7 @@
             body += '</div>';
         });
         body += '</div>';
-        return collapsibleSectionHtml("hidden", "Missões Ocultas", "Ficam fora da Home e do Rank Diário até você escolher mostrar novamente.", body);
+        return collapsibleSectionHtml("hidden", "Missões Ocultas", "Ficam fora da Home até você escolher mostrar novamente.", body);
     }
 
     function missionManagementEntries(state) {
@@ -639,7 +634,7 @@
         var selectedCount = Object.keys(selectedMissionIds).filter(function (id) { return selectedMissionIds[id]; }).length;
         var html = '<section class="missions-management" aria-labelledby="missions-management-title">';
         html += '<div class="missions-management__head"><div><span class="section-label">Checklist de gerenciamento</span><h2 id="missions-management-title">' + (deleting ? "Excluir missões" : "Ocultar missões") + '</h2>';
-        html += '<p>' + (deleting ? "Selecione as missões que deseja retirar permanentemente. O histórico de progresso será preservado." : "Selecione as missões que deseja retirar da Home e do rank diário.") + '</p></div>';
+        html += '<p>' + (deleting ? "Selecione as missões que deseja retirar permanentemente. O histórico de progresso será preservado." : "Selecione as missões que deseja retirar da Home e do cálculo do XP diário.") + '</p></div>';
         html += '<button type="button" class="btn-secondary compact" data-cancel-mission-management>Cancelar</button></div>';
         html += '<div class="missions-management__list">';
 
@@ -717,27 +712,16 @@
     }
 
     var REFERENCE_MISSION_META = {
-        daily_estudo_dia: {
-            title: "ESTUDAR",
-            desc: "Dedique ao menos 30 minutos para estudar algo que te faça evoluir.",
-            progress: "30 MIN",
-            icon: "📖",
-            kind: "study"
-        },
-        main_treino: {
-            title: "TREINAR",
-            desc: "Faça seu treino e fortaleça seu corpo e mente.",
-            progress: "1 TREINO",
-            icon: "🏋️",
-            kind: "training"
-        },
-        daily_contabilidade: {
-            title: "ORGANIZAR FINANÇAS",
-            desc: "Registre seus gastos e mantenha suas finanças em dia.",
-            progress: "1 REGISTRO",
-            icon: "💰",
-            kind: "finance"
-        }
+        daily_meditacao: { title: "MEDITAÇÃO DIÁRIA", desc: "Meditar por 5 minutos.", progress: "1 MISSÃO", icon: "🧘", kind: "default" },
+        daily_leitura: { title: "LEITURA DIÁRIA", desc: "Ler por 10 minutos.", progress: "1 MISSÃO", icon: "📖", kind: "study" },
+        daily_movimente_corpo: { title: "MOVIMENTE O CORPO", desc: "Fazer 15 minutos de atividade física.", progress: "1 MISSÃO", icon: "🏃", kind: "training" },
+        daily_tempo_qualidade: { title: "TEMPO DE QUALIDADE", desc: "Dedicar 20 minutos a alguém importante.", progress: "1 MISSÃO", icon: "❤️", kind: "default" },
+        daily_cuide_espaco: { title: "CUIDE DO SEU ESPAÇO", desc: "Organizar algum ambiente da casa.", progress: "1 MISSÃO", icon: "🏠", kind: "default" },
+        daily_planeje_dia: { title: "PLANEJE SEU DIA", desc: "Definir 3 prioridades.", progress: "1 MISSÃO", icon: "🎯", kind: "default" },
+        daily_sem_distracoes: { title: "VENÇA AS DISTRAÇÕES", desc: "Ficar 20 minutos sem distrações digitais.", progress: "1 MISSÃO", icon: "📵", kind: "default" },
+        daily_autocuidado: { title: "CUIDE DE SI", desc: "Dedicar um momento ao autocuidado.", progress: "1 MISSÃO", icon: "🚿", kind: "default" },
+        daily_aprenda_algo: { title: "APRENDA ALGO NOVO", desc: "Dedicar 15 minutos ao aprendizado.", progress: "1 MISSÃO", icon: "🧠", kind: "study" },
+        daily_encerre_dia: { title: "ENCERRE SEU DIA", desc: "Revisar o dia e preparar o próximo.", progress: "1 MISSÃO", icon: "🌙", kind: "default" }
     };
 
     function referenceMissionEntries(state) {
@@ -759,7 +743,7 @@
             kind: "default"
         };
         var done = isDone(state, mission, entry.type);
-        var progress = done ? (meta.kind === "study" ? "30" : "1") : "0";
+        var progress = done ? "1" : "0";
         return '<div class="mission-item mission-ref-card mission-ref-card--' + meta.kind + (done ? " completed" : "") + '" data-id="' + escapeHtml(mission.id) + '" data-type="' + escapeHtml(entry.type) + '">' +
             '<div class="mission-ref-card__icon mission-ref-card__icon--' + meta.kind + '" aria-hidden="true">' + meta.icon + '</div>' +
             '<div class="mission-ref-card__copy"><h3>' + escapeHtml(meta.title) + '</h3><p>' + escapeHtml(meta.desc) + '</p>' +
@@ -770,12 +754,9 @@
     }
 
     function missionsReferenceXpHtml(state) {
-        var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { earned: 0, goal: 0, percent: 0 };
-        var goal = Math.max(0, Number(monthly.goal) || 0);
-        var earned = Math.max(0, Number(monthly.earned) || 0);
-        var percent = goal ? Math.min(100, Math.round((earned / goal) * 100)) : 0;
-        var remaining = Math.max(0, goal - earned);
-        return '<section class="missions-reference-xp xp-bar"><span class="xp-fill" style="width:' + percent + '%"></span><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><strong class="xp-text">' + Arquimago.formatNumber(earned) + ' / ' + Arquimago.formatNumber(goal) + ' XP</strong><small>' + (remaining ? "FALTAM " + Arquimago.formatNumber(remaining) + " XP PARA O RANK C" : "RANK C ALCANÇADO") + '</small></section>';
+        var progress = Arquimago.getLevelProgress ? Arquimago.getLevelProgress(state) : { earned: state.xp || 0, required: 0, percent: 0, remaining: 0, level: state.level || 1, maxed: false, nextLevel: (state.level || 1) + 1 };
+        var subtitle = progress.maxed ? "LEVEL MÁXIMO" : "LEVEL " + Arquimago.formatNumber(progress.level) + " · FALTAM " + Arquimago.formatNumber(progress.remaining) + " XP PARA O LEVEL " + Arquimago.formatNumber(progress.nextLevel);
+        return '<section class="missions-reference-xp xp-bar"><span class="xp-fill" style="width:' + progress.percent + '%"></span><img class="xp-frame" src="assets/frames/xp_frame.png" alt=""><strong class="xp-text">' + (progress.maxed ? "XP no máximo" : Arquimago.formatNumber(progress.earned) + ' / ' + Arquimago.formatNumber(progress.required) + ' XP') + '</strong><small>' + subtitle + '</small></section>';
     }
 
     function missionsReferenceFinanceHtml(state) {
@@ -856,7 +837,7 @@
             Arquimago.playClick();
             if (Arquimago.syncDates) Arquimago.syncDates(Arquimago.state);
             if (Arquimago.saveState) Arquimago.saveState(Arquimago.state);
-            Arquimago.renderMissions();
+            Arquimago.renderMissions(container);
         });
         startMissionCountdown(container);
         var activeTab = container.querySelector('[data-mission-ref-tab="' + missionReferenceTab + '"]');
@@ -892,8 +873,6 @@
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, entry.mission);
         });
         state.missionsCompleted = Math.max(0, state.missionsCompleted - entries.length);
-        state.missionsCompletedForLevel = Math.max(0, (state.missionsCompletedForLevel || 0) - entries.length);
-        state.xpCompletedForLevel = 0;
         Arquimago.saveState(state);
         return true;
     }
@@ -909,19 +888,16 @@
         state.level = defaults.level;
         state.xp = defaults.xp;
         state.totalXP = defaults.totalXP;
-        state.classIndex = defaults.classIndex;
         state.chapter = defaults.chapter;
         state.title = defaults.title;
         state.missionsCompleted = 0;
         state.streak = defaults.streak;
         state.lastActiveDate = defaults.lastActiveDate;
-        state.missionsCompletedForLevel = 0;
-        state.xpCompletedForLevel = 0;
 
         state.dailyXP = 0;
         state.monthlyXP = 0;
         state.missionCompletionCounts = {};
-        state.pendingClassChanges = [];
+        state.levelMissionXpBasis = Arquimago.getDailyMissionXpPotential ? Arquimago.getDailyMissionXpPotential(state) : 85;
         state.unlockedSpells = (defaults.unlockedSpells || []).slice();
 
         state.attributes = {};
@@ -932,10 +908,11 @@
         state.bossDamageEvents = [];
         state.weeklyBoss = state.weeklyDate && Arquimago.createWeeklyBoss ? Arquimago.createWeeklyBoss(state.weeklyDate) : null;
 
-        var availableXP = Arquimago.getTotalAvailableMissionXP ? Arquimago.getTotalAvailableMissionXP(state) : 0;
+        var availableXP = Arquimago.getDailyMissionXpPotential ? Arquimago.getDailyMissionXpPotential(state) : 0;
         state.dailyAvailableXP = availableXP;
         state.monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP ? Arquimago.getMonthlyAvailableMissionXP(state, state.monthlyKey) : availableXP;
         state.monthlyGoalXP = Arquimago.getMonthlyGoalXP ? Arquimago.getMonthlyGoalXP(state.monthlyAvailableXP) : 0;
+        state.levelMissionXpBasis = availableXP || Arquimago.LEVEL_PROGRESSION.referenceDailyXP;
         Arquimago.saveState(state);
     }
 
@@ -1007,8 +984,8 @@
             '<form id="editMissionForm" autocomplete="off">' +
             '<div class="missions-form__field">' +
             '<label for="editMissionXp">XP</label>' +
-            '<input type="number" id="editMissionXp" min="1" max="10" inputmode="numeric" value="' + currentXp + '" required>' +
-            '<small class="missions-edit__hint">Entre 1 e 10 XP por conclusão.</small>' +
+            '<input type="number" id="editMissionXp" min="1" max="100" inputmode="numeric" value="' + currentXp + '" required>' +
+            '<small class="missions-edit__hint">Entre 1 e 100 XP por conclusão.</small>' +
             '</div>' +
             '<div class="missions-form__field missions-form__field--full">' +
             '<label for="editMissionIconPreview">Ícone</label>' +
@@ -1095,16 +1072,21 @@
 
     Arquimago.getNextMainMission = function () {
         var state = Arquimago.state;
-        var mains = Arquimago.MISSIONS.main;
-        for (var i = 0; i < mains.length; i++) {
-            if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mains[i].id)) continue;
-            if (state.completedIds.indexOf(mains[i].id) === -1) return Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mains[i]) : mains[i];
+        var entries = Arquimago.getDailyMissionEntries ? Arquimago.getDailyMissionEntries(state) : [];
+        for (var i = 0; i < entries.length; i++) {
+            if (!isDone(state, entries[i].mission, entries[i].type)) return entries[i].mission;
         }
-        return Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mains[mains.length - 1]) : mains[mains.length - 1];
+        return entries.length ? entries[entries.length - 1].mission : null;
     };
 
-    Arquimago.renderMissions = function () {
-        var container = document.getElementById("missions");
+    Arquimago.renderMissions = function (target) {
+        var container = target;
+        if (typeof container === "string") container = document.querySelector(container);
+        if (!container) {
+            var game = document.getElementById("game");
+            var homeMissions = game && game.getAttribute("data-screen") === "home" ? document.querySelector("#home .home-missions-expanded__content") : null;
+            container = homeMissions || document.getElementById("missions");
+        }
         if (!container) return;
         var state = Arquimago.state;
 
@@ -1112,13 +1094,6 @@
         rememberFormValues(container.querySelector("#customMissionForm"));
 
         var canClear = completedMissionEntries(state).length > 0;
-        var dailyRank = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D" };
-        var topRank = document.getElementById("topDailyRank");
-        if (topRank) {
-            topRank.textContent = dailyRank.rank;
-            var topRankBadge = topRank.closest(".top-rank-badge");
-            if (topRankBadge) topRankBadge.dataset.rank = dailyRank.rank;
-        }
         var html = missionsReferenceHtml(state, canClear);
         container.innerHTML = html;
         bindMissionReferenceControls(container);
@@ -1135,7 +1110,7 @@
                 Arquimago.playClick();
                 activeMissionsHidden = !activeMissionsHidden;
                 saveActiveMissionsHidden();
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         }
         var clearButton = container.querySelector("#clearCompletedMissions");
@@ -1144,7 +1119,7 @@
                 if (!clearCompletedMissions(Arquimago.state)) return;
                 missionSettingsOpen = false;
                 Arquimago.playClick();
-                Arquimago.renderMissions();
+                    Arquimago.renderMissions(container);
             });
         }
         var resetButton = container.querySelector("#resetProgressButton");
@@ -1152,7 +1127,7 @@
             resetButton.addEventListener("click", function () {
                 missionSettingsOpen = false;
                 Arquimago.playClick();
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
                 openResetProgressConfirm();
             });
         }
@@ -1197,7 +1172,8 @@
                 var expanded = !isMissionDetailsExpanded(missionId);
                 setMissionDetailsExpanded(missionId, expanded);
 
-                var details = document.getElementById(button.getAttribute("aria-controls"));
+                var details = button.closest(".mission-item");
+                details = details && details.querySelector(".mission-item__details");
                 if (details) details.classList.toggle("is-collapsed", !expanded);
                 button.setAttribute("aria-expanded", String(expanded));
                 button.setAttribute("aria-label", (expanded ? "Ocultar informações de " : "Mostrar informações de ") + (button.closest(".mission-item").querySelector(".mission-item__name").textContent || "missão"));
@@ -1213,7 +1189,7 @@
             settingsButton.addEventListener("click", function () {
                 Arquimago.playClick();
                 missionSettingsOpen = !missionSettingsOpen;
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         }
 
@@ -1224,7 +1200,7 @@
                 missionManagementMode = button.getAttribute("data-start-mission-management");
                 selectedMissionIds = {};
                 editingMissionId = null;
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         });
     }
@@ -1269,7 +1245,7 @@
                 missionManagementMode = null;
                 selectedMissionIds = {};
                 editingMissionId = null;
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         }
 
@@ -1337,7 +1313,7 @@
                 Arquimago.playClick();
                 customFormOpen = !customFormOpen;
                 setCollapsed("custom", false);
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         }
 
@@ -1350,8 +1326,8 @@
                 formCache.name = "";
                 formCache.objective = "";
                 formCache.icon = "🎯";
-                formCache.attribute = "vitality";
-                Arquimago.renderMissions();
+                formCache.attribute = "habits";
+                Arquimago.renderMissions(container);
             });
         }
 
@@ -1389,9 +1365,9 @@
                 formCache.name = "";
                 formCache.objective = "";
                 formCache.icon = "🎯";
-                formCache.attribute = "vitality";
+                formCache.attribute = "habits";
                 if (Arquimago.refreshAll) Arquimago.refreshAll(false);
-                else Arquimago.renderMissions();
+                else Arquimago.renderMissions(container);
             });
         }
 
@@ -1401,14 +1377,14 @@
             iconToggle.addEventListener("click", function () {
                 Arquimago.playClick();
                 iconPickerOpen = !iconPickerOpen;
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         }
         if (iconPreview) {
             iconPreview.addEventListener("click", function () {
                 Arquimago.playClick();
                 iconPickerOpen = !iconPickerOpen;
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         }
 
@@ -1417,7 +1393,7 @@
                 Arquimago.playClick();
                 formCache.icon = btn.getAttribute("data-icon");
                 iconPickerOpen = false;
-                Arquimago.renderMissions();
+                Arquimago.renderMissions(container);
             });
         });
 

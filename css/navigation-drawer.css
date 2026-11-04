@@ -705,7 +705,7 @@ body.nav-open {
     white-space: nowrap;
 }
 
-#game[data-nav-position] .drawer-profile-card__rank {
+#game[data-nav-position] .drawer-profile-card__level {
     display: flex;
     align-items: baseline;
     gap: 10px;
@@ -716,7 +716,7 @@ body.nav-open {
     letter-spacing: 0.18em;
 }
 
-#game[data-nav-position] .drawer-profile-card__rank b {
+#game[data-nav-position] .drawer-profile-card__level b {
     color: #dfa84a;
     font-size: 1.02rem;
     font-weight: 600;
@@ -1152,7 +1152,7 @@ body.nav-open {
     z-index: 300;
     grid-template-columns: minmax(0, 1fr) 56px 48px;
     grid-template-areas:
-        "brand rank settings"
+        "brand level settings"
         "xp xp xp"
         "crystals crystals crystals";
     align-items: center;
@@ -1195,10 +1195,10 @@ body.nav-open {
     grid-area: brand;
 }
 
-#game[data-screen] .top-rank-badge {
+#game[data-screen] .top-level-badge {
     display: flex !important;
     position: static;
-    grid-area: rank;
+    grid-area: level;
     width: 48px;
     height: 48px;
     margin: 0;
@@ -1238,7 +1238,7 @@ body.nav-open {
     #game[data-screen] .topbar {
         grid-template-columns: 40px minmax(0, 1fr) 46px 46px;
         grid-template-areas:
-            "menu brand rank settings"
+            "menu brand level settings"
             "xp xp xp xp"
             "crystals crystals crystals crystals";
         gap: 8px;
@@ -1274,7 +1274,7 @@ body.nav-open {
         letter-spacing: 0.15em;
     }
 
-    #game[data-screen] .top-rank-badge,
+    #game[data-screen] .top-level-badge,
     #game[data-screen] .icon-button {
         width: 46px;
         height: 46px;

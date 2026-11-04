@@ -4,16 +4,65 @@
     var Arquimago = global.Arquimago || {};
 
     Arquimago.getXpToNext = function (state) {
+        state = state || Arquimago.state;
+        if (Arquimago.getLevelXpRequirement) return Arquimago.getLevelXpRequirement(state, state.level);
         return Arquimago.xpRequiredForLevel(state.level);
     };
 
     Arquimago.getXpPercent = function (state) {
+        state = state || Arquimago.state;
         var need = Arquimago.getXpToNext(state);
-        return need <= 0 ? 100 : Math.min(100, (state.xp / need) * 100);
+        return need <= 0 ? 100 : Math.max(0, Math.min(100, (state.xp / need) * 100));
     };
 
-    Arquimago.checkMissionLevelUp = function () {
-        return false;
+    Arquimago.applyPendingLevelUps = function (state) {
+        state = state || Arquimago.state;
+        if (!state) return { gained: 0, level: 1 };
+
+        var config = Arquimago.LEVEL_PROGRESSION || {};
+        var maxLevel = Math.max(1, Number(config.maxLevel) || 1000000000);
+        var gained = 0;
+        var guard = 0;
+        while (state.level < maxLevel && guard < 100000) {
+            var required = Arquimago.getLevelXpRequirement ?
+                Arquimago.getLevelXpRequirement(state, state.level) : Arquimago.xpRequiredForLevel(state.level);
+            if (!(required > 0) || Number(state.xp) < required) break;
+            state.xp = Math.max(0, Number(state.xp) - required);
+            state.level += 1;
+            gained += 1;
+            guard += 1;
+            if (Arquimago.getTitleForLevel) state.title = Arquimago.getTitleForLevel(state.level);
+        }
+
+        if (state.level >= maxLevel) {
+            state.level = maxLevel;
+            state.xp = 0;
+        }
+        return { gained: gained, level: state.level };
+    };
+
+    Arquimago.checkMissionLevelUp = function (anchorEl, options) {
+        var state = Arquimago.state;
+        if (!state) return false;
+        options = options || {};
+        var result = Arquimago.applyPendingLevelUps(state);
+        if (!result.gained) return false;
+
+        Arquimago.saveState(state);
+        if (!options.silent) {
+            var message = result.gained > 1 ?
+                "+" + result.gained + " levels · você chegou ao Level " + result.level :
+                "Level " + result.level + " alcançado!";
+            Arquimago.showNotification(message, "xp");
+            if (Arquimago.showLevelUp) {
+                Arquimago.showLevelUp(result.level, result.gained, function () {
+                    if (Arquimago.refreshAll) Arquimago.refreshAll(true);
+                });
+            } else if (Arquimago.refreshAll) {
+                Arquimago.refreshAll(true);
+            }
+        }
+        return true;
     };
 
     function addXPToCycleHistory(state, total, dateKey) {

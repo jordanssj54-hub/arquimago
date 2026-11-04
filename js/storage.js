@@ -142,7 +142,7 @@
 
         if (Arquimago.normalizeState) Arquimago.normalizeState(state);
 
-        var monthlySync = Arquimago.syncMonthlyCycle ? Arquimago.syncMonthlyCycle(state, month) : { changed: false, changes: [] };
+        var monthlySync = Arquimago.syncMonthlyCycle ? Arquimago.syncMonthlyCycle(state, month) : { changed: false };
 
         if (dayChanged) archiveDailyCycle(state, previousDay);
 
@@ -155,9 +155,7 @@
             state.weeklyDone = [];
             state.completedIds = [];
         }
-        if (Arquimago.getTotalAvailableMissionXP) {
-            state.dailyAvailableXP = Arquimago.getTotalAvailableMissionXP(state);
-        }
+        if (Arquimago.getDailyMissionXpPotential) state.dailyAvailableXP = Arquimago.getDailyMissionXpPotential(state);
 
         if (state.weeklyDate !== week) {
             state.weeklyDate = week;
@@ -173,13 +171,10 @@
             state.daysUsingApp = Math.max(0, Number(state.daysUsingApp) || 0) + 1;
         }
 
-        if (Arquimago.updateDailyRank) Arquimago.updateDailyRank(state);
-
         Arquimago.lastDateSync = {
             dayChanged: dayChanged,
             monthChanged: !!previousMonth && previousMonth !== month,
-            monthlyInitialized: !previousMonth,
-            monthlyChanges: monthlySync.changes || []
+            monthlyInitialized: !previousMonth
         };
 
         return state;

@@ -12,29 +12,6 @@
    O centro do PNG é transparente; somente a moldura externa é reutilizada.
    ------------------------------------------------------------------------- */
 
-/* O badge de rank usa o recorte extraido da referencia do Perfil. */
-.top-rank-badge {
-    --top-rank-badge-image: url("../assets/ui/home-reference/top-rank-badge-frame.png");
-    border: 0;
-    border-radius: 0;
-    background-color: #050609;
-    background-image: var(--top-rank-badge-image);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    box-shadow: none;
-    clip-path: none;
-}
-
-.top-rank-badge[data-rank="D"] {
-    --top-rank-badge-image: url("../assets/ui/home-reference/top-rank-badge.png");
-}
-
-.top-rank-badge[data-rank="D"] > span,
-.top-rank-badge[data-rank="D"] > strong {
-    visibility: hidden;
-}
-
 .main-frame {
     --frame-b: clamp(28px, 3.4vmin, 42px);
     --frame-s: clamp(24px, 2.8vmin, 36px);

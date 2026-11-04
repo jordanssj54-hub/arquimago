@@ -53,7 +53,7 @@
 
 .home-widget__body > .panel,
 .home-widget__body > .home-boss-card,
-.home-widget__body > .home-rank-card,
+.home-widget__body > .home-level-card,
 .home-widget__body > .home-slideshow {
     margin: 0;
     width: 100%;

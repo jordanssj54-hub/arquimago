@@ -2,7 +2,7 @@
     "use strict";
 
     var Arquimago = global.Arquimago || {};
-    var selectedAttribute = "strength";
+    var selectedAttribute = "physical";
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -68,7 +68,7 @@
     Arquimago.renderAttributes = function () {
         var container = document.getElementById("attributes");
         if (!container || !Arquimago.state) return;
-        if (!Arquimago.ATTRIBUTE_DEFINITIONS[selectedAttribute]) selectedAttribute = "strength";
+        if (!Arquimago.ATTRIBUTE_DEFINITIONS[selectedAttribute]) selectedAttribute = "physical";
 
         var state = Arquimago.state;
         var html = '<div class="attributes-page">';

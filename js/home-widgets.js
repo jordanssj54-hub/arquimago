@@ -4,7 +4,17 @@
     var Arquimago = global.Arquimago || {};
 
     var LAYOUT_KEY = "arquimago_home_layout_v3";
-    var REFERENCE_ORDER = ["rank", "xp", "finance", "missions", "ascension", "monthly"];
+    var REFERENCE_ORDER = ["hero", "journey", "shortcuts", "attributes", "challenge"];
+    var LEGACY_WIDGET_IDS = {
+        rank: "hero",
+        level: "hero",
+        xp: "hero",
+        finance: "shortcuts",
+        missions: "journey",
+        ascension: "attributes",
+        monthly: "hero",
+        class: "attributes"
+    };
     var SIZE_LABELS = {
         small: "Pequeno",
         medium: "Médio",
@@ -27,9 +37,14 @@
             if (raw) {
                 var saved = JSON.parse(raw);
                 if (saved && typeof saved === "object") {
-                    base.order = Array.isArray(saved.order) ? saved.order : [];
+                    base.order = Array.isArray(saved.order) ? saved.order.map(function (id) { return LEGACY_WIDGET_IDS[id] || id; }) : [];
                     base.sizes = saved.sizes && typeof saved.sizes === "object" ? saved.sizes : {};
                     base.visible = saved.visible && typeof saved.visible === "object" ? saved.visible : {};
+                    Object.keys(LEGACY_WIDGET_IDS).forEach(function (legacyId) {
+                        var currentId = LEGACY_WIDGET_IDS[legacyId];
+                        if (base.sizes[currentId] === undefined && base.sizes[legacyId] !== undefined) base.sizes[currentId] = base.sizes[legacyId];
+                        if (base.visible[currentId] === undefined && base.visible[legacyId] !== undefined) base.visible[currentId] = base.visible[legacyId];
+                    });
                 }
             }
         } catch (e) {}

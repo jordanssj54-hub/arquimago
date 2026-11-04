@@ -14,21 +14,20 @@
         if (!state) return;
 
         var name = Arquimago.getDisplayName ? Arquimago.getDisplayName() : "Arquimago";
-        var rankData = Arquimago.getDailyRankData ? Arquimago.getDailyRankData(state) : { rank: "D" };
-        var monthly = Arquimago.getMonthlyProgress ? Arquimago.getMonthlyProgress(state) : { earned: 0, goal: 0, goalPercent: 0 };
+        var levelProgress = Arquimago.getLevelProgress ? Arquimago.getLevelProgress(state) : { level: state.level || 1, earned: state.xp || 0, required: 0, percent: 0, maxed: false };
         var formatNumber = Arquimago.formatNumber || function (value) { return String(value || 0); };
 
         document.querySelectorAll("[data-drawer-player-name]").forEach(function (el) {
             el.textContent = name;
         });
-        document.querySelectorAll("[data-drawer-rank]").forEach(function (el) {
-            el.textContent = rankData.rank || "D";
+        document.querySelectorAll("[data-drawer-level]").forEach(function (el) {
+            el.textContent = formatNumber(levelProgress.level);
         });
         document.querySelectorAll("[data-drawer-xp]").forEach(function (el) {
-            el.textContent = formatNumber(monthly.earned) + " / " + formatNumber(monthly.goal) + " XP";
+            el.textContent = levelProgress.maxed ? "LEVEL MÁXIMO" : formatNumber(levelProgress.earned) + " / " + formatNumber(levelProgress.required) + " XP";
         });
         document.querySelectorAll("[data-drawer-xp-fill]").forEach(function (el) {
-            el.style.width = Math.min(100, Math.max(0, Number(monthly.goalPercent) || 0)) + "%";
+            el.style.width = Math.min(100, Math.max(0, Number(levelProgress.percent) || 0)) + "%";
         });
         document.querySelectorAll("[data-drawer-avatar]").forEach(function (el) {
             el.src = state.customAvatar || "projeto/cardperfil.png";
