@@ -36,16 +36,21 @@
 
     Arquimago.closeMobileNavigation = function () {
         var game = document.getElementById("game");
+        var drawer = document.getElementById("mainNavigation");
         var scrim = document.getElementById("navScrim");
         var mobileToggle = document.getElementById("mobileNavToggle");
         if (game) game.classList.remove("nav-mobile-open");
+        if (drawer) drawer.scrollTop = 0;
         if (scrim) scrim.hidden = true;
         if (mobileToggle) mobileToggle.setAttribute("aria-expanded", "false");
         document.body.classList.remove("nav-open");
     };
 
     Arquimago.initNavigation = function () {
-        if (navigationInitialized) return;
+        if (navigationInitialized) {
+            Arquimago.closeMobileNavigation();
+            return;
+        }
         navigationInitialized = true;
 
         var game = document.getElementById("game");
@@ -185,6 +190,11 @@
 
         if (scrim) scrim.addEventListener("click", function () { setMobileOpen(false); });
 
+        global.addEventListener("pageshow", function () {
+            setMobileOpen(false);
+            if (drawer) drawer.scrollTop = 0;
+        });
+
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape" && game.classList.contains("nav-mobile-open")) {
                 setMobileOpen(false);
@@ -202,6 +212,7 @@
             if (game) game.setAttribute("data-screen", activeTab.dataset.screen);
             activeTab.setAttribute("aria-current", "page");
         }
+        setMobileOpen(false);
         Arquimago.refreshDrawerProfile();
     };
 

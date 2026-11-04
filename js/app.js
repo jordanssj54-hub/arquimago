@@ -90,6 +90,7 @@
         dateSyncTimer = null;
         offlineMode = false;
         if (Arquimago.stopMusic) Arquimago.stopMusic();
+        if (Arquimago.closeMobileNavigation) Arquimago.closeMobileNavigation();
         var game = document.getElementById("game");
         if (game) {
             game.hidden = true;
