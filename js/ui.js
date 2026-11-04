@@ -82,9 +82,9 @@
     function missionPanelHtml(ctx) {
         var dayProgress = ctx.dayProgress;
         return '<section class="home-journey-card">' +
-            '<span class="home-journey-card__icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="11" y="15" width="42" height="39" rx="5"></rect><path d="M21 10v12M43 10v12M12 27h40M24 39l6 6 12-13"></path></svg></span>' +
-            '<div class="home-journey-card__copy"><h2>Jornada de Hoje</h2><p><strong>' + dayProgress.completed + '</strong> de ' + dayProgress.total + ' missões</p><span class="home-journey-card__track" role="progressbar" aria-label="Progresso das missões de hoje" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + dayProgress.percent + '"><i style="width:' + dayProgress.percent + '%"></i></span></div>' +
-            '<button type="button" class="home-journey-card__button" data-home-missions-open>Ver Missões <span aria-hidden="true">&#8594;</span></button>' +
+            '<span class="home-journey-card__icon" aria-hidden="true"><img src="assets/ui/home-reference/extracted/journey-calendar.png" alt=""></span>' +
+            '<div class="home-journey-card__copy"><h2>Jornada de Hoje</h2><p><strong>' + dayProgress.completed + '</strong> de ' + dayProgress.total + ' missões</p><span class="home-journey-card__track" role="progressbar" aria-label="Progresso das missões de hoje" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + dayProgress.percent + '"><i style="width:' + dayProgress.percent + '%"></i><img src="assets/ui/home-reference/extracted/journey-track-frame.png" alt="" aria-hidden="true"></span></div>' +
+            '<button type="button" class="home-journey-card__button" data-home-missions-open aria-label="Ver Missões"><img src="assets/ui/home-reference/extracted/journey-button.png" alt=""></button>' +
             '</section>';
     }
 
@@ -97,7 +97,7 @@
         return '<section class="home-profile-banner" aria-label="Resumo do perfil">' +
             '<img class="home-profile-banner__landscape" src="projeto/refs%20novas/home-header-castle.png" alt="" aria-hidden="true">' +
             '<div class="home-profile-banner__shade" aria-hidden="true"></div>' +
-            '<span class="home-profile-banner__avatar">' + avatar + '</span>' +
+            '<span class="home-profile-banner__avatar">' + avatar + '<img class="home-profile-banner__avatar-frame" src="assets/ui/home-reference/extracted/profile-avatar-frame.png" alt="" aria-hidden="true"></span>' +
             '<div class="home-profile-banner__identity"><h2>' + escapeHtml(Arquimago.getDisplayName()) + '</h2><p>' + escapeHtml(state.title || "Aprendiz do Recomeço") + '</p><strong class="home-profile-banner__level">LEVEL ' + Arquimago.formatNumber(progress.level) + '</strong></div>' +
             '<div class="home-profile-banner__xp"><span class="home-profile-banner__track" role="progressbar" aria-label="XP para o próximo nível" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(progress.percent) + '"><i style="width:' + progress.percent + '%"></i></span><strong>' + (progress.maxed ? 'LEVEL MÁXIMO' : Arquimago.formatNumber(progress.earned) + ' / ' + Arquimago.formatNumber(progress.required) + ' XP') + '</strong></div>' +
             '</section>';
@@ -105,10 +105,10 @@
 
     function shortcutIcon(id) {
         var icons = {
-            training: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 19v10M11 14v20M17 20v8M31 20v8M37 14v20M43 19v10M11 24h26"></path></svg>',
-            diet: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 15c-3-7 3-10 8-10M24 15c2-6 7-7 10-7M24 15c-12-7-19 1-17 12 2 10 8 16 17 16s15-6 17-16c2-11-6-19-17-12Z"></path></svg>',
-            finance: '<svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="18" cy="13" rx="12" ry="5"></ellipse><path d="M6 13v19c0 3 5 5 12 5 3 0 6-.4 8-1M6 21c0 3 5 5 12 5s12-2 12-5M6 29c0 3 5 5 12 5s12-2 12-5M30 26c7 0 12 2 12 5v10c0 3-5 5-12 5s-12-2-12-5V31"></path><path d="M18 34c0 3 5 5 12 5s12-2 12-5"></path></svg>',
-            goals: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="23" cy="25" r="17"></circle><circle cx="23" cy="25" r="9"></circle><circle cx="23" cy="25" r="2"></circle><path d="m24 24 17-17M33 7h8v8"></path></svg>'
+            training: '<img src="assets/ui/home-reference/extracted/shortcut-training.png" alt="" aria-hidden="true">',
+            diet: '<img src="assets/ui/home-reference/extracted/shortcut-diet.png" alt="" aria-hidden="true">',
+            finance: '<img src="assets/ui/home-reference/extracted/shortcut-finances.png" alt="" aria-hidden="true">',
+            goals: '<img src="assets/ui/home-reference/extracted/shortcut-goals.png" alt="" aria-hidden="true">'
         };
         return icons[id] || "";
     }
@@ -126,9 +126,12 @@
     }
 
     function attributeIcon(key) {
-        if (key === "physical") return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 20v8M10 15v18M16 21v6M32 21v6M38 15v18M44 20v8M10 24h28"></path></svg>';
-        if (key === "mental") return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 7c-4-4-12-1-12 5-6 1-8 9-4 13-3 6 1 12 7 12 2 5 8 6 12 2V10c0-1-1-2-3-3ZM24 7c4-4 12-1 12 5 6 1 8 9 4 13 3 6-1 12-7 12-2 5-8 6-12 2"></path><path d="M15 17c4 0 6 3 6 6M12 27c4-1 7 1 8 5M33 17c-4 0-6 3-6 6M36 27c-4-1-7 1-8 5M24 12v25"></path></svg>';
-        return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 6 18 9-18 9-18-9 18-9Z"></path><path d="m6 24 18 9 18-9M6 33l18 9 18-9"></path></svg>';
+        var icons = {
+            physical: "progress-physical.png",
+            mental: "progress-mental.png",
+            habits: "progress-habits.png"
+        };
+        return '<img src="assets/ui/home-reference/extracted/' + icons[key] + '" alt="" aria-hidden="true">';
     }
 
     function personalProgressHtml(state, options) {
@@ -145,7 +148,7 @@
         }).join("");
         var profileClass = options.profile ? ' profile-reference-card profile-reference-attributes' : '';
         var title = options.title || "Progresso Pessoal";
-        return '<section class="home-progress-card' + profileClass + '"><h2><span aria-hidden="true">▥</span> ' + escapeHtml(title) + '</h2><div class="home-progress-card__rows">' + rows + '</div>' + (options.detail ? '<div id="profileAttributeDetail"></div>' : '') + '</section>';
+        return '<section class="home-progress-card' + profileClass + '"><h2><img src="assets/ui/home-reference/extracted/progress-heading.png" alt="" aria-hidden="true"> ' + escapeHtml(title) + '</h2><div class="home-progress-card__rows">' + rows + '</div>' + (options.detail ? '<div id="profileAttributeDetail"></div>' : '') + '</section>';
     }
 
     Arquimago.attributeProgressCardHtml = personalProgressHtml;
@@ -155,9 +158,12 @@
         var maxHp = Math.max(1, Number(boss.maxHp) || 1);
         var percent = Math.round((hp / maxHp) * 100);
         var image = boss.image || "projeto/refs%20novas/1.%20boss-procrastinacao.png";
+        var actionButton = boss.defeated ?
+            '<button type="button" class="home-challenge-card__button" data-home-open-boss>Ver Boss <span aria-hidden="true">&#8594;</span></button>' :
+            '<button type="button" class="home-challenge-card__button home-challenge-card__button--reference" data-home-open-boss aria-label="Enfrentar"><img src="assets/ui/home-reference/extracted/challenge-button.png" alt=""></button>';
         return '<section class="home-challenge-card' + (boss.defeated ? ' is-defeated' : '') + '">' +
             '<img class="home-challenge-card__art" src="' + escapeHtml(image) + '" alt="" aria-hidden="true">' +
-            '<div class="home-challenge-card__content"><span class="home-challenge-card__eyebrow"><b aria-hidden="true">⚔</b> Desafio Atual</span><h2>' + escapeHtml(boss.name) + '</h2><p>' + hp + ' HP</p><span class="home-challenge-card__track" role="progressbar" aria-label="Vida restante de ' + escapeHtml(boss.name) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + percent + '"><i style="width:' + percent + '%"></i></span><button type="button" class="home-challenge-card__button" data-home-open-boss>' + (boss.defeated ? 'Ver Boss' : 'Enfrentar') + ' <span aria-hidden="true">&#8594;</span></button></div>' +
+            '<div class="home-challenge-card__content"><span class="home-challenge-card__eyebrow"><b aria-hidden="true"><img src="assets/ui/home-reference/extracted/challenge-swords.png" alt="" aria-hidden="true"></b> Desafio Atual</span><h2>' + escapeHtml(boss.name) + '</h2><p>' + hp + ' HP</p><span class="home-challenge-card__track" role="progressbar" aria-label="Vida restante de ' + escapeHtml(boss.name) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + percent + '"><i style="width:' + percent + '%"></i></span>' + actionButton + '</div>' +
             '</section>';
     }
 
