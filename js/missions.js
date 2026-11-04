@@ -180,6 +180,19 @@
         return arr ? arr.indexOf(mission.id) !== -1 : false;
     }
 
+    function revokeMissionXP(state, mission) {
+        if (!state || !mission) return 0;
+        if (!state.missionXpAwards || typeof state.missionXpAwards !== "object") state.missionXpAwards = {};
+
+        var award = state.missionXpAwards[mission.id];
+        if (award && award.reversed) return 0;
+        var amount = award ? Math.max(0, Number(award.xp) || 0) : Math.max(0, Number(mission.xp) || 0);
+        var date = award && award.date ? award.date : (Arquimago.getTodayKey ? Arquimago.getTodayKey() : "");
+        state.missionXpAwards[mission.id] = { date: date, xp: 0, reversed: true };
+        if (amount && Arquimago.revokeXP) Arquimago.revokeXP(amount, date);
+        return amount;
+    }
+
     function findMission(type, id) {
         if (type.indexOf("custom_") === 0) {
             var customs = Arquimago.getCustomMissions();
@@ -255,7 +268,10 @@
 
             Arquimago.saveState(state);
 
-            Arquimago.gainXP(mission.xp, anchor, completionDate, { deferRefresh: true, skipSound: true });
+            var awardedXP = Arquimago.gainXP(mission.xp, anchor, completionDate, { deferRefresh: true, skipSound: true });
+            if (!state.missionXpAwards || typeof state.missionXpAwards !== "object") state.missionXpAwards = {};
+            state.missionXpAwards[mission.id] = { date: completionDate, xp: awardedXP, reversed: false };
+            Arquimago.saveState(state);
             setTimeout(function () {
                 var leveledUp = Arquimago.checkMissionLevelUp ? Arquimago.checkMissionLevelUp(anchor) : false;
                 if (!leveledUp && Arquimago.refreshAll) Arquimago.refreshAll(true);
@@ -267,6 +283,7 @@
                 state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (id) { return id !== mission.id; });
             }
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
+            revokeMissionXP(state, mission);
 
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
 
@@ -353,6 +370,7 @@
                 state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (missionId) { return missionId !== id; });
             }
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
+            revokeMissionXP(state, mission);
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, mission);
         }
 
@@ -870,6 +888,7 @@
             if (Array.isArray(state.dailyCompletedMissionIds)) {
                 state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (id) { return id !== entry.mission.id; });
             }
+            revokeMissionXP(state, entry.mission);
             if (Arquimago.revertMissionProgress) Arquimago.revertMissionProgress(state, entry.mission);
         });
         state.missionsCompleted = Math.max(0, state.missionsCompleted - entries.length);

@@ -4,19 +4,30 @@
 
 .auth-gate {
     min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
-    padding: 24px;
+    padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
     background: radial-gradient(circle at 50% 35%, rgba(74, 127, 212, .12), transparent 40%), #030308;
+    pointer-events: auto;
+    touch-action: pan-y;
 }
 
 .auth-gate__panel {
+    position: relative;
+    z-index: 1;
     width: min(100%, 440px);
     padding: 48px 36px 36px;
     text-align: center;
     border: 1px solid rgba(201, 168, 76, .35);
     background: rgba(12, 12, 24, .94);
     box-shadow: 0 20px 80px rgba(0, 0, 0, .55), 0 0 40px rgba(74, 127, 212, .08);
+    pointer-events: auto;
+}
+
+.auth-gate button,
+.auth-gate input {
+    touch-action: manipulation;
 }
 
 .auth-gate__seal {

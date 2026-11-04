@@ -151,6 +151,7 @@
         weeklyDone: [],
         habitsDone: [],
         customMissions: [],
+        missionXpAwards: {},
         hiddenMissionIds: [],
         deletedMissionIds: [],
         missionOverrides: {},

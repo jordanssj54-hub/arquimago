@@ -295,6 +295,8 @@ body.intro-active { overflow: hidden; }
 }
 
 #game.visible { opacity: 1; }
+#game[hidden],
+body.auth-active #game { display: none !important; }
 
 .topbar {
     display: flex;

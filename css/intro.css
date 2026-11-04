@@ -13,6 +13,15 @@
     text-align: center;
 }
 
+#intro-root.auth-gate-root {
+    position: fixed;
+    inset: 0;
+    z-index: 10002;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .app-boot__emblem {
     width: 74px;
     height: 74px;

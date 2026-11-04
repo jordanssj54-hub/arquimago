@@ -606,6 +606,7 @@
         state.dailyHistory = Array.isArray(state.dailyHistory) ? state.dailyHistory : [];
         state.monthlyHistory = Array.isArray(state.monthlyHistory) ? state.monthlyHistory : [];
         state.customMissions = Array.isArray(state.customMissions) ? state.customMissions : [];
+        state.missionXpAwards = state.missionXpAwards && typeof state.missionXpAwards === "object" ? state.missionXpAwards : {};
         state.hiddenMissionIds = Array.isArray(state.hiddenMissionIds) ? state.hiddenMissionIds : [];
         state.deletedMissionIds = Array.isArray(state.deletedMissionIds) ? state.deletedMissionIds : [];
         state.missionOverrides = state.missionOverrides && typeof state.missionOverrides === "object" ? state.missionOverrides : {};

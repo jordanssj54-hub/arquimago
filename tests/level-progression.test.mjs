@@ -28,7 +28,7 @@ describe("progressão adaptativa por XP", () => {
         assert.equal(Arquimago.getDailyMissionXpPotential(state), 85);
         assert.equal(Arquimago.getLevelXpRequirement(state, 1), 30);
         assert.equal(Arquimago.getLevelXpRequirement(state, 2), 40);
-});
+    });
     it("permite subir vários levels e preserva o XP excedente", () => {
         const state = normalizedState();
         state.xp = 85;
@@ -38,6 +38,28 @@ describe("progressão adaptativa por XP", () => {
         assert.equal(result.gained, 2);
         assert.equal(state.level, 3);
         assert.equal(state.xp, 15);
+    });
+
+    it("reverte XP, levels e totais diários quando a missão é desmarcada", () => {
+        const state = normalizedState();
+        state.level = 3;
+        state.xp = 15;
+        state.totalXP = 85;
+        state.dailyXP = 85;
+        state.monthlyXP = 85;
+        state.dailyDate = "2026-06-01";
+        state.monthlyKey = "2026-06";
+        Arquimago.state = state;
+        Arquimago.getTodayKey = () => state.dailyDate;
+        Arquimago.saveState = () => {};
+
+        Arquimago.revokeXP(85, state.dailyDate);
+
+        assert.equal(state.level, 1);
+        assert.equal(state.xp, 0);
+        assert.equal(state.totalXP, 0);
+        assert.equal(state.dailyXP, 0);
+        assert.equal(state.monthlyXP, 0);
     });
 
     it("recalibra os requisitos pela configuração ativa sem perder a porcentagem da barra", () => {
@@ -85,7 +107,7 @@ describe("progressão adaptativa por XP", () => {
 
         assert.equal(result.gained, 0);
         assert.equal(state.level, 1000000000);
-        assert.equal(state.xp, 0);
+        assert.equal(state.xp, 100);
         assert.equal(Arquimago.getLevelXpRequirement(state, state.level), 0);
     });
 

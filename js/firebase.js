@@ -475,6 +475,7 @@
 
         authMode = mode || "landing";
         document.body.classList.add("auth-active");
+        root.classList.add("auth-gate-root");
         root.innerHTML =
             '<div class="auth-gate" id="authGate">' +
                 '<div class="auth-gate__panel" role="dialog" aria-labelledby="authGateTitle">' +
@@ -644,7 +645,7 @@
         return String(item.id || item.date || item.month || item.key || JSON.stringify(item));
     }
 
-    function mergeArray(remoteList, localList, keyFn) {
+    function mergeArray(remoteList, localList, keyFn, preferRemote) {
         var result = Array.isArray(remoteList) ? clone(remoteList) : [];
         (Array.isArray(localList) ? localList : []).forEach(function (item, index) {
             var key = keyFn ? keyFn(item, index) : itemKey(item, index);
@@ -656,7 +657,8 @@
                 }
             }
             if (found === -1) result.push(clone(item));
-            else if (keyFn && (keyFn === historyKey || keyFn === trophyKey)) result[found] = mergeHistory(result[found], item);
+            else if (keyFn === historyKey) result[found] = chooseHistoryItem(result[found], item, preferRemote);
+            else if (keyFn === trophyKey) result[found] = mergeHistory(result[found], item);
             else result[found] = clone(item);
         });
         return result;
@@ -681,6 +683,10 @@
             }
         });
         return result;
+    }
+
+    function chooseHistoryItem(remoteItem, localItem, preferRemote) {
+        return clone(preferRemote ? (remoteItem || localItem) : (localItem || remoteItem));
     }
 
     function mergeMap(remoteMap, localMap, numericMode) {
@@ -715,45 +721,30 @@
         fin.guardado = guardado;
     }
 
-    function storedAttributeTotal(value) {
-        if (value && typeof value === "object") value = value.total;
-        return Math.max(0, Number(value) || 0);
-    }
-
-    function migratedAttributeTotal(attributes, key) {
-        attributes = attributes && typeof attributes === "object" ? attributes : {};
-        if (Object.prototype.hasOwnProperty.call(attributes, key)) return storedAttributeTotal(attributes[key]);
-        if (key === "physical") {
-            var strengthKey = Object.prototype.hasOwnProperty.call(attributes, "strength") ? "strength" : "discipline";
-            var vitalityKey = Object.prototype.hasOwnProperty.call(attributes, "vitality") ? "vitality" : "consistency";
-            return storedAttributeTotal(attributes[strengthKey]) + storedAttributeTotal(attributes[vitalityKey]);
-        }
-        if (key === "mental") {
-            var mentalKey = Object.prototype.hasOwnProperty.call(attributes, "intelligence") ? "intelligence" : "wisdom";
-            return storedAttributeTotal(attributes[mentalKey]);
-        }
-        if (key === "habits") return storedAttributeTotal(attributes.spirit);
-        return 0;
-    }
-
     function mergeState(localState, remoteState, preferRemote) {
         var defaults = Arquimago.DEFAULT_STATE || {};
         var local = clone(localState || {});
         var remote = clone(remoteState || {});
         var result = clone(remote);
-        var numericMax = ["level", "xp", "totalXP", "missionsCompleted", "playTimeSeconds", "dailyXP", "dailyAvailableXP", "monthlyXP", "monthlyAvailableXP", "monthlyGoalXP", "daysUsingApp"];
+        var numericMax = ["playTimeSeconds", "dailyAvailableXP", "monthlyAvailableXP", "monthlyGoalXP", "daysUsingApp"];
+        var progressionNumbers = ["level", "xp", "totalXP", "missionsCompleted", "dailyXP", "monthlyXP"];
         var booleanUnion = ["introSeen", "soundEnabled"];
-        var arrayFields = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone", "deletedMissionIds", "unlockedSpells", "achievements", "bossDamageEvents", "bossTrophies"];
+        var replaceableArrays = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone"];
+        var arrayFields = ["deletedMissionIds", "unlockedSpells", "achievements", "bossDamageEvents", "bossTrophies"];
 
         Object.keys(defaults).forEach(function (key) {
-            if (numericMax.indexOf(key) !== -1) {
+            if (progressionNumbers.indexOf(key) !== -1) {
+                result[key] = chooseValue(local[key], remote[key], defaults[key], preferRemote);
+            } else if (numericMax.indexOf(key) !== -1) {
                 result[key] = Math.max(Number(remote[key]) || 0, Number(local[key]) || 0);
             } else if (booleanUnion.indexOf(key) !== -1) {
                 result[key] = key === "soundEnabled" ? chooseValue(local[key], remote[key], defaults[key], preferRemote) : !!(local[key] || remote[key]);
+            } else if (replaceableArrays.indexOf(key) !== -1) {
+                result[key] = chooseValue(local[key], remote[key], defaults[key], preferRemote);
             } else if (arrayFields.indexOf(key) !== -1) {
                 result[key] = mergeArray(remote[key], local[key], key === "bossTrophies" ? trophyKey : null);
             } else if (key === "dailyHistory" || key === "monthlyHistory") {
-                result[key] = mergeArray(remote[key], local[key], historyKey);
+                result[key] = mergeArray(remote[key], local[key], historyKey, preferRemote);
             } else if (key === "customMissions" || key === "grimoireData") {
                 if (preferRemote) {
                     result[key] = Array.isArray(remote[key]) && remote[key].length ? clone(remote[key]) : clone(local[key] || []);
@@ -761,7 +752,9 @@
                     result[key] = mergeArray(remote[key], local[key], function (item, index) { return item && item.id || itemKey(item, index); });
                 }
             } else if (key === "missionCompletionCounts") {
-                result[key] = mergeMap(remote[key], local[key], true);
+                result[key] = chooseValue(local[key], remote[key], defaults[key], preferRemote);
+            } else if (key === "missionXpAwards") {
+                result[key] = mergeMap(remote[key], local[key], false);
             } else if (key === "missionOverrides" || key === "grimoireFavs") {
                 if (preferRemote) {
                     result[key] = Object.keys(remote[key] || {}).length ? clone(remote[key]) : clone(local[key] || {});
@@ -769,13 +762,7 @@
                     result[key] = mergeMap(remote[key], local[key], false);
                 }
             } else if (key === "attributes") {
-                result[key] = {};
-                Object.keys(defaults.attributes || {}).forEach(function (attribute) {
-                    result[key][attribute] = { total: Math.max(
-                        migratedAttributeTotal(remote.attributes, attribute),
-                        migratedAttributeTotal(local.attributes, attribute)
-                    ) };
-                });
+                result[key] = chooseValue(local[key], remote[key], defaults[key], preferRemote);
             } else if (key === "financas") {
                 var remoteFinance = remote.financas || {};
                 var localFinance = local.financas || {};
@@ -838,7 +825,7 @@
             (state.unlockedSpells || []).some(function (spell) { return (defaults.unlockedSpells || []).indexOf(spell) === -1; }) ||
             (state.achievements || []).some(function (achievement) { return (defaults.achievements || []).indexOf(achievement) === -1; }) ||
             (state.grimoireData || []).length || Object.keys(state.grimoireFavs || {}).length ||
-            Object.keys(state.missionCompletionCounts || {}).length ||
+            Object.keys(state.missionCompletionCounts || {}).length || Object.keys(state.missionXpAwards || {}).length ||
             (state.financas && (Number(state.financas.saldoInicial) !== 0 || Number(state.financas.guardadoInicial) !== 0 ||
                 Number(state.financas.saldo) !== 0 || Number(state.financas.guardado) !== 0 ||
                  (state.financas.transacoes || []).length || (state.financas.despesas || []).length)));

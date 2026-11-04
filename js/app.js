@@ -17,7 +17,10 @@
         appStarted = true;
         document.body.classList.remove("auth-active");
         var root = document.getElementById("intro-root");
-        if (root) root.innerHTML = "";
+        if (root) {
+            root.classList.remove("auth-gate-root");
+            root.innerHTML = "";
+        }
         Arquimago.runIntro(function () {
             Arquimago.enterGame();
         });
