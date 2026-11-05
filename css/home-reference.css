@@ -3001,3 +3001,181 @@
     }
 
 }
+
+/* Compact portrait home layout for short viewports (e.g. iPhone 8). */
+@media (max-width: 390px) and (max-height: 750px) and (orientation: portrait) {
+    #game[data-screen="home"] {
+        height: 100vh;
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    #game[data-screen="home"] header.topbar {
+        flex: 0 0 auto;
+        min-height: 82px;
+        grid-template-columns: 48px minmax(0, 1fr) 48px;
+        padding: calc(6px + env(safe-area-inset-top)) 10px 6px;
+        background-size: 100% 100%, auto 270px;
+        background-position: center, center 16px;
+    }
+
+    #game[data-screen="home"] .mobile-nav-toggle,
+    #game[data-screen="home"] .icon-button {
+        width: 44px;
+        height: 44px;
+    }
+
+    #game[data-screen="home"] .home-logo-art {
+        width: min(205px, calc(100vw - 120px));
+    }
+
+    #game[data-screen="home"] .home-bell-icon {
+        padding: 8px;
+        border-radius: 11px;
+    }
+
+    #game[data-screen="home"] .home-bell-dot {
+        top: 2px;
+        right: 2px;
+        width: 10px;
+        height: 10px;
+    }
+
+    #game[data-screen="home"] .main-frame {
+        flex: 1 1 0;
+        height: auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    #game[data-screen="home"] .main-content {
+        height: 100%;
+        min-height: 0;
+        padding: 0 12px calc(82px + env(safe-area-inset-bottom));
+        overscroll-behavior-y: contain;
+    }
+
+    #game[data-screen="home"] .home-page--focused {
+        padding-bottom: 18px;
+    }
+
+    #game[data-screen="home"] .home-widget-grid {
+        row-gap: 12px;
+    }
+
+    #game[data-screen="home"] .home-profile-banner {
+        min-height: 184px;
+        padding: 12px 9px;
+        grid-template-columns: 82px minmax(0, 1fr);
+        grid-template-rows: minmax(96px, 1fr) 32px;
+        column-gap: 8px;
+    }
+
+    #game[data-screen="home"] .home-profile-banner__landscape {
+        top: -54px;
+        height: 270px;
+    }
+
+    #game[data-screen="home"] .home-profile-banner__avatar {
+        width: 76px;
+    }
+
+    #game[data-screen="home"] .home-profile-banner__identity h2 {
+        font-size: clamp(1.3rem, 5.2vw, 1.75rem);
+    }
+
+    #game[data-screen="home"] .home-profile-banner__identity p {
+        font-size: clamp(0.82rem, 3vw, 0.95rem);
+    }
+
+    #game[data-screen="home"] .home-profile-banner__level {
+        min-width: 124px;
+        min-height: 34px;
+        margin-top: 8px;
+        padding: 4px 10px;
+        font-size: 1.05rem;
+    }
+
+    #game[data-screen="home"] .home-profile-banner__xp {
+        gap: 6px;
+    }
+
+    #game[data-screen="home"] .home-profile-banner__track {
+        height: 14px;
+    }
+
+    #game[data-screen="home"] .home-profile-banner__xp > strong {
+        font-size: 0.72rem;
+    }
+
+    #game[data-screen="home"] .home-widget[data-widget-id="journey"] {
+        margin-top: 0;
+    }
+
+    #game[data-screen="home"] .home-journey-card {
+        min-height: 148px;
+        padding: 12px 10px;
+        grid-template-columns: 40px minmax(0, 1fr) 30px;
+        gap: 8px;
+    }
+
+    #game[data-screen="home"] .home-journey-card__icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    #game[data-screen="home"] .home-journey-card__copy h2 {
+        font-size: clamp(1rem, 4.3vw, 1.25rem);
+    }
+
+    #game[data-screen="home"] .home-journey-card__copy p {
+        margin-top: 4px;
+        font-size: 0.82rem;
+    }
+
+    #game[data-screen="home"] .home-journey-card__track {
+        height: 10px;
+        margin-top: 6px;
+    }
+
+    #game[data-screen="home"] .home-missions-details {
+        width: 30px;
+    }
+
+    #game[data-screen="home"] .home-missions-details > summary {
+        width: 30px;
+        height: 30px;
+        font-size: 1.25rem;
+    }
+
+    #game[data-screen="home"] .home-widget[data-widget-id="shortcuts"] {
+        margin-top: 0;
+    }
+
+    #game[data-screen="home"] .home-shortcuts {
+        gap: 6px;
+    }
+
+    #game[data-screen="home"] .home-shortcut {
+        min-height: 88px;
+        padding: 8px 2px;
+        gap: 4px;
+        border-radius: 13px;
+    }
+
+    #game[data-screen="home"] .home-shortcut img {
+        width: 23px;
+        height: 23px;
+    }
+
+    #game[data-screen="home"] .home-shortcut span {
+        font-size: 0.53rem;
+    }
+
+    #game[data-screen="home"] .home-widget[data-widget-id="attributes"],
+    #game[data-screen="home"] .home-widget[data-widget-id="challenge"] {
+        margin-top: 0;
+    }
+}
