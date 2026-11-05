@@ -172,6 +172,7 @@
         Arquimago.showNotification("+" + total + " XP" + (bonus ? " (evento ativo)" : ""), "xp");
 
         Arquimago.saveState(state);
+        if (Arquimago.checkPersonalRewards && !options.skipRewardCheck) Arquimago.checkPersonalRewards("xp");
         if (!options.deferRefresh) Arquimago.refreshAll(true);
 
         return total;

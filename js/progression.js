@@ -714,6 +714,9 @@
         state.bossTrophies = Array.isArray(state.bossTrophies) ? state.bossTrophies : [];
         state.bossDamageEvents = Array.isArray(state.bossDamageEvents) ? state.bossDamageEvents : [];
         state.missionCompletionCounts = state.missionCompletionCounts && typeof state.missionCompletionCounts === "object" ? state.missionCompletionCounts : {};
+        state.personalRewards = Array.isArray(state.personalRewards) ? state.personalRewards : [];
+        var normalizeReward = Arquimago.normalizePersonalReward;
+        state.personalRewards = state.personalRewards.filter(function (reward) { return normalizeReward(reward); });
 
         var previous = state.attributes && typeof state.attributes === "object" ? state.attributes : {};
         var attributes = {};

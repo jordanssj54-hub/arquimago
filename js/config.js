@@ -173,6 +173,7 @@
         achievements: ["recomeco"],
         grimoireData: [],
         grimoireFavs: {},
+        personalRewards: [],
         attributes: {
             physical: { level: 1, progress: 0, total: 0 },
             mental: { level: 1, progress: 0, total: 0 },

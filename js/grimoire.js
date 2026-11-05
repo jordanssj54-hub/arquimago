@@ -238,6 +238,10 @@
         html += '<div class="grimoire-progress"><div style="width:' + pct + '%"></div></div>';
         html += '</header>';
 
+        if (Arquimago.personalRewardsHtml) {
+            html += Arquimago.personalRewardsHtml();
+        }
+
         html += '<div class="grimoire-toolbar">';
         html += '<div class="grimoire-search">';
         html += '<span class="grimoire-search__icon" aria-hidden="true">🔍</span>';
@@ -270,6 +274,10 @@
         container.innerHTML = html;
 
         bindGrimoire(container);
+
+        if (Arquimago.bindPersonalRewards) {
+            Arquimago.bindPersonalRewards(container);
+        }
     };
 
     function filterBtn(id, label) {

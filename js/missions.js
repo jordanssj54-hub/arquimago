@@ -286,6 +286,7 @@
             Arquimago.saveState(state);
             setTimeout(function () {
                 var leveledUp = Arquimago.checkMissionLevelUp ? Arquimago.checkMissionLevelUp(anchor) : false;
+                if (Arquimago.checkPersonalRewards && !leveledUp) Arquimago.checkPersonalRewards("mission");
                 if (!leveledUp && Arquimago.refreshAll) Arquimago.refreshAll(true);
             }, 700);
         } else {

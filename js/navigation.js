@@ -120,6 +120,7 @@
             if (id === "boss") Arquimago.renderBoss && Arquimago.renderBoss();
             if (id === "financas") Arquimago.renderFinancas();
             if (id === "profile") Arquimago.renderProfile();
+            if (id === "grimoire") Arquimago.renderGrimoire && Arquimago.renderGrimoire();
             Arquimago.playClick();
             if (game && game.classList.contains("nav-mobile-open")) setMobileOpen(false);
         }
@@ -148,8 +149,17 @@
                 return;
             }
 
+            if (action === "grimoire") {
+                openScreen("grimoire");
+                global.setTimeout(function () {
+                    var panel = document.getElementById("personalRewardsPanel");
+                    if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 0);
+                return;
+            }
+
             if (Arquimago.showNotification) {
-                Arquimago.showNotification(action === "grimoire" ? "O Grimório será aberto em breve." : "A História será aberta em breve.", "xp");
+                Arquimago.showNotification("A História será aberta em breve.", "xp");
             }
         }
 

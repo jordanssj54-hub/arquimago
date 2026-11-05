@@ -114,6 +114,11 @@
             var rewardId = String(reward.id || index).replace(/[^a-zA-Z0-9_-]/g, "_");
             externalize(reward, "imagem", "grimoire-" + rewardId);
         });
+        (cloudState.personalRewards || []).forEach(function (reward, index) {
+            if (!reward || typeof reward !== "object") return;
+            var rewardId = String(reward.id || index).replace(/[^a-zA-Z0-9_-]/g, "_");
+            externalize(reward, "image", "personal-reward-" + rewardId);
+        });
 
         return Promise.all(uploads).then(function () { return cloudState; });
     }
@@ -751,6 +756,36 @@
                 } else {
                     result[key] = mergeArray(remote[key], local[key], function (item, index) { return item && item.id || itemKey(item, index); });
                 }
+            } else if (key === "personalRewards") {
+                var remoteRewards = {};
+                (remote[key] || []).forEach(function (item) {
+                    if (item && item.id) remoteRewards[item.id] = item;
+                });
+                var localRewards = {};
+                (local[key] || []).forEach(function (item) {
+                    if (item && item.id) localRewards[item.id] = item;
+                });
+                var mergedRewards = [];
+                Object.keys(localRewards).forEach(function (id) {
+                    var localItem = localRewards[id];
+                    var remoteItem = remoteRewards[id];
+                    var selection;
+                    if (localItem && remoteItem) {
+                        var localUnlocked = localItem.status === "unlocked";
+                        var remoteUnlocked = remoteItem.status === "unlocked";
+                        if (localUnlocked !== remoteUnlocked) selection = localUnlocked ? localItem : remoteItem;
+                        else if (localUnlocked && remoteUnlocked) {
+                            var localAt = (localItem.unlock && localItem.unlock.at) || "";
+                            var remoteAt = (remoteItem.unlock && remoteItem.unlock.at) || "";
+                            selection = String(remoteAt) > String(localAt) ? remoteItem : localItem;
+                        } else selection = localItem;
+                    } else selection = localItem || remoteItem;
+                    mergedRewards.push(clone(selection));
+                });
+                Object.keys(remoteRewards).forEach(function (id) {
+                    if (!localRewards[id]) mergedRewards.push(clone(remoteRewards[id]));
+                });
+                result[key] = mergedRewards;
             } else if (key === "missionCompletionCounts") {
                 result[key] = chooseValue(local[key], remote[key], defaults[key], preferRemote);
             } else if (key === "missionXpAwards") {
@@ -825,6 +860,7 @@
             (state.unlockedSpells || []).some(function (spell) { return (defaults.unlockedSpells || []).indexOf(spell) === -1; }) ||
             (state.achievements || []).some(function (achievement) { return (defaults.achievements || []).indexOf(achievement) === -1; }) ||
             (state.grimoireData || []).length || Object.keys(state.grimoireFavs || {}).length ||
+            (state.personalRewards || []).length ||
             Object.keys(state.missionCompletionCounts || {}).length || Object.keys(state.missionXpAwards || {}).length ||
             (state.financas && (Number(state.financas.saldoInicial) !== 0 || Number(state.financas.guardadoInicial) !== 0 ||
                 Number(state.financas.saldo) !== 0 || Number(state.financas.guardado) !== 0 ||

@@ -155,8 +155,12 @@
         Arquimago.startMusic();
         initSettings();
         if (Arquimago.initAuthControls) Arquimago.initAuthControls();
+        if (Arquimago.initPersonalRewards) Arquimago.initPersonalRewards();
         startPlayTimer();
         startDateSyncTimer();
+        global.setTimeout(function () {
+            if (Arquimago.checkPersonalRewards) Arquimago.checkPersonalRewards("startup");
+        }, 1600);
     };
 
     function initSettings() {
