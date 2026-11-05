@@ -148,12 +148,6 @@
         return list;
     }
 
-    function rewardCategories() {
-        var seen = {};
-        Arquimago.getGrimoireRewards().forEach(function (r) { seen[r.categoria] = true; });
-        return Object.keys(seen).sort();
-    }
-
     /* ============================================================
        Cards
        ============================================================ */
@@ -273,21 +267,6 @@
         html += '<input type="text" id="grimoireSearch" placeholder="Buscar recompensa..." value="' + escapeHtml(searchQuery) + '" autocomplete="off" spellcheck="false">';
         html += '</div>';
 
-        html += '<div class="grimoire-filters">';
-        html += filterBtn("all", "Todas");
-        html += filterBtn("unlocked", "Desbloqueadas");
-        html += filterBtn("locked", "Bloqueadas");
-        html += filterBtn("favorites", "Favoritas");
-        html += '</div>';
-
-        var cats = rewardCategories();
-        html += '<div class="grimoire-cats">';
-        html += catBtn("all", "Todas");
-        cats.forEach(function (c) {
-            html += catBtn(c, c);
-        });
-        html += '</div>';
-
         html += '<div class="grimoire-toolbar__actions">';
         html += '<button type="button" class="btn-primary compact" id="addRewardButton">＋ Nova Recompensa</button>';
         html += '</div>';
@@ -305,14 +284,6 @@
         }
     };
 
-    function filterBtn(id, label) {
-        return '<button type="button" class="grimoire-filter' + (filterTab === id ? " is-active" : "") + '" data-filter="' + id + '">' + label + '</button>';
-    }
-
-    function catBtn(id, label) {
-        return '<button type="button" class="grimoire-cat' + (categoryFilter === id ? " is-active" : "") + '" data-cat="' + id + '">' + escapeHtml(label) + '</button>';
-    }
-
     function refreshGrid() {
         var grid = document.getElementById("grimoireGrid");
         if (!grid) return;
@@ -329,28 +300,6 @@
                 refreshGrid();
             });
         }
-
-        container.querySelectorAll("[data-filter]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                Arquimago.playClick();
-                filterTab = btn.getAttribute("data-filter");
-                var actives = container.querySelectorAll(".grimoire-filter.is-active");
-                actives.forEach(function (el) { el.classList.remove("is-active"); });
-                btn.classList.add("is-active");
-                refreshGrid();
-            });
-        });
-
-        container.querySelectorAll("[data-cat]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                Arquimago.playClick();
-                categoryFilter = btn.getAttribute("data-cat");
-                var actives = container.querySelectorAll(".grimoire-cat.is-active");
-                actives.forEach(function (el) { el.classList.remove("is-active"); });
-                btn.classList.add("is-active");
-                refreshGrid();
-            });
-        });
 
         var addBtn = container.querySelector("#addRewardButton");
         if (addBtn) {

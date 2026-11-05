@@ -45,13 +45,15 @@
 /* ── Toolbar ── */
 .grimoire-toolbar {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    gap: 14px;
     margin-bottom: 24px;
+    flex-wrap: wrap;
 }
 
 .grimoire-search {
     position: relative;
+    flex: 1 1 260px;
     display: flex;
     align-items: center;
 }
@@ -82,51 +84,6 @@
     box-shadow: 0 0 0 1px var(--border-gold);
 }
 
-.grimoire-filters,
-.grimoire-cats {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.grimoire-filter,
-.grimoire-cat {
-    padding: 7px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--text-muted);
-    font-family: var(--font-body);
-    font-size: 0.78rem;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.grimoire-filter:hover,
-.grimoire-cat:hover {
-    border-color: var(--border-gold);
-    color: var(--text);
-}
-
-.grimoire-filter.is-active {
-    background: rgba(201, 168, 76, 0.14);
-    border-color: var(--gold);
-    color: var(--gold-light);
-    box-shadow: var(--fx-glow-soft);
-}
-
-.grimoire-cat.is-active {
-    background: rgba(74, 127, 212, 0.14);
-    border-color: var(--magic);
-    color: var(--magic);
-}
-
-.grimoire-toolbar__actions {
-    display: flex;
-    justify-content: flex-end;
-}
-
 /* ── Grid ── */
 .grimoire-grid {
     display: grid;
@@ -134,35 +91,29 @@
     gap: 14px;
 }
 
-/* Cards usam o mesmo contorno 9-slice dos cards da home (referência moderna). */
+/* Cards no mesmo formato flat dos cards de boss e progresso. */
 .grimoire-card {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 16px 14px 14px;
-    border-radius: 0;
-    border-style: solid;
-    border-color: transparent;
-    border-width: 18px 18px 17px 18px;
-    border-image-source: url("../assets/ui/home-reference/card-frame.png");
-    border-image-slice: 18 18 17 18;
-    border-image-width: 18px 18px 17px 18px;
-    border-image-repeat: stretch;
-    background-color: #050609;
-    background-image: url("../assets/ui/home-reference/panel-texture.png");
-    background-position: center;
-    background-size: cover;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
     box-shadow: none;
     cursor: pointer;
-    transition: filter 0.3s ease;
     overflow: hidden;
+    transition: border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
 }
 
-.grimoire-card.is-unlocked:hover {
-    border-color: transparent;
-    box-shadow: none;
-    filter: brightness(1.1);
+.grimoire-card:hover,
+.grimoire-card:focus-visible {
+    border-color: var(--border-gold);
+    background: var(--bg-elevated);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    outline: none;
 }
 
 .grimoire-card.is-locked {
@@ -942,7 +893,7 @@
     }
 
     .grimoire-card {
-        padding: 14px 12px 12px;
+        padding: 10px;
     }
 
     .grimoire-card__icon {
