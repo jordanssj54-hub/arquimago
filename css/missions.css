@@ -514,6 +514,19 @@
     box-shadow: 0 0 6px var(--gold);
 }
 
+.mission-item__bonus {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border: 1px solid rgba(177, 118, 244, 0.4);
+    border-radius: 999px;
+    color: #d5b4ff;
+    background: rgba(177, 118, 244, 0.14);
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .mission-item.completed .mission-item__xp {
     color: var(--magic);
     background: rgba(74, 127, 212, 0.1);

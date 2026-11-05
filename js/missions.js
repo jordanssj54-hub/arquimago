@@ -46,7 +46,7 @@
 
     var formCache = {
         name: "",
-        xp: "4",
+        xp: "25",
         freq: "daily",
         objective: "",
         icon: "🎯",
@@ -268,7 +268,9 @@
 
             Arquimago.saveState(state);
 
-            var awardedXP = Arquimago.gainXP(mission.xp, anchor, completionDate, { deferRefresh: true, skipSound: true });
+            var dailyBonusXP = Arquimago.getDailyMissionBonusXp ? Arquimago.getDailyMissionBonusXp(mission, state) : 0;
+            var awardedXP = Arquimago.gainXP((Number(mission.xp) || 0) + dailyBonusXP, anchor, completionDate, { deferRefresh: true, skipSound: true });
+            if (dailyBonusXP) Arquimago.showNotification("Missão bônus: +" + dailyBonusXP + " XP extra", "xp");
             if (!state.missionXpAwards || typeof state.missionXpAwards !== "object") state.missionXpAwards = {};
             state.missionXpAwards[mission.id] = { date: completionDate, xp: awardedXP, reversed: false };
             Arquimago.saveState(state);
@@ -385,6 +387,7 @@
     function missionItemHtml(state, mission, type, freq, descText) {
         var done = isDone(state, mission, type);
         var attrName = mission.attribute ? (ATTR_NAMES[mission.attribute] || mission.attribute) : "";
+        var dailyBonusXP = Arquimago.getDailyMissionBonusXp ? Arquimago.getDailyMissionBonusXp(mission, state) : 0;
         var detailsExpanded = isMissionDetailsExpanded(mission.id);
         var detailsId = "mission-details-" + mission.id;
 
@@ -401,6 +404,7 @@
         html += '<span class="mission-item__name">' + escapeHtml(mission.name) + '</span>';
         html += '<span class="mission-item__freq mission-item__freq--' + freq.css + '">' + freq.label + '</span>';
         html += '<span class="mission-item__xp">' + mission.xp + ' XP</span>';
+        if (dailyBonusXP) html += '<span class="mission-item__bonus">✦ Bônus do dia +' + dailyBonusXP + ' XP</span>';
         html += '<div class="mission-item__actions">';
         html += '<button type="button" class="mission-item__details-toggle" data-toggle-mission-details="' + escapeHtml(mission.id) + '" aria-expanded="' + String(detailsExpanded) + '" aria-controls="' + escapeHtml(detailsId) + '" aria-label="' + (detailsExpanded ? "Ocultar informações de " : "Mostrar informações de ") + escapeHtml(mission.name) + '" title="' + (detailsExpanded ? "Ocultar informações" : "Mostrar informações") + '"><span class="mission-item__details-arrow" aria-hidden="true">&#9662;</span></button>';
         html += '</div>';
@@ -485,8 +489,8 @@
             '</div>' +
              '<div class="missions-form__field">' +
              '<label for="customXp">XP</label>' +
-             '<input type="number" id="customXp" min="1" max="100" inputmode="numeric" value="' + escapeHtml(formCache.xp) + '" required>' +
-             '<small class="missions-edit__hint">De 1 a 100 XP. O progresso de level se ajusta às suas missões ativas.</small>' +
+             '<input type="number" id="customXp" min="10" max="100" inputmode="numeric" value="' + escapeHtml(formCache.xp) + '" required>' +
+             '<small class="missions-edit__hint">De 10 a 100 XP. O progresso de nível se ajusta às suas missões ativas.</small>' +
              '</div>' +
             '<div class="missions-form__field">' +
             '<label for="customFreq">Frequência</label>' +
@@ -916,7 +920,8 @@
         state.dailyXP = 0;
         state.monthlyXP = 0;
         state.missionCompletionCounts = {};
-        state.levelMissionXpBasis = Arquimago.getDailyMissionXpPotential ? Arquimago.getDailyMissionXpPotential(state) : 85;
+        state.levelMissionXpBasis = Arquimago.getAverageMissionXp ? Arquimago.getAverageMissionXp(state) : 30;
+        state.levelProgressionVersion = Arquimago.LEVEL_PROGRESSION.version;
         state.unlockedSpells = (defaults.unlockedSpells || []).slice();
 
         state.attributes = {};
@@ -931,7 +936,7 @@
         state.dailyAvailableXP = availableXP;
         state.monthlyAvailableXP = Arquimago.getMonthlyAvailableMissionXP ? Arquimago.getMonthlyAvailableMissionXP(state, state.monthlyKey) : availableXP;
         state.monthlyGoalXP = Arquimago.getMonthlyGoalXP ? Arquimago.getMonthlyGoalXP(state.monthlyAvailableXP) : 0;
-        state.levelMissionXpBasis = availableXP || Arquimago.LEVEL_PROGRESSION.referenceDailyXP;
+        state.levelMissionXpBasis = Arquimago.getAverageMissionXp ? Arquimago.getAverageMissionXp(state) : Arquimago.LEVEL_PROGRESSION.referenceMissionXP;
         Arquimago.saveState(state);
     }
 
@@ -990,7 +995,7 @@
 
         var overrides = Arquimago.getMissionOverrides ? Arquimago.getMissionOverrides(state) : {};
         var ov = overrides[missionId];
-        var currentXp = ov && ov.xp !== undefined ? ov.xp : mission.xp;
+        var currentXp = Arquimago.clampMissionXp(ov && ov.xp !== undefined ? ov.xp : mission.xp);
         var selectedIcon = Arquimago.getMissionIcon ? Arquimago.getMissionIcon(mission) : (mission.icon || "🎯");
         var hasOverride = !!ov;
 
@@ -1003,8 +1008,8 @@
             '<form id="editMissionForm" autocomplete="off">' +
             '<div class="missions-form__field">' +
             '<label for="editMissionXp">XP</label>' +
-            '<input type="number" id="editMissionXp" min="1" max="100" inputmode="numeric" value="' + currentXp + '" required>' +
-            '<small class="missions-edit__hint">Entre 1 e 100 XP por conclusão.</small>' +
+            '<input type="number" id="editMissionXp" min="10" max="100" inputmode="numeric" value="' + currentXp + '" required>' +
+            '<small class="missions-edit__hint">Entre 10 e 100 XP por conclusão.</small>' +
             '</div>' +
             '<div class="missions-form__field missions-form__field--full">' +
             '<label for="editMissionIconPreview">Ícone</label>' +

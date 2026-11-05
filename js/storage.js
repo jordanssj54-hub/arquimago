@@ -155,7 +155,12 @@
             state.weeklyDone = [];
             state.completedIds = [];
         }
+        var previousBonusDate = state.dailyBonusDate;
+        var previousBonusMissionId = state.dailyBonusMissionId;
         if (Arquimago.getDailyMissionXpPotential) state.dailyAvailableXP = Arquimago.getDailyMissionXpPotential(state);
+        if ((state.dailyBonusDate !== previousBonusDate || state.dailyBonusMissionId !== previousBonusMissionId) && Arquimago.saveState) {
+            Arquimago.saveState(state);
+        }
 
         if (state.weeklyDate !== week) {
             state.weeklyDate = week;

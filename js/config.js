@@ -7,11 +7,21 @@
     Arquimago.MONTHLY_GOAL_FRACTION = 0.6;
     Arquimago.LEVEL_PROGRESSION = {
         maxLevel: 1000000000,
+        version: 2,
+        // Kept for migrating saved progress from the previous daily-pool formula.
         referenceDailyXP: 85,
-        customMissionXPMin: 1,
+        referenceMissionXP: 30,
+        customMissionXPMin: 10,
         customMissionXPMax: 100,
-        earlyLevelRequirements: [30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
-        longTermLogGrowth: 30
+        earlyLevelRequirements: [75, 100, 125, 150, 175, 200, 225, 250, 275, 300],
+        longTermLogGrowth: 75,
+        dailyBonusMultiplier: 0.5,
+        dailyBonusMinXP: 10,
+        firstWeekMultiplier: 1.2,
+        firstMonthMultiplier: 1.6,
+        longTermMultiplierCap: 2.2,
+        legacyEarlyLevelRequirements: [30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+        legacyLongTermLogGrowth: 30
     };
 
     /* Configure this policy before publishing email signup. Null deliberately blocks
@@ -122,6 +132,7 @@
         xp: 0,
         totalXP: 0,
         levelMissionXpBasis: 0,
+        levelProgressionVersion: null,
         streak: 0,
         template: "default",
         theme: "current",
@@ -145,6 +156,8 @@
         dailyXP: 0,
         dailyAvailableXP: 0,
         dailyCompletedMissionIds: [],
+        dailyBonusMissionId: "",
+        dailyBonusDate: "",
         dailyHistory: [],
         weeklyDate: "",
         dailyDone: [],
@@ -350,16 +363,16 @@
     Arquimago.MISSIONS = {
         main: [],
         daily: [
-            { id: "daily_meditacao", name: "Meditação diária", desc: "Meditar por 5 minutos.", objective: "Meditar por 5 minutos", category: "Mente", xp: 10, bossDamage: 20, attribute: "mental", icon: "🧘" },
-            { id: "daily_leitura", name: "Leitura diária", desc: "Ler por 10 minutos.", objective: "Ler por 10 minutos", category: "Mente", xp: 10, bossDamage: 20, attribute: "mental", icon: "📖" },
-            { id: "daily_movimente_corpo", name: "Movimente o corpo", desc: "Fazer 15 minutos de atividade física.", objective: "Fazer 15 minutos de atividade física", category: "Corpo", xp: 10, bossDamage: 25, attribute: "physical", icon: "🏃" },
-            { id: "daily_tempo_qualidade", name: "Tempo de qualidade", desc: "Dedicar 20 minutos a alguém importante.", objective: "Dedicar 20 minutos a alguém importante", category: "Vida", xp: 10, bossDamage: 18, attribute: "habits", icon: "❤️" },
-            { id: "daily_cuide_espaco", name: "Cuide do seu espaço", desc: "Organizar algum ambiente da casa.", objective: "Organizar algum ambiente da casa", category: "Casa", xp: 10, bossDamage: 18, attribute: "habits", icon: "🏠" },
-            { id: "daily_planeje_dia", name: "Planeje seu dia", desc: "Definir 3 prioridades.", objective: "Definir 3 prioridades", category: "Produtividade", xp: 5, bossDamage: 12, attribute: "habits", icon: "🎯" },
-            { id: "daily_sem_distracoes", name: "Vença as distrações", desc: "Ficar 20 minutos sem distrações digitais.", objective: "Ficar 20 minutos sem distrações digitais", category: "Foco", xp: 10, bossDamage: 20, attribute: "mental", icon: "📵" },
-            { id: "daily_autocuidado", name: "Cuide de si", desc: "Dedicar um momento ao autocuidado.", objective: "Dedicar um momento ao autocuidado", category: "Bem-estar", xp: 5, bossDamage: 12, attribute: "physical", icon: "🚿" },
-            { id: "daily_aprenda_algo", name: "Aprenda algo novo", desc: "Dedicar 15 minutos ao aprendizado.", objective: "Dedicar 15 minutos ao aprendizado", category: "Mente", xp: 10, bossDamage: 20, attribute: "mental", icon: "🧠" },
-            { id: "daily_encerre_dia", name: "Encerre seu dia", desc: "Revisar o dia e preparar o próximo.", objective: "Revisar o dia e preparar o próximo", category: "Produtividade", xp: 5, bossDamage: 12, attribute: "habits", icon: "🌙" }
+            { id: "daily_meditacao", name: "Meditação diária", desc: "Meditar por 5 minutos.", objective: "Meditar por 5 minutos", category: "Mente", xp: 20, bossDamage: 20, attribute: "mental", icon: "🧘" },
+            { id: "daily_leitura", name: "Leitura diária", desc: "Ler por 10 minutos.", objective: "Ler por 10 minutos", category: "Mente", xp: 25, bossDamage: 20, attribute: "mental", icon: "📖" },
+            { id: "daily_movimente_corpo", name: "Movimente o corpo", desc: "Fazer 15 minutos de atividade física.", objective: "Fazer 15 minutos de atividade física", category: "Corpo", xp: 35, bossDamage: 25, attribute: "physical", icon: "🏃" },
+            { id: "daily_tempo_qualidade", name: "Tempo de qualidade", desc: "Dedicar 20 minutos a alguém importante.", objective: "Dedicar 20 minutos a alguém importante", category: "Vida", xp: 40, bossDamage: 18, attribute: "habits", icon: "❤️" },
+            { id: "daily_cuide_espaco", name: "Cuide do seu espaço", desc: "Organizar algum ambiente da casa.", objective: "Organizar algum ambiente da casa", category: "Casa", xp: 30, bossDamage: 18, attribute: "habits", icon: "🏠" },
+            { id: "daily_planeje_dia", name: "Planeje seu dia", desc: "Definir 3 prioridades.", objective: "Definir 3 prioridades", category: "Produtividade", xp: 20, bossDamage: 12, attribute: "habits", icon: "🎯" },
+            { id: "daily_sem_distracoes", name: "Vença as distrações", desc: "Ficar 20 minutos sem distrações digitais.", objective: "Ficar 20 minutos sem distrações digitais", category: "Foco", xp: 35, bossDamage: 20, attribute: "mental", icon: "📵" },
+            { id: "daily_autocuidado", name: "Cuide de si", desc: "Dedicar um momento ao autocuidado.", objective: "Dedicar um momento ao autocuidado", category: "Bem-estar", xp: 25, bossDamage: 12, attribute: "physical", icon: "🚿" },
+            { id: "daily_aprenda_algo", name: "Aprenda algo novo", desc: "Dedicar 15 minutos ao aprendizado.", objective: "Dedicar 15 minutos ao aprendizado", category: "Mente", xp: 35, bossDamage: 20, attribute: "mental", icon: "🧠" },
+            { id: "daily_encerre_dia", name: "Encerre seu dia", desc: "Revisar o dia e preparar o próximo.", objective: "Revisar o dia e preparar o próximo", category: "Produtividade", xp: 25, bossDamage: 12, attribute: "habits", icon: "🌙" }
         ],
         weekly: [],
         habits: []
