@@ -205,15 +205,40 @@
         return html;
     }
 
+    function personalRewardsVisible() {
+        if (!Arquimago.getPersonalRewards || filterTab === "favorites" || categoryFilter !== "all") return [];
+        return (Arquimago.getPersonalRewards() || []).filter(function (reward) {
+            if (!reward || !reward.id) return false;
+            var pending = reward.status !== "unlocked";
+            if (filterTab === "locked" && !pending) return false;
+            if (filterTab === "unlocked" && pending) return false;
+            var query = String(searchQuery || "").trim().toLowerCase();
+            if (query) {
+                var haystack = ((reward.name || "") + " " + (reward.desc || "")).toLowerCase();
+                if (haystack.indexOf(query) === -1) return false;
+            }
+            return true;
+        });
+    }
+
     function grimoireGridHtml() {
         var list = visibleRewards();
-        if (!list.length) {
+        var personal = personalRewardsVisible();
+        if (!list.length && !personal.length) {
             return '<div class="grimoire-empty">Nenhuma recompensa encontrada com esses filtros.</div>';
         }
         var html = '';
         list.forEach(function (r) {
             html += rewardCardHtml(r);
         });
+        if (Arquimago.personalRewardCardHtml) {
+            personal.forEach(function (reward) {
+                html += Arquimago.personalRewardCardHtml(reward);
+            });
+        }
+        if (filterTab !== "favorites" && categoryFilter === "all") {
+            html += '<button type="button" class="grimoire-add-tile" id="addPersonalRewardTile"><b aria-hidden="true">＋</b><span>Nova Recompensa Pessoal</span></button>';
+        }
         return html;
     }
 
@@ -226,21 +251,21 @@
 
         var state = Arquimago.state;
         var all = Arquimago.getGrimoireRewards();
+        var personal = Arquimago.getPersonalRewards ?
+            (Arquimago.getPersonalRewards() || []).filter(function (r) { return r && r.id; }) : [];
         var unlockedCount = 0;
         all.forEach(function (r) { if (Arquimago.isGrimoireUnlocked(r)) unlockedCount++; });
-        var pct = all.length ? Math.round((unlockedCount / all.length) * 100) : 0;
+        personal.forEach(function (r) { if (r.status === "unlocked") unlockedCount++; });
+        var total = all.length + personal.length;
+        var pct = total ? Math.round((unlockedCount / total) * 100) : 0;
 
         var html = '<div class="grimoire-page">';
 
         html += '<header class="grimoire-header">';
         html += '<h2>Grimório de Recompensas</h2>';
-        html += '<p>' + unlockedCount + ' de ' + all.length + ' recompensas desbloqueadas</p>';
+        html += '<p>' + unlockedCount + ' de ' + total + ' recompensas desbloqueadas</p>';
         html += '<div class="grimoire-progress"><div style="width:' + pct + '%"></div></div>';
         html += '</header>';
-
-        if (Arquimago.personalRewardsHtml) {
-            html += Arquimago.personalRewardsHtml();
-        }
 
         html += '<div class="grimoire-toolbar">';
         html += '<div class="grimoire-search">';
@@ -293,6 +318,7 @@
         if (!grid) return;
         grid.innerHTML = grimoireGridHtml();
         bindGrid(grid);
+        if (Arquimago.bindPersonalRewards) Arquimago.bindPersonalRewards(document);
     }
 
     function bindGrimoire(container) {
@@ -355,8 +381,9 @@
 
         grid.querySelectorAll(".grimoire-card").forEach(function (card) {
             card.addEventListener("click", function () {
-                Arquimago.playClick();
                 var id = card.getAttribute("data-id");
+                if (!id) return;
+                Arquimago.playClick();
                 var reward = findReward(id);
                 if (reward) openDetailModal(reward);
             });

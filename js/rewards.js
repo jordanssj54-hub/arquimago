@@ -500,15 +500,8 @@
     }
 
     /* ============================================================
-       Seção de Recompensas Pessoais (dentro do Grimório)
+       Recompensas Pessoais dentro da grade do Grimório
        ============================================================ */
-    function rewardCoverHtml(reward) {
-        if (reward.image) {
-            return '<div class="pr-card__cover"><img src="' + escapeHtml(reward.image) + '" alt="' + escapeHtml(reward.name) + '" loading="lazy"></div>';
-        }
-        return '<div class="pr-card__cover pr-card__cover--empty"><span aria-hidden="true">✦</span></div>';
-    }
-
     function conditionRowHtml(status) {
         var percent = status.target > 0 ?
             Math.min(100, Math.round((status.width || (status.current / status.target) * 100))) : 0;
@@ -524,77 +517,53 @@
             '</li>';
     }
 
-    function personalRewardCardHtml(reward) {
-        var html = '<article class="grimoire-card pr-card pr-card--' + reward.status + '" data-personal-reward-id="' + escapeHtml(reward.id) + '" tabindex="0" role="button" aria-label="' + escapeHtml(reward.name) + '">';
-        html += rewardCoverHtml(reward);
-        if (reward.status === "unlocked") {
-            html += '<span class="pr-card__seal" aria-hidden="true">✦</span>';
-            html += '<h3 class="grimoire-card__name">' + escapeHtml(reward.name) + '</h3>';
-            if (reward.desc) html += '<p class="grimoire-card__desc">' + escapeHtml(reward.desc) + '</p>';
-            html += '<div class="pr-card__meta">';
-            if (reward.unlock && reward.unlock.dayKey) {
-                html += '<span class="pr-card__date">Conquistada em ' + escapeHtml(displayDate(reward.unlock.dayKey)) + '</span>';
-            }
-            html += '<span class="pr-card__xp">+' + formatCount(reward.bonusXp) + ' XP</span>';
-            html += '</div>';
-            if (reward.archivedInGrimoire) {
-                html += '<span class="pr-card__archived">✓ Guardada no Grimório</span>';
-            }
-        } else {
-            var statuses = conditionSummaries(Arquimago.state, reward);
-            var doneCount = statuses.filter(function (s) { return s.done; }).length;
-            var percent = statuses.length ? Math.round((doneCount / statuses.length) * 100) : 0;
-            html += '<h3 class="grimoire-card__name">' + escapeHtml(reward.name) + '</h3>';
-            if (reward.desc) html += '<p class="grimoire-card__desc">' + escapeHtml(reward.desc) + '</p>';
-            html += '<div class="pr-card__progress"><span>' + doneCount + ' de ' + statuses.length + ' condições</span><b>' + percent + '%</b></div>';
-            html += '<div class="pr-card__progress-bar"><i style="width:' + percent + '%"></i></div>';
-            html += '<ul class="pr-conditions">' + statuses.map(conditionRowHtml).join("") + '</ul>';
-            html += '<div class="pr-card__meta"><span class="pr-card__xp">+' + formatCount(reward.bonusXp) + ' XP de bônus</span></div>';
+    Arquimago.personalRewardCardHtml = function (reward) {
+        if (!reward || !reward.id) return "";
+        var pending = reward.status !== "unlocked";
+        var statuses = [];
+        var doneCount = 0;
+        var percent = 0;
+        if (pending) {
+            statuses = conditionSummaries(Arquimago.state, reward);
+            doneCount = statuses.filter(function (s) { return s.done; }).length;
+            percent = statuses.length ? Math.round((doneCount / statuses.length) * 100) : 0;
         }
+        var html = '<article class="grimoire-card pr-gcard' + (pending ? " is-locked" : "") + '" data-personal-reward-id="' + escapeHtml(reward.id) + '" tabindex="0" role="button" aria-label="' + escapeHtml(reward.name) + '">';
+        html += '<div class="grimoire-card__visual">';
+        if (reward.image) {
+            html += '<img class="pr-gcard__img" src="' + escapeHtml(reward.image) + '" alt="' + escapeHtml(reward.name) + '" loading="lazy">';
+        } else {
+            html += '<span class="grimoire-card__icon" aria-hidden="true">✦</span>';
+        }
+        html += '</div>';
+        if (pending) {
+            html += '<div class="pr-gcard__bar" aria-hidden="true"><i style="width:' + percent + '%"></i></div>';
+        }
+        html += '<span class="grimoire-card__type' + (pending ? " grimoire-card__type--locked" : " pr-gcard__type--unlocked") + '">' +
+            (pending ? "PENDENTE" : "✦ CONQUISTADA") + '</span>';
+        html += '<h3 class="grimoire-card__name">' + escapeHtml(reward.name) + '</h3>';
+        if (reward.desc) html += '<p class="grimoire-card__desc">' + escapeHtml(reward.desc) + '</p>';
+        html += '<div class="grimoire-card__meta"><span class="grimoire-card__level">+' + formatCount(reward.bonusXp) + ' XP</span>';
+        if (pending) {
+            html += '<span class="grimoire-card__cat">' + doneCount + ' DE ' + statuses.length + ' FEITAS</span>';
+        } else if (reward.unlock && reward.unlock.dayKey) {
+            html += '<span class="grimoire-card__cat">CONQUISTADA EM ' + escapeHtml(displayDate(reward.unlock.dayKey)) + '</span>';
+        }
+        html += '</div>';
         html += '</article>';
-        return html;
-    }
-
-    Arquimago.personalRewardsHtml = function () {
-        var state = Arquimago.state;
-        if (!state) return "";
-        var list = stateList(state).map(normalizeRewardInPlace).filter(function (r) {
-            return r && r.name;
-        });
-        var pending = list.filter(function (r) { return r.status === "pending"; });
-        var unlocked = list.filter(function (r) { return r.status === "unlocked"; });
-        var html = '<div class="personal-rewards" id="personalRewardsPanel">';
-        html += '<header class="personal-rewards__header">';
-        html += '<div class="personal-rewards__copy">';
-        html += '<span class="section-label">GRIMÓRIO</span>';
-        html += '<h3>Recompensas Pessoais</h3>';
-        html += '<p>Crie recompensas com suas próprias metas e ganhe XP de bônus ao desbloqueá-las.</p>';
-        html += '</div>';
-        html += '<button type="button" class="btn-primary compact" id="addPersonalRewardButton">＋ Nova Recompensa</button>';
-        html += '</header>';
-        if (!list.length) {
-            html += '<div class="pr-empty">Nenhuma recompensa pessoal ainda. Defina as condições e o Arquimago vigia o progresso até o desbloqueio.</div>';
-        } else {
-            html += '<div class="pr-grid">' + pending.map(personalRewardCardHtml).join("") + '</div>';
-            if (unlocked.length) {
-                html += '<div class="pr-claimed"><h4>CONQUISTADAS</h4><span aria-hidden="true"></span></div>';
-                html += '<div class="pr-grid pr-grid--claimed">' + unlocked.map(personalRewardCardHtml).join("") + '</div>';
-            }
-        }
-        html += '</div>';
         return html;
     };
 
     Arquimago.bindPersonalRewards = function (container) {
         if (!container) return;
-        var addBtn = container.querySelector("#addPersonalRewardButton");
-        if (addBtn) {
-            addBtn.addEventListener("click", function () {
+        var addTile = container.querySelector("#addPersonalRewardTile");
+        if (addTile) {
+            addTile.addEventListener("click", function () {
                 if (Arquimago.playClick) Arquimago.playClick();
                 openPersonalRewardEditor(null);
             });
         }
-        container.querySelectorAll(".pr-card").forEach(function (card) {
+        container.querySelectorAll(".pr-gcard").forEach(function (card) {
             card.addEventListener("click", function () {
                 if (Arquimago.playClick) Arquimago.playClick();
                 openPersonalRewardDetail(card.getAttribute("data-personal-reward-id"));
@@ -632,6 +601,13 @@
         });
     }
 
+    function detailCoverHtml(reward) {
+        if (reward.image) {
+            return '<img src="' + escapeHtml(reward.image) + '" alt="' + escapeHtml(reward.name) + '">';
+        }
+        return '<span class="pr-detail__fallback" aria-hidden="true">✦</span>';
+    }
+
     function openPersonalRewardDetail(rewardId) {
         var reward = Arquimago.getPersonalRewardById(rewardId);
         if (!reward) return;
@@ -639,10 +615,7 @@
         var locked = reward.status !== "unlocked";
         var html = '<div class="modal-panel grimoire-editor pr-detail">';
         html += '<button type="button" class="modal-close-button" data-pr-close aria-label="Fechar"><img src="assets/ui/icons/icon-close.png" alt=""></button>';
-        html += '<div class="pr-detail__cover">' +
-            (locked ? rewardCoverHtml(reward) : (reward.image ?
-                '<img src="' + escapeHtml(reward.image) + '" alt="' + escapeHtml(reward.name) + '">' :
-                '<span class="pr-detail__fallback" aria-hidden="true">✦</span>')) + '</div>';
+        html += '<div class="pr-detail__cover">' + detailCoverHtml(reward) + '</div>';
         html += '<h3>' + escapeHtml(reward.name) + '</h3>';
         if (reward.desc) html += '<p class="pr-detail__desc">' + escapeHtml(reward.desc) + '</p>';
         if (locked) {

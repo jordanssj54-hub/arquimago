@@ -1,153 +1,6 @@
 /* ════════════════════════════════════════════════════════════
    Recompensas Pessoais
    ════════════════════════════════════════════════════════════ */
-.personal-rewards {
-    margin-bottom: 28px;
-    padding: 22px 20px 20px;
-    border-radius: 24px;
-    background:
-        linear-gradient(180deg, rgba(201, 168, 76, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%),
-        rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.personal-rewards__header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-}
-
-.personal-rewards__copy {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.personal-rewards__copy h3 {
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    letter-spacing: 0.08em;
-    color: var(--gold-light);
-}
-
-.personal-rewards__copy p {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-
-.pr-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-}
-
-.pr-empty {
-    padding: 28px 20px;
-    border-radius: 16px;
-    border: 1px dashed var(--border-gold);
-    color: var(--text-muted);
-    text-align: center;
-    font-size: 0.88rem;
-    line-height: 1.6;
-}
-
-/* ── Cartões ── */
-.pr-card {
-    gap: 12px;
-}
-
-.pr-card--unlocked {
-    border-color: var(--border-gold);
-}
-
-.pr-card__cover {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: 14px;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.pr-card__cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.pr-card__cover--empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background:
-        radial-gradient(circle at 50% 30%, rgba(201, 168, 76, 0.14), transparent 60%),
-        rgba(255, 255, 255, 0.02);
-}
-
-.pr-card__cover--empty span {
-    font-family: var(--font-display);
-    font-size: 2.2rem;
-    color: var(--gold);
-    opacity: 0.7;
-}
-
-.pr-card__seal {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: var(--gold-light);
-    border: 1px solid var(--border-gold);
-    background: rgba(17, 17, 24, 0.75);
-    backdrop-filter: blur(6px);
-    font-size: 0.8rem;
-    box-shadow: var(--fx-glow-soft);
-}
-
-.pr-card .grimoire-card__name {
-    margin: 0;
-}
-
-.pr-card__progress {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    letter-spacing: 0.04em;
-}
-
-.pr-card__progress b {
-    color: var(--gold-light);
-    font-family: var(--font-display);
-}
-
-.pr-card__progress-bar {
-    height: 5px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border);
-    overflow: hidden;
-}
-
-.pr-card__progress-bar i {
-    display: block;
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
 
 /* ── Checklist de condições ── */
 .pr-conditions {
@@ -230,70 +83,71 @@
     margin: 10px 0 4px;
 }
 
-/* ── Metadados do cartão ── */
-.pr-card__meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+/* ── Cartão pessoal na grade do Grimório ── */
+.grimoire-card.pr-gcard .grimoire-card__visual {
+    padding: 10px;
 }
 
-.pr-card__xp {
-    font-family: var(--font-display);
-    color: var(--gold-light);
-    font-size: 0.78rem;
-    letter-spacing: 0.06em;
-    padding: 4px 10px;
+.grimoire-card.pr-gcard .grimoire-card__visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.pr-gcard__bar {
+    height: 4px;
     border-radius: 999px;
-    border: 1px solid var(--border-gold);
-    background: rgba(201, 168, 76, 0.08);
-    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.07);
+    overflow: hidden;
 }
 
-.pr-card__date {
-    color: var(--text-muted);
-    font-size: 0.78rem;
+.pr-gcard__bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+    transition: width 0.5s ease;
 }
 
-.pr-card__archived {
-    display: inline-flex;
-    margin-top: 2px;
-    color: var(--text-muted);
-    font-size: 0.72rem;
-    letter-spacing: 0.05em;
+.pr-gcard__type--unlocked {
+    color: var(--gold-light);
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.28);
 }
 
-.pr-card--unlocked .grimoire-card__type {
-    display: none;
-}
-
-/* ── Sub-lista "Conquistadas" ── */
-.pr-claimed {
+/* ── Tile criar nova recompensa pessoal ── */
+.grimoire-add-tile {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
-    margin: 26px 0 14px;
-}
-
-.pr-claimed h4 {
-    margin: 0;
+    justify-content: center;
+    gap: 8px;
+    min-height: 190px;
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px dashed var(--border-gold);
+    background: rgba(201, 168, 76, 0.04);
+    color: var(--gold-light);
     font-family: var(--font-display);
-    font-size: 0.9rem;
-    letter-spacing: 0.22em;
-    color: var(--gold);
-    text-shadow: var(--fx-glow-soft);
-    white-space: nowrap;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.pr-claimed span {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border-gold), transparent);
+.grimoire-add-tile b {
+    font-size: 1.7rem;
+    font-weight: 600;
+    line-height: 1;
 }
 
-.pr-grid--claimed {
-    margin-bottom: 26px;
+.grimoire-add-tile span {
+    color: var(--text-muted);
+}
+
+.grimoire-add-tile:hover {
+    background: rgba(201, 168, 76, 0.1);
+    border-color: var(--gold-light);
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -524,20 +378,23 @@
 
 .pr-detail__cover {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    min-height: 150px;
+    max-height: 46vh;
     border-radius: 14px;
-    overflow: hidden;
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
 .pr-detail__cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 46vh;
+    object-fit: contain;
     display: block;
 }
 
@@ -840,13 +697,8 @@
 }
 
 @media (max-width: 560px) {
-    .personal-rewards__header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .pr-grid {
-        grid-template-columns: 1fr;
+    .grimoire-add-tile {
+        min-height: 150px;
     }
 
     .prow-panel {
