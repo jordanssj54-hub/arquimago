@@ -118,7 +118,9 @@
 
 .missions-management-dialog {
     z-index: 9000;
-    padding: 16px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0;
 }
 
 .missions-edit-modal {
@@ -129,6 +131,8 @@
     width: min(760px, 94vw);
     max-width: 760px;
     max-height: 88vh;
+    box-sizing: border-box;
+    margin: 0;
     padding: clamp(20px, 3.5vw, 34px);
 }
 

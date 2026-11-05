@@ -1112,6 +1112,26 @@
         return entries.length ? entries[entries.length - 1].mission : null;
     };
 
+    function positionMissionManagementDialog(dialog, sourceContainer) {
+        var panel = dialog.querySelector(".missions-management-dialog__panel");
+        if (!panel) return;
+        var gear = sourceContainer.querySelector("#missionsSettingsButton");
+        var rect = gear && gear.getBoundingClientRect ? gear.getBoundingClientRect() : null;
+        var viewportWidth = global.innerWidth || document.documentElement.clientWidth || 1024;
+        var viewportHeight = global.innerHeight || document.documentElement.clientHeight || 768;
+        var panelWidth = Math.min(760, viewportWidth * 0.94);
+        var top = rect ? rect.bottom + 10 : 88;
+        top = Math.max(12, Math.min(top, viewportHeight - 280));
+        var left = rect ? rect.right - panelWidth : (viewportWidth - panelWidth) / 2;
+        left = Math.max(12, Math.min(left, viewportWidth - panelWidth - 12));
+
+        dialog.style.alignItems = "flex-start";
+        dialog.style.justifyContent = "flex-start";
+        panel.style.marginTop = top + "px";
+        panel.style.marginLeft = left + "px";
+        panel.style.maxHeight = Math.max(240, Math.min(viewportHeight * 0.88, viewportHeight - top - 16)) + "px";
+    }
+
     Arquimago.renderMissions = function (target) {
         var container = target;
         if (typeof container === "string") container = document.querySelector(container);
@@ -1121,6 +1141,7 @@
             container = homeMissions || document.getElementById("missions");
         }
         if (!container) return;
+        document.querySelectorAll(".missions-management-dialog").forEach(function (dialog) { dialog.remove(); });
         var state = Arquimago.state;
 
         var focusedFieldId = focusedFormFieldId();
@@ -1129,11 +1150,17 @@
         var canClear = completedMissionEntries(state).length > 0;
         var html = missionsReferenceHtml(state, canClear);
         container.innerHTML = html;
+        var missionEditorDialog = container.querySelector(".missions-management-dialog");
+        if (missionEditorDialog) {
+            positionMissionManagementDialog(missionEditorDialog, container);
+            document.body.appendChild(missionEditorDialog);
+        }
         bindMissionReferenceControls(container);
         bindMissionToggles(container);
         bindMissionDetailsToggles(container);
         bindMissionSettings(container);
-        bindMissionSelection(container);
+        if (missionEditorDialog) bindMissionSelection(missionEditorDialog, container);
+        else bindMissionSelection(container, container);
         bindCustomControls(container);
         bindMissionManagement(container);
         bindCollapsibleToggles(container);
@@ -1239,7 +1266,7 @@
         });
     }
 
-    function closeMissionManagement(container) {
+    function closeMissionManagement(container, renderTarget) {
         missionManagementMode = null;
         selectedMissionIds = {};
         editingMissionId = null;
@@ -1249,10 +1276,11 @@
             missionManagementKeydownHandler = null;
         }
         Arquimago.playClick();
-        Arquimago.renderMissions(container);
+        Arquimago.renderMissions(renderTarget || container);
     }
 
-    function bindMissionSelection(container) {
+    function bindMissionSelection(container, renderTarget) {
+        renderTarget = renderTarget || container;
         if (missionManagementKeydownHandler) {
             document.removeEventListener("keydown", missionManagementKeydownHandler);
             missionManagementKeydownHandler = null;
@@ -1260,7 +1288,7 @@
         if (missionManagementMode === "edit") {
             missionManagementKeydownHandler = function (event) {
                 if (event.key === "Escape" && !document.querySelector(".missions-edit-modal")) {
-                    closeMissionManagement(container);
+                    closeMissionManagement(container, renderTarget);
                 }
             };
             document.addEventListener("keydown", missionManagementKeydownHandler);
@@ -1268,7 +1296,7 @@
 
         container.querySelectorAll("[data-cancel-mission-management], [data-close-mission-management]").forEach(function (button) {
             button.addEventListener("click", function () {
-                closeMissionManagement(container);
+                closeMissionManagement(container, renderTarget);
             });
         });
 
