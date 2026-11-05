@@ -2469,3 +2469,111 @@
         font-size: clamp(0.55rem, 2.7vw, 1rem);
     }
 }
+
+/* Personal progress: keep its rows aligned with the challenge card and reference. */
+#game .home-progress-row {
+    grid-template-columns: 46px minmax(0, 1fr) 52px;
+    gap: clamp(10px, 1.5vw, 20px);
+}
+
+#game .home-progress-row__icon {
+    width: 44px;
+    height: 44px;
+}
+
+#game .home-progress-row__copy {
+    grid-template-columns: minmax(78px, 0.48fr) minmax(0, 1fr);
+    gap: clamp(10px, 1.3vw, 16px);
+}
+
+#game .home-progress-row__track {
+    width: 100%;
+    height: 18px;
+    box-sizing: border-box;
+}
+
+#game .home-progress-row > b {
+    min-width: 52px;
+    font-size: clamp(1.12rem, 1.6vw, 1.4rem);
+    line-height: 1;
+}
+
+#game[data-screen="home"] .home-widget[data-widget-id^="fin-"] {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    #game[data-screen="home"] .home-progress-row {
+        grid-template-columns: 36px minmax(0, 1fr) 44px;
+        gap: 9px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__copy {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 5px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__copy strong {
+        font-size: 1rem;
+    }
+
+    #game[data-screen="home"] .home-progress-row__track {
+        height: 14px;
+    }
+
+    #game[data-screen="home"] .home-progress-row > b {
+        min-width: 44px;
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 640px) {
+    #game[data-screen="home"] .home-progress-row {
+        grid-template-columns: 36px minmax(0, 1fr) 44px;
+        gap: 10px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__copy {
+        grid-template-columns: minmax(68px, 0.42fr) minmax(0, 1fr);
+        gap: 9px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__track {
+        height: 15px;
+    }
+}
+
+@media (max-width: 400px) {
+    #game[data-screen="home"] .home-progress-row {
+        grid-template-columns: 32px minmax(0, 1fr) 40px;
+        gap: 7px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__copy {
+        grid-template-columns: minmax(58px, 0.4fr) minmax(0, 1fr);
+        gap: 7px;
+    }
+
+    #game[data-screen="home"] .home-progress-row__copy strong {
+        font-size: 0.92rem;
+    }
+
+    #game[data-screen="home"] .home-progress-row__track {
+        height: 13px;
+    }
+
+    #game[data-screen="home"] .home-progress-row > b {
+        min-width: 40px;
+        font-size: 0.98rem;
+    }
+}

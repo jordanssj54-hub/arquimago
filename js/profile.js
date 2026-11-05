@@ -151,9 +151,9 @@
         html += '<section class="profile-reference-progression"><section class="profile-reference-card profile-reference-level-progress"><header><span>PROGRESSO DO LEVEL</span><img class="profile-reference-level-progress__symbol" src="projeto/simbol-abas.png" alt="" aria-hidden="true"></header><strong>LEVEL ' + Arquimago.formatNumber(levelProgress.level) + '</strong><b>' + (levelProgress.maxed ? "LEVEL MÁXIMO" : Arquimago.formatNumber(levelProgress.earned) + ' / ' + Arquimago.formatNumber(levelProgress.required) + ' XP') + '</b><div class="profile-reference-level-progress__bar"><i style="width:' + levelProgress.percent + '%"></i></div><p>' + (levelProgress.maxed ? 'Teto de level alcançado' : 'Faltam ' + Arquimago.formatNumber(levelProgress.remaining) + ' XP para o Level ' + Arquimago.formatNumber(levelProgress.nextLevel)) + '</p></section></section>';
 
         if (Arquimago.attributeProgressCardHtml) {
-            html += Arquimago.attributeProgressCardHtml(state, { title: "Atributos", interactive: true, profile: true, detail: true });
+            html += Arquimago.attributeProgressCardHtml(state, { title: "Progresso Pessoal", interactive: true, profile: true, detail: true });
         } else {
-            html += '<section class="profile-reference-card profile-reference-attributes"><header class="profile-reference-card__header"><h2>ATRIBUTOS</h2></header><div class="profile-reference-attribute-grid">';
+            html += '<section class="profile-reference-card profile-reference-attributes"><header class="profile-reference-card__header"><h2>PROGRESSO PESSOAL</h2></header><div class="profile-reference-attribute-grid">';
             Object.keys(Arquimago.ATTRIBUTE_DEFINITIONS).forEach(function (key) { html += attributeCardReference(state, key); });
             html += '</div><div id="profileAttributeDetail"></div></section>';
         }

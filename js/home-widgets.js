@@ -13,7 +13,6 @@
         missions: "journey",
         ascension: "attributes",
         monthly: "hero",
-        class: "attributes"
     };
     var SIZE_LABELS = {
         small: "Pequeno",
@@ -80,12 +79,65 @@
                 ordered.push(id);
             }
         });
+
+        // Insere widgets de referência recém-adicionados na posição prevista, em vez de
+        // deixá-los no fim de um layout salvo antigo (por exemplo, depois das finanças).
+        REFERENCE_ORDER.forEach(function (id, referenceIndex) {
+            if (!byId[id] || seen[id]) return;
+
+            var insertAt = -1;
+            for (var nextIndex = referenceIndex + 1; nextIndex < REFERENCE_ORDER.length; nextIndex++) {
+                var nextId = REFERENCE_ORDER[nextIndex];
+                var nextPosition = ordered.indexOf(nextId);
+                if (nextPosition !== -1) {
+                    insertAt = nextPosition;
+                    break;
+                }
+            }
+
+            if (insertAt === -1) {
+                for (var previousIndex = referenceIndex - 1; previousIndex >= 0; previousIndex--) {
+                    var previousId = REFERENCE_ORDER[previousIndex];
+                    var previousPosition = ordered.indexOf(previousId);
+                    if (previousPosition !== -1) {
+                        insertAt = previousPosition + 1;
+                        break;
+                    }
+                }
+            }
+
+            if (insertAt === -1) {
+                insertAt = ordered.findIndex(function (orderedId) {
+                    return REFERENCE_ORDER.indexOf(orderedId) === -1;
+                });
+                if (insertAt === -1) insertAt = ordered.length;
+            }
+
+            ordered.splice(insertAt, 0, id);
+            seen[id] = true;
+        });
+
         registry.forEach(function (w) {
             if (!seen[w.id]) {
                 seen[w.id] = true;
                 ordered.push(w.id);
             }
         });
+
+        // Mantenha as finanças abaixo do par de progresso e desafio, como na referência.
+        var attributePosition = ordered.indexOf("attributes");
+        var challengePosition = ordered.indexOf("challenge");
+        var pairEnd = Math.max(attributePosition, challengePosition);
+        var firstFinancePosition = ordered.findIndex(function (id) { return id.indexOf("fin-") === 0; });
+        if (pairEnd !== -1 && firstFinancePosition !== -1 && firstFinancePosition <= pairEnd) {
+            var financeIds = ordered.filter(function (id) { return id.indexOf("fin-") === 0; });
+            ordered = ordered.filter(function (id) { return id.indexOf("fin-") !== 0; });
+            attributePosition = ordered.indexOf("attributes");
+            challengePosition = ordered.indexOf("challenge");
+            pairEnd = Math.max(attributePosition, challengePosition);
+            ordered.splice.apply(ordered, [pairEnd + 1, 0].concat(financeIds));
+        }
+
         return ordered;
     }
 
