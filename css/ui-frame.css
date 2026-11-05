@@ -63,7 +63,6 @@
 .mission-highlight,
 .mission-item,
 .reward-card,
-.grimoire-card,
 .achievement,
 .spell-card,
 .mage-card,
@@ -97,7 +96,6 @@
 .mission-highlight,
 .mission-item,
 .reward-card,
-.grimoire-card,
 .mage-card,
 .chapter-card,
 .item-card {
@@ -123,7 +121,6 @@
     .mission-highlight,
     .mission-item,
     .reward-card,
-    .grimoire-card,
     .mage-card,
     .chapter-card,
     .item-card { padding: 16px; }

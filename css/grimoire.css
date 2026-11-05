@@ -130,66 +130,39 @@
 /* ── Grid ── */
 .grimoire-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+    gap: 14px;
 }
 
+/* Cards usam o mesmo contorno 9-slice dos cards da home (referência moderna). */
 .grimoire-card {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 22px 20px;
-    border-radius: 20px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.02) 100%),
-        rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    padding: 16px 14px 14px;
+    border-radius: 0;
+    border-style: solid;
+    border-color: transparent;
+    border-width: 18px 18px 17px 18px;
+    border-image-source: url("../assets/ui/home-reference/card-frame.png");
+    border-image-slice: 18 18 17 18;
+    border-image-width: 18px 18px 17px 18px;
+    border-image-repeat: stretch;
+    background-color: #050609;
+    background-image: url("../assets/ui/home-reference/panel-texture.png");
+    background-position: center;
+    background-size: cover;
+    box-shadow: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: filter 0.3s ease;
     overflow: hidden;
-    position: relative;
-}
-
-.grimoire-card::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 45%;
-    background: linear-gradient(180deg, rgba(74, 127, 212, 0.025) 0%, transparent 100%);
-    pointer-events: none;
-}
-
-.grimoire-card::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    right: -30%;
-    width: 60%;
-    height: 100%;
-    background: radial-gradient(circle, var(--magic-glow), transparent 70%);
-    opacity: 0;
-    transition: opacity 0.4s;
-    pointer-events: none;
 }
 
 .grimoire-card.is-unlocked:hover {
-    border-color: var(--border-gold);
-    transform: translateY(-5px);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-        0 20px 50px rgba(0, 0, 0, 0.3),
-        0 0 24px var(--fx-gold-soft);
-}
-
-.grimoire-card.is-unlocked:hover::after {
-    opacity: 1;
+    border-color: transparent;
+    box-shadow: none;
+    filter: brightness(1.1);
 }
 
 .grimoire-card.is-locked {
@@ -199,7 +172,7 @@
 
 .grimoire-card.is-locked:hover {
     opacity: 0.75;
-    border-color: var(--border);
+    filter: grayscale(0.55) brightness(1.08);
 }
 
 .grimoire-card__fav {
@@ -250,8 +223,8 @@
 }
 
 .grimoire-card__visual {
-    height: 140px;
-    border-radius: 16px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.1) 100%),
@@ -279,8 +252,8 @@
 }
 
 .grimoire-card__mystery {
-    height: 140px;
-    border-radius: 16px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
     border: 1px dashed rgba(255, 255, 255, 0.1);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, rgba(0, 0, 0, 0.08) 100%),
@@ -964,20 +937,12 @@
     }
 
     .grimoire-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 12px;
     }
 
     .grimoire-card {
-        padding: 14px;
-    }
-
-    .grimoire-card__visual {
-        height: 90px;
-    }
-
-    .grimoire-card__mystery {
-        height: 90px;
+        padding: 14px 12px 12px;
     }
 
     .grimoire-card__icon {

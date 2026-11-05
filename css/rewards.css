@@ -57,12 +57,7 @@
 
 /* ── Cartões ── */
 .pr-card {
-    padding: 18px 18px 16px;
     gap: 12px;
-}
-
-.pr-card--pending::before {
-    background: linear-gradient(180deg, rgba(201, 168, 76, 0.03) 0%, transparent 100%);
 }
 
 .pr-card--unlocked {
