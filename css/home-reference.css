@@ -1538,9 +1538,9 @@
 .home-progress-row__copy {
     min-width: 0;
     display: grid;
-    grid-template-columns: minmax(74px, 0.7fr) minmax(65px, 1fr);
+    grid-template-columns: minmax(78px, 0.38fr) minmax(0, 1fr);
     align-items: center;
-    gap: 13px;
+    gap: clamp(9px, 1.2vw, 14px);
 }
 
 .home-progress-row__copy strong {
@@ -2268,7 +2268,7 @@
 }
 
 #game[data-screen="home"] .home-progress-row__copy {
-    grid-template-columns: minmax(92px, 0.5fr) minmax(0, 1fr);
+    grid-template-columns: minmax(84px, 0.38fr) minmax(0, 1fr);
 }
 
 #game[data-screen="home"] .home-progress-row__icon img {
@@ -2607,8 +2607,8 @@
     }
 
     #game[data-screen="home"] .home-progress-row {
-        grid-template-columns: clamp(34px, 4.3vw, 42px) minmax(0, 1fr) clamp(40px, 4.8vw, 48px);
-        gap: clamp(8px, 1.2vw, 12px);
+        grid-template-columns: clamp(32px, 4vw, 40px) minmax(0, 1fr) clamp(38px, 4.5vw, 46px);
+        gap: clamp(7px, 1vw, 10px);
     }
 
     #game[data-screen="home"] .home-progress-row__icon {
@@ -2617,8 +2617,8 @@
     }
 
     #game[data-screen="home"] .home-progress-row__copy {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 4px;
+        grid-template-columns: minmax(54px, 0.42fr) minmax(0, 1fr);
+        gap: clamp(5px, 0.8vw, 8px);
     }
 
     #game[data-screen="home"] .home-progress-row__copy strong {
@@ -2626,7 +2626,7 @@
     }
 
     #game[data-screen="home"] .home-progress-row__track {
-        height: 14px;
+        height: 15px;
     }
 
     #game[data-screen="home"] .home-progress-row > b {
@@ -2679,6 +2679,13 @@
         height: auto;
         min-height: 0;
         aspect-ratio: 245 / 64;
+    }
+}
+
+@media (max-width: 768px) {
+    #game[data-screen="home"] .home-progress-row__copy {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
     }
 }
 
@@ -2766,7 +2773,18 @@
         padding: clamp(13px, 3.3vw, 19px) clamp(9px, 2.4vw, 15px);
     }
 
+    #game[data-screen="home"] .home-challenge-card__art {
+        object-position: 78% center;
+        opacity: 1;
+        filter: brightness(1.3) contrast(1.04);
+    }
+
+    #game[data-screen="home"] .home-challenge-card::before {
+        background: linear-gradient(90deg, rgba(10, 11, 13, 0.94) 0%, rgba(10, 11, 13, 0.84) 16%, rgba(10, 11, 13, 0.48) 30%, rgba(10, 11, 13, 0.16) 48%, rgba(10, 11, 13, 0.02) 60%, transparent 100%), linear-gradient(0deg, rgba(10, 11, 13, 0.12), transparent 58%);
+    }
+
     #game[data-screen="home"] .home-challenge-card__eyebrow {
+        max-width: 88%;
         gap: clamp(5px, 1.5vw, 9px);
         font-size: clamp(0.78rem, 3vw, 1.12rem);
     }
@@ -2777,21 +2795,24 @@
     }
 
     #game[data-screen="home"] .home-challenge-card__content h2 {
+        max-width: 78%;
         margin-top: clamp(14px, 4vw, 20px);
         font-size: clamp(0.95rem, 3.8vw, 1.4rem);
     }
 
     #game[data-screen="home"] .home-challenge-card__content p {
+        max-width: 78%;
         font-size: clamp(0.86rem, 3.1vw, 1.08rem);
     }
 
     #game[data-screen="home"] .home-challenge-card__track {
+        width: 78%;
         height: clamp(10px, 3vw, 14px);
         margin-top: 9px;
     }
 
     #game[data-screen="home"] .home-challenge-card__button {
-        width: 100%;
+        width: 78%;
         min-width: 0;
         min-height: 38px;
         margin: auto 0 0;
