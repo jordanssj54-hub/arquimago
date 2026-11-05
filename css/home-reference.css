@@ -2578,6 +2578,130 @@
     }
 }
 
+#game[data-screen="home"] .home-journey-card:has(.home-missions-details[open]) {
+    height: auto;
+    min-height: 204px;
+    grid-template-rows: auto auto;
+    row-gap: 12px;
+    overflow: visible;
+    padding-bottom: 26px;
+}
+
+#game[data-screen="home"] .home-missions-details {
+    position: relative;
+    z-index: 5;
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    width: 42px;
+    margin: 0;
+}
+
+#game[data-screen="home"] .home-missions-details[open] {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+}
+
+#game[data-screen="home"] .home-missions-details > summary {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(224, 158, 73, 0.72);
+    border-radius: 50%;
+    background: rgba(8, 8, 9, 0.76);
+    color: #f0c884;
+    cursor: pointer;
+    font-size: 1.65rem;
+    line-height: 1;
+    list-style: none;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+#game[data-screen="home"] .home-missions-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+#game[data-screen="home"] .home-missions-details[open] > summary {
+    margin-left: auto;
+    transform: rotate(180deg);
+}
+
+#game[data-screen="home"] .home-mission-list {
+    position: relative;
+    z-index: 5;
+    max-height: min(56vh, 520px);
+    overflow-y: auto;
+    margin-top: 10px;
+    padding: 4px;
+    border: 1px solid rgba(201, 168, 76, 0.22);
+    border-radius: 14px;
+    background: rgba(7, 8, 10, 0.78);
+}
+
+#game[data-screen="home"] .home-mission-row {
+    border-color: rgba(201, 168, 76, 0.16);
+    background: rgba(10, 10, 11, 0.72);
+}
+
+#game[data-screen="home"] .home-mission-xp {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+#game[data-screen="home"] .home-mission-xp small {
+    color: #d5b4ff;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+}
+
+#game[data-screen="home"] .home-missions-empty {
+    margin: 0;
+    padding: 18px 10px;
+    color: #c4bba9;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    #game[data-screen="home"] .home-journey-card {
+        grid-template-columns: 66px minmax(0, 1fr) 36px;
+    }
+
+    #game[data-screen="home"] .home-missions-details {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    #game[data-screen="home"] .home-missions-details[open] {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+}
+
+@media (max-width: 640px) {
+    #game[data-screen="home"] .home-journey-card:has(.home-missions-details[open]) {
+        padding-bottom: 18px;
+    }
+
+    #game[data-screen="home"] .home-mission-row {
+        gap: 8px;
+        padding: 9px 8px;
+    }
+
+    #game[data-screen="home"] .home-mission-row .mission-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    #game[data-screen="home"] .home-mission-copy small {
+        max-width: 42vw;
+    }
+}
+
 /* Keep the reference pair together as the available content width narrows. */
 @media (max-width: 920px) {
     #game[data-screen="home"] .home-progress-card,

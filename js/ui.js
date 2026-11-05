@@ -4,6 +4,7 @@
     var Arquimago = global.Arquimago || {};
     var XP_TRACK_FRACTION = 0.645;
     var homeMissionsExpanded = false;
+    var homeJourneyExpanded = false;
 
     function xpFillWidth(pct) {
         return (pct * XP_TRACK_FRACTION) + "%";
@@ -55,6 +56,7 @@
         var mission = entry.mission;
         var done = isDone(state, entry);
         var attribute = Arquimago.ATTRIBUTE_DEFINITIONS[mission.attribute];
+        var bonusXP = Arquimago.getDailyMissionBonusXp ? Arquimago.getDailyMissionBonusXp(mission, state) : 0;
         var deleteButton = mission.id.indexOf("custom_") === 0 ? '<button type="button" class="home-mission-delete" data-delete-home-custom="' + escapeHtml(mission.id) + '" title="Excluir missão" aria-label="Excluir ' + escapeHtml(mission.name) + '">×</button>' : "";
         return '<div class="home-mission-row' + (done ? " is-done" : "") + '" data-home-mission-id="' + escapeHtml(mission.id) + '" data-home-mission-type="' + entry.type + '">' +
             '<label class="home-mission-check" title="Marcar missão">' +
@@ -65,7 +67,7 @@
             '<span class="home-mission-copy"><strong>' + escapeHtml(mission.name) + '</strong><small>' +
             (attribute ? attribute.name : "Missão") + ' · -' + (mission.bossDamage || 10) + ' HP no Boss' +
             '</small></span>' +
-            '<span class="home-mission-xp">+' + mission.xp + ' XP</span>' +
+            '<span class="home-mission-xp">+' + ((Number(mission.xp) || 0) + bonusXP) + ' XP' + (bonusXP ? '<small> BÔNUS</small>' : '') + '</span>' +
             deleteButton +
             '</div>';
     }
@@ -81,10 +83,14 @@
 
     function missionPanelHtml(ctx) {
         var dayProgress = ctx.dayProgress;
+        var entries = ctx.dailyEntries || [];
+        var orderedEntries = entries.filter(function (entry) { return !isDone(ctx.state, entry); })
+            .concat(entries.filter(function (entry) { return isDone(ctx.state, entry); }));
+        var missionRows = orderedEntries.map(function (entry) { return homeMissionRow(ctx.state, entry); }).join("");
         return '<section class="home-journey-card">' +
             '<span class="home-journey-card__icon" aria-hidden="true"><img src="assets/ui/home-reference/extracted/journey-calendar.png" alt=""></span>' +
             '<div class="home-journey-card__copy"><h2>Jornada de Hoje</h2><p><strong>' + dayProgress.completed + '</strong> de ' + dayProgress.total + ' missões</p><span class="home-journey-card__track" role="progressbar" aria-label="Progresso das missões de hoje" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + dayProgress.percent + '"><i style="width:' + dayProgress.percent + '%"></i><img src="assets/ui/home-reference/extracted/journey-track-frame.png" alt="" aria-hidden="true"></span></div>' +
-            '<button type="button" class="home-journey-card__button" data-home-missions-open aria-label="Ver Missões"><img src="assets/ui/home-reference/extracted/journey-button.png" alt=""></button>' +
+            '<details class="home-missions-details"' + (homeJourneyExpanded ? ' open' : '') + '><summary aria-label="' + (homeJourneyExpanded ? "Ocultar missões de hoje" : "Mostrar missões de hoje") + '"><span aria-hidden="true">⌄</span></summary><div class="home-mission-list">' + (missionRows || '<p class="home-missions-empty">Nenhuma missão disponível hoje.</p>') + '</div></details>' +
             '</section>';
     }
 
@@ -247,6 +253,32 @@
     }
 
     function bindHomeWidgets(container) {
+        var journeyDetails = container.querySelector(".home-missions-details");
+        if (journeyDetails) journeyDetails.addEventListener("toggle", function () {
+            homeJourneyExpanded = journeyDetails.open;
+            var summary = journeyDetails.querySelector("summary");
+            if (summary) summary.setAttribute("aria-label", journeyDetails.open ? "Ocultar missões de hoje" : "Mostrar missões de hoje");
+        });
+
+        container.querySelectorAll(".home-mission-row .home-mission-check input").forEach(function (input) {
+            input.addEventListener("change", function () {
+                var row = input.closest(".home-mission-row");
+                if (!row) return;
+                var mission = Arquimago.findMission(row.getAttribute("data-home-mission-type"), row.getAttribute("data-home-mission-id"));
+                if (mission && Arquimago.setMissionComplete) Arquimago.setMissionComplete(mission, row.getAttribute("data-home-mission-type"), input.checked, input);
+            });
+        });
+
+        container.querySelectorAll("[data-delete-home-custom]").forEach(function (button) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (!confirm("Excluir esta missão personalizada?")) return;
+                Arquimago.deleteCustomMission(button.getAttribute("data-delete-home-custom"), { skipRefresh: true });
+                if (Arquimago.refreshAll) Arquimago.refreshAll(false);
+            });
+        });
+
         container.querySelectorAll("[data-home-missions-open]").forEach(function (button) {
             button.addEventListener("click", openHomeMissions);
         });

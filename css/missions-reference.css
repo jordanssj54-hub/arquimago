@@ -410,6 +410,32 @@
     line-height: 1.5;
 }
 
+.missions-reference-add-custom {
+    position: relative;
+    z-index: 2;
+    min-height: 36px;
+    margin-top: 12px;
+    padding: 6px 13px;
+    border: 1px solid rgba(201, 168, 76, 0.52);
+    border-radius: 999px;
+    background: rgba(5, 6, 9, 0.78);
+    color: #e6c47c;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+}
+
+.missions-reference-add-custom:hover {
+    border-color: #f0c884;
+    background: rgba(201, 168, 76, 0.12);
+}
+
+.missions-reference-custom-form {
+    max-width: 900px;
+    margin: 18px auto 22px;
+}
+
 .missions-reference-list {
     width: 100%;
     display: flex;
@@ -1040,6 +1066,17 @@
     .missions-reference-journey__copy p {
         margin-top: 6px;
         font-size: 0.72rem;
+    }
+
+    .missions-reference-add-custom {
+        min-height: 30px;
+        margin-top: 6px;
+        padding: 4px 9px;
+        font-size: 0.64rem;
+    }
+
+    .missions-reference-custom-form {
+        margin-top: 12px;
     }
 
     .missions-reference-list {

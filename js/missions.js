@@ -557,32 +557,6 @@
         return html;
     }
 
-    function customSectionHtml(state) {
-        var action = '<button type="button" class="btn-secondary compact" id="addCustomMissionButton">' + (customFormOpen ? "— Fechar" : "＋ Nova Missão") + '</button>';
-
-        var body = '';
-        if (customFormOpen) {
-            body += customFormHtml();
-        }
-
-        var completed = 0;
-        body += '<div class="missions-list">';
-        Arquimago.getCustomMissions().forEach(function (m) {
-            var type = Arquimago.getCustomTypeForFrequency(m.frequency);
-            var freq = FREQ_MAP[type];
-            if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, m.id)) return;
-            if (!isDone(state, m, type)) return;
-            body += missionItemHtml(state, m, type, freq, m.objective || m.desc);
-            completed++;
-        });
-        if (!completed && !customFormOpen) {
-            body += '<div class="missions-empty">Suas missões ativas aparecem no topo e as concluídas ficam arquivadas aqui. Crie a primeira com "＋ Nova Missão".</div>';
-        }
-        body += '</div>';
-
-        return collapsibleSectionHtml("custom", "Missões Personalizadas", "Criadas por você — concedem XP, contam nas estatísticas e respeitam todas as regras do sistema.", body, action);
-    }
-
     function completedMissionsHtml(state) {
         var html = '<div class="missions-list">';
         var count = 0;
@@ -684,29 +658,28 @@
     }
 
     function missionEditHtml(state) {
-        var entries = missionManagementEntries(state).filter(function (entry) {
-            return entry.mission.id.indexOf("custom_") !== 0;
-        });
+        var entries = missionManagementEntries(state);
         var html = '<section class="missions-management" aria-labelledby="missions-management-title">';
-        html += '<div class="missions-management__head"><div><span class="section-label">Checklist de edição</span><h2 id="missions-management-title">Editar missões nativas</h2>';
-        html += '<p>Altere o XP ou o ícone de uma missão nativa. A edição vale para a exibição e para novas conclusões.</p></div>';
+        html += '<div class="missions-management__head"><div><span class="section-label">Checklist de edição</span><h2 id="missions-management-title">Editar missões</h2>';
+        html += '<p>Altere o XP ou o ícone de missões nativas e personalizadas.</p></div>';
         html += '<button type="button" class="btn-secondary compact" data-cancel-mission-management>Cancelar</button></div>';
         html += '<div class="missions-management__list">';
 
         entries.forEach(function (entry) {
             var mission = entry.mission;
             var freq = FREQ_MAP[entry.type] || { label: "Missão" };
-            var edited = Arquimago.getMissionOverrides ? !!Arquimago.getMissionOverrides(state)[mission.id] : false;
+            var isCustom = mission.id.indexOf("custom_") === 0;
+            var edited = !isCustom && Arquimago.getMissionOverrides ? !!Arquimago.getMissionOverrides(state)[mission.id] : false;
             html += '<label class="missions-management__item' + (edited ? " is-edited" : "") + '">';
             html += '<input type="radio" name="mission-edit" data-manage-mission="' + escapeHtml(mission.id) + '"' + (editingMissionId === mission.id ? " checked" : "") + '>';
             html += '<span class="missions-management__check" aria-hidden="true"></span>';
             html += '<span class="mission-icon" aria-hidden="true">' + Arquimago.getMissionIcon(mission) + '</span>';
-            html += '<span class="missions-management__copy"><strong>' + escapeHtml(mission.name) + '</strong><small>' + escapeHtml(freq.label + (edited ? " · Editada" : " · Padrão")) + ' · ' + mission.xp + ' XP</small></span>';
+            html += '<span class="missions-management__copy"><strong>' + escapeHtml(mission.name) + '</strong><small>' + escapeHtml(freq.label + (isCustom ? " · Personalizada" : edited ? " · Editada" : " · Padrão")) + ' · ' + mission.xp + ' XP</small></span>';
             html += '</label>';
         });
 
         if (!entries.length) {
-            html += '<p class="missions-management__empty">Não há missões nativas disponíveis para edição.</p>';
+            html += '<p class="missions-management__empty">Não há missões disponíveis para edição.</p>';
         }
         html += '</div>';
         html += '<div class="missions-management__actions">';
@@ -748,11 +721,22 @@
 
     function referenceMissionEntries(state) {
         var all = Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state, true) : [];
-        return Object.keys(REFERENCE_MISSION_META).map(function (id) {
+        var nativeEntries = Object.keys(REFERENCE_MISSION_META).map(function (id) {
             return all.find(function (entry) {
                 return entry.mission.id === id && !(Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, id));
             });
         }).filter(Boolean);
+        var customEntries = all.filter(function (entry) {
+            return entry.mission.id.indexOf("custom_") === 0 &&
+                entry.type !== "weekly" && entry.type !== "custom_weekly" && entry.mission.frequency !== "weekly" &&
+                !(Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, entry.mission.id));
+        });
+        return nativeEntries.concat(customEntries);
+    }
+
+    function completedLastMissionEntries(state, entries) {
+        return entries.filter(function (entry) { return !isDone(state, entry.mission, entry.type); })
+            .concat(entries.filter(function (entry) { return isDone(state, entry.mission, entry.type); }));
     }
 
     function referenceMissionCardHtml(state, entry) {
@@ -802,14 +786,17 @@
     }
 
     function missionReferenceDailyHtml(state) {
-        var entries = referenceMissionEntries(state);
+        var entries = completedLastMissionEntries(state, referenceMissionEntries(state));
         var completed = entries.filter(function (entry) { return isDone(state, entry.mission, entry.type); }).length;
         var cards = entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("");
-        return '<section class="missions-reference-panel" data-ref-panel="daily"><section class="missions-reference-journey"><div class="missions-reference-journey__counter"><strong>' + completed + ' / ' + entries.length + '</strong><span>MISSÕES<br>HOJE</span></div><div class="missions-reference-journey__copy"><h2>JORNADA DE HOJE</h2><p>Complete suas missões diárias e<br>avance na sua jornada.</p></div><img class="missions-reference-journey__art" src="assets/ui/home-reference/journey-art.png" alt="" aria-hidden="true"></section><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhuma missão principal disponível no momento.</p>') + '</div>' + missionsReferenceRefreshHtml() + '</section>';
+        var customButton = '<button type="button" class="missions-reference-add-custom" id="addCustomMissionButton" aria-expanded="' + String(customFormOpen) + '">' + (customFormOpen ? "Fechar criação" : "＋ Nova missão") + '</button>';
+        var customForm = customFormOpen ? '<div class="missions-reference-custom-form">' + customFormHtml() + '</div>' : '';
+        return '<section class="missions-reference-panel" data-ref-panel="daily"><section class="missions-reference-journey"><div class="missions-reference-journey__counter"><strong>' + completed + ' / ' + entries.length + '</strong><span>MISSÕES<br>HOJE</span></div><div class="missions-reference-journey__copy"><h2>JORNADA DE HOJE</h2><p>Complete suas missões diárias e<br>avance na sua jornada.</p>' + customButton + '</div><img class="missions-reference-journey__art" src="assets/ui/home-reference/journey-art.png" alt="" aria-hidden="true"></section><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhuma missão disponível no momento.</p>') + '</div>' + customForm + missionsReferenceRefreshHtml() + '</section>';
     }
 
     function missionReferenceWeeklyHtml(state) {
         var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) { return entry.type === "weekly" || entry.type === "custom_weekly"; });
+        entries = completedLastMissionEntries(state, entries);
         return '<section class="missions-reference-panel" data-ref-panel="weekly" hidden><div class="missions-reference-section-title"><span>JORNADA SEMANAL</span><p>Missões que mantêm seu progresso em movimento.</p></div><div class="missions-reference-list">' + (entries.length ? entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("") : '<p class="missions-reference-empty">Nenhuma missão semanal disponível.</p>') + '</div></section>';
     }
 
@@ -819,13 +806,16 @@
     }
 
     function missionsReferenceExtrasHtml(state) {
-        var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) { return !REFERENCE_MISSION_META[entry.mission.id]; });
+        var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) {
+            return !REFERENCE_MISSION_META[entry.mission.id] && entry.mission.id.indexOf("custom_") !== 0;
+        });
         if (!entries.length) return "";
+        entries = completedLastMissionEntries(state, entries);
         return '<details class="missions-reference-extra"><summary>OUTRAS MISSÕES DISPONÍVEIS <span>⌄</span></summary><div class="missions-list">' + entries.map(function (entry) { var freq = FREQ_MAP[entry.type] || { label: "Missão", css: "daily" }; return missionItemHtml(state, entry.mission, entry.type, freq, entry.mission.desc); }).join("") + '</div></details>';
     }
 
     function missionsReferenceHtml(state, canClear) {
-        return '<div class="missions-page missions-page--reference">' + missionsReferenceXpHtml(state) + missionsReferenceFinanceHtml(state) + '<div class="missions-reference-heading"><div><img src="assets/ui/emblems/emblem_archmage.png" alt="" aria-hidden="true"><h1>MISSÕES</h1></div>' + missionsToolbarHtml(canClear) + '</div><div class="missions-reference-tabs" role="tablist"><button type="button" class="is-active" data-mission-ref-tab="daily" role="tab" aria-selected="true">DIÁRIAS</button><button type="button" data-mission-ref-tab="weekly" role="tab" aria-selected="false">SEMANAIS</button><button type="button" data-mission-ref-tab="achievements" role="tab" aria-selected="false">CONQUISTAS</button></div>' + missionReferenceDailyHtml(state) + missionReferenceWeeklyHtml(state) + missionReferenceAchievementsHtml(state) + missionsReferenceExtrasHtml(state) + '<div class="missions-reference-secondary">' + missionManagementHtml(state) + customSectionHtml(state) + hiddenMissionsHtml(state) + '</div></div>';
+        return '<div class="missions-page missions-page--reference">' + missionsReferenceXpHtml(state) + missionsReferenceFinanceHtml(state) + '<div class="missions-reference-heading"><div><img src="assets/ui/emblems/emblem_archmage.png" alt="" aria-hidden="true"><h1>MISSÕES</h1></div>' + missionsToolbarHtml(canClear) + '</div><div class="missions-reference-tabs" role="tablist"><button type="button" class="is-active" data-mission-ref-tab="daily" role="tab" aria-selected="true">DIÁRIAS</button><button type="button" data-mission-ref-tab="weekly" role="tab" aria-selected="false">SEMANAIS</button><button type="button" data-mission-ref-tab="achievements" role="tab" aria-selected="false">CONQUISTAS</button></div>' + missionReferenceDailyHtml(state) + missionReferenceWeeklyHtml(state) + missionReferenceAchievementsHtml(state) + missionsReferenceExtrasHtml(state) + '<div class="missions-reference-secondary">' + missionManagementHtml(state) + hiddenMissionsHtml(state) + '</div></div>';
     }
 
     function startMissionCountdown(container) {
@@ -1082,8 +1072,15 @@
             form.addEventListener("submit", function (e) {
                 e.preventDefault();
                 var xpField = form.querySelector("#editMissionXp");
-                var xp = xpField ? xpField.value : 4;
-                Arquimago.saveMissionOverride(missionId, { xp: xp, icon: selectedIcon });
+                var xp = xpField ? xpField.value : 25;
+                if (missionId.indexOf("custom_") === 0) {
+                    mission.xp = Arquimago.clampMissionXp(xp);
+                    mission.icon = String(selectedIcon || mission.icon || "🎯");
+                    if (Arquimago.refreshMissionAvailability) Arquimago.refreshMissionAvailability(state);
+                    Arquimago.saveState(state);
+                } else {
+                    Arquimago.saveMissionOverride(missionId, { xp: xp, icon: selectedIcon });
+                }
                 Arquimago.playMissionComplete();
                 close();
                 missionManagementMode = null;
