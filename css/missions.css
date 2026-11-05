@@ -116,6 +116,41 @@
     margin-bottom: 18px;
 }
 
+.missions-management-dialog {
+    z-index: 9000;
+    padding: 16px;
+}
+
+.missions-edit-modal {
+    z-index: 9100;
+}
+
+.missions-management-dialog__panel {
+    width: min(760px, 94vw);
+    max-width: 760px;
+    max-height: 88vh;
+    padding: clamp(20px, 3.5vw, 34px);
+}
+
+.missions-management-dialog .missions-management {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.missions-management__notice {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid rgba(127, 217, 162, 0.35);
+    border-radius: 8px;
+    background: rgba(38, 100, 65, 0.2);
+    color: #a8e9bf;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
 .missions-confirm-panel p {
     color: var(--text-muted);
     margin-bottom: 22px;

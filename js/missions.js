@@ -25,6 +25,8 @@
     var missionManagementMode = null;
     var selectedMissionIds = {};
     var editingMissionId = null;
+    var missionEditNotice = "";
+    var missionManagementKeydownHandler = null;
     var missionReferenceTab = "daily";
     var missionCountdownTimer = null;
     var ACTIVE_MISSIONS_HIDDEN_KEY = "arquimago_active_missions_hidden_v1";
@@ -622,7 +624,7 @@
         if (!missionManagementMode) return "";
 
         if (missionManagementMode === "edit") {
-            return missionEditHtml(state);
+            return '<div class="modal missions-management-dialog"><div class="modal-backdrop" data-close-mission-management></div><div class="modal-panel missions-management-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="missions-management-title">' + missionEditHtml(state) + '</div></div>';
         }
 
         var deleting = missionManagementMode === "delete";
@@ -662,7 +664,10 @@
         var html = '<section class="missions-management" aria-labelledby="missions-management-title">';
         html += '<div class="missions-management__head"><div><span class="section-label">Checklist de edição</span><h2 id="missions-management-title">Editar missões</h2>';
         html += '<p>Altere o XP ou o ícone de missões nativas e personalizadas.</p></div>';
-        html += '<button type="button" class="btn-secondary compact" data-cancel-mission-management>Cancelar</button></div>';
+        html += '<button type="button" class="btn-secondary compact" data-cancel-mission-management>Concluir edições</button></div>';
+        if (missionEditNotice) {
+            html += '<p class="missions-management__notice" role="status">' + escapeHtml(missionEditNotice) + ' Você pode continuar editando ou concluir aqui.</p>';
+        }
         html += '<div class="missions-management__list">';
 
         entries.forEach(function (entry) {
@@ -684,7 +689,7 @@
         html += '</div>';
         html += '<div class="missions-management__actions">';
         html += '<span>' + (editingMissionId ? "1 selecionada" : "Selecione uma missão para editar") + '</span>';
-        html += '<button type="button" class="btn-primary compact" data-submit-mission-management' + (editingMissionId ? "" : " disabled") + '>Editar missão</button>';
+        html += '<button type="button" class="btn-primary compact" data-submit-mission-management' + (editingMissionId ? "" : " disabled") + '>Editar selecionada</button>';
         html += '</div></section>';
         return html;
     }
@@ -1018,9 +1023,16 @@
             '</div>';
         document.body.appendChild(modal);
 
+        function onModalKeydown(event) {
+            if (event.key === "Escape") close();
+        }
+
         function close() {
+            document.removeEventListener("keydown", onModalKeydown);
             modal.remove();
         }
+
+        document.addEventListener("keydown", onModalKeydown);
 
         modal.querySelectorAll(".modal-backdrop, [data-close-edit-mission]").forEach(function (el) {
             el.addEventListener("click", close);
@@ -1060,8 +1072,8 @@
                 Arquimago.playClick();
                 Arquimago.clearMissionOverride(missionId);
                 close();
-                missionManagementMode = null;
                 editingMissionId = null;
+                missionEditNotice = mission.name + " voltou ao padrão.";
                 if (Arquimago.refreshAll) Arquimago.refreshAll(false);
                 else Arquimago.renderMissions();
             });
@@ -1083,8 +1095,8 @@
                 }
                 Arquimago.playMissionComplete();
                 close();
-                missionManagementMode = null;
                 editingMissionId = null;
+                missionEditNotice = mission.name + " foi atualizada.";
                 if (Arquimago.refreshAll) Arquimago.refreshAll(false);
                 else Arquimago.renderMissions();
             });
@@ -1221,12 +1233,45 @@
                 missionManagementMode = button.getAttribute("data-start-mission-management");
                 selectedMissionIds = {};
                 editingMissionId = null;
+                missionEditNotice = "";
                 Arquimago.renderMissions(container);
             });
         });
     }
 
+    function closeMissionManagement(container) {
+        missionManagementMode = null;
+        selectedMissionIds = {};
+        editingMissionId = null;
+        missionEditNotice = "";
+        if (missionManagementKeydownHandler) {
+            document.removeEventListener("keydown", missionManagementKeydownHandler);
+            missionManagementKeydownHandler = null;
+        }
+        Arquimago.playClick();
+        Arquimago.renderMissions(container);
+    }
+
     function bindMissionSelection(container) {
+        if (missionManagementKeydownHandler) {
+            document.removeEventListener("keydown", missionManagementKeydownHandler);
+            missionManagementKeydownHandler = null;
+        }
+        if (missionManagementMode === "edit") {
+            missionManagementKeydownHandler = function (event) {
+                if (event.key === "Escape" && !document.querySelector(".missions-edit-modal")) {
+                    closeMissionManagement(container);
+                }
+            };
+            document.addEventListener("keydown", missionManagementKeydownHandler);
+        }
+
+        container.querySelectorAll("[data-cancel-mission-management], [data-close-mission-management]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                closeMissionManagement(container);
+            });
+        });
+
         var selectionInputs = container.querySelectorAll("[data-manage-mission]");
         if (!selectionInputs.length) return;
 
@@ -1248,7 +1293,12 @@
             input.addEventListener("change", function () {
                 var id = input.getAttribute("data-manage-mission");
                 if (missionManagementMode === "edit") {
-                    if (input.checked) editingMissionId = id;
+                    if (input.checked) {
+                        editingMissionId = id;
+                        missionEditNotice = "";
+                        var notice = container.querySelector(".missions-management__notice");
+                        if (notice) notice.remove();
+                    }
                     else if (editingMissionId === id) editingMissionId = null;
                     refreshSubmitState();
                     return;
@@ -1258,17 +1308,6 @@
                 refreshSubmitState();
             });
         });
-
-        var cancelButton = container.querySelector("[data-cancel-mission-management]");
-        if (cancelButton) {
-            cancelButton.addEventListener("click", function () {
-                Arquimago.playClick();
-                missionManagementMode = null;
-                selectedMissionIds = {};
-                editingMissionId = null;
-                Arquimago.renderMissions(container);
-            });
-        }
 
         if (submitButton) {
             submitButton.addEventListener("click", function () {
