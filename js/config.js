@@ -158,6 +158,7 @@
         dailyCompletedMissionIds: [],
         dailyBonusMissionId: "",
         dailyBonusDate: "",
+        journeyDone: [],
         dailyHistory: [],
         weeklyDate: "",
         dailyDone: [],
@@ -374,6 +375,16 @@
             { id: "daily_aprenda_algo", name: "Aprenda algo novo", desc: "Dedicar 15 minutos ao aprendizado.", objective: "Dedicar 15 minutos ao aprendizado", category: "Mente", xp: 35, bossDamage: 20, attribute: "mental", icon: "🧠" },
             { id: "daily_encerre_dia", name: "Encerre seu dia", desc: "Revisar o dia e preparar o próximo.", objective: "Revisar o dia e preparar o próximo", category: "Produtividade", xp: 25, bossDamage: 12, attribute: "habits", icon: "🌙" }
         ],
+        journey: [
+            { id: "journey_patrimonio", name: "Conquistar patrimônio", desc: "Construir patrimônio financeiro ao longo da vida.", objective: "Construir patrimônio financeiro ao longo da vida", category: "Jornada", frequency: "journey", xp: 100, icon: "💰" },
+            { id: "journey_independencia_financeira", name: "Conquistar independência financeira", desc: "Alcançar uma condição financeira sustentável.", objective: "Alcançar uma condição financeira sustentável", category: "Jornada", frequency: "journey", xp: 100, icon: "🧭" },
+            { id: "journey_habilidade", name: "Dominar uma habilidade", desc: "Desenvolver uma competência em alto nível.", objective: "Desenvolver uma competência em alto nível", category: "Jornada", frequency: "journey", xp: 100, icon: "🧠" },
+            { id: "journey_mundo", name: "Conhecer o mundo", desc: "Conhecer diferentes culturas e lugares.", objective: "Conhecer diferentes culturas e lugares", category: "Jornada", frequency: "journey", xp: 100, icon: "🌎" },
+            { id: "journey_saude", name: "Transformar a saúde", desc: "Construir um estilo de vida saudável e sustentável.", objective: "Construir um estilo de vida saudável e sustentável", category: "Jornada", frequency: "journey", xp: 100, icon: "💪" },
+            { id: "journey_formacao", name: "Conquistar uma formação", desc: "Concluir uma formação ou especialização.", objective: "Concluir uma formação ou especialização", category: "Jornada", frequency: "journey", xp: 100, icon: "🎓" },
+            { id: "journey_negocio", name: "Construir um negócio", desc: "Criar e desenvolver um empreendimento.", objective: "Criar e desenvolver um empreendimento", category: "Jornada", frequency: "journey", xp: 100, icon: "💼" },
+            { id: "journey_familia", name: "Construir uma família", desc: "Dedicar-se à construção de vínculos e uma vida familiar.", objective: "Dedicar-se à construção de vínculos e uma vida familiar", category: "Jornada", frequency: "journey", xp: 100, icon: "🏡" }
+        ],
         weekly: [],
         habits: []
     };
@@ -388,7 +399,15 @@
         daily_sem_distracoes: "📵",
         daily_autocuidado: "🚿",
         daily_aprenda_algo: "🧠",
-        daily_encerre_dia: "🌙"
+        daily_encerre_dia: "🌙",
+        journey_patrimonio: "💰",
+        journey_independencia_financeira: "🧭",
+        journey_habilidade: "🧠",
+        journey_mundo: "🌎",
+        journey_saude: "💪",
+        journey_formacao: "🎓",
+        journey_negocio: "💼",
+        journey_familia: "🏡"
     };
 
     Arquimago.MISSION_ICON_CATEGORIES = [
@@ -541,6 +560,7 @@
         if (state.dailyDone.indexOf(missionId) !== -1) return true;
         if (state.weeklyDone.indexOf(missionId) !== -1) return true;
         if (state.habitsDone.indexOf(missionId) !== -1) return true;
+        if ((state.journeyDone || []).indexOf(missionId) !== -1) return true;
         return false;
     };
 

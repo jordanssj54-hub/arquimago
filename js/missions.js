@@ -13,6 +13,7 @@
         main: { label: "Diária", css: "special" },
         daily: { label: "Diária", css: "daily" },
         weekly: { label: "Semanal", css: "weekly" },
+        journey: { label: "Jornada", css: "special" },
         habits: { label: "Diária", css: "habit" },
         custom_daily: { label: "Diária", css: "daily" },
         custom_weekly: { label: "Semanal", css: "weekly" },
@@ -171,6 +172,10 @@
         if (type === "daily") return state.dailyDone;
         if (type === "weekly") return state.weeklyDone;
         if (type === "habits") return state.habitsDone;
+        if (type === "journey") {
+            if (!Array.isArray(state.journeyDone)) state.journeyDone = [];
+            return state.journeyDone;
+        }
         if (type === "custom_daily") return state.dailyDone;
         if (type === "custom_weekly") return state.weeklyDone;
         if (type === "custom_free") return state.completedIds;
@@ -214,7 +219,7 @@
     Arquimago.findMission = findMission;
 
     Arquimago.findMissionById = function (id) {
-        var types = ["main", "daily", "weekly", "habits"];
+        var types = ["main", "daily", "weekly", "habits", "journey"];
         for (var i = 0; i < types.length; i++) {
             var mission = findMission(types[i], id);
             if (mission) return mission;
@@ -234,6 +239,7 @@
        ============================================================ */
     Arquimago.setMissionComplete = function (mission, type, isComplete, anchor) {
         var state = Arquimago.state;
+        var isJourney = type === "journey" || (mission && mission.frequency === "journey");
         if (Arquimago.syncDates) Arquimago.syncDates(state);
         var item = anchorItem(anchor);
         var now = new Date();
@@ -242,13 +248,15 @@
         if (isComplete) {
             if (isDone(state, mission, type)) return;
             markCompleted(state, mission, type);
-            if (!Array.isArray(state.dailyCompletedMissionIds)) state.dailyCompletedMissionIds = [];
-            if (state.dailyCompletedMissionIds.indexOf(mission.id) === -1) state.dailyCompletedMissionIds.push(mission.id);
+            if (!isJourney) {
+                if (!Array.isArray(state.dailyCompletedMissionIds)) state.dailyCompletedMissionIds = [];
+                if (state.dailyCompletedMissionIds.indexOf(mission.id) === -1) state.dailyCompletedMissionIds.push(mission.id);
+            }
             state.missionsCompleted += 1;
 
             var progression = Arquimago.applyMissionProgress ? Arquimago.applyMissionProgress(state, mission) : null;
 
-            Arquimago.updateStreak(state);
+            if (!isJourney) Arquimago.updateStreak(state);
             Arquimago.checkAchievements(state);
             Arquimago.playMissionComplete();
 
@@ -283,7 +291,7 @@
         } else {
             if (!isDone(state, mission, type)) return;
             unmarkCompleted(state, mission, type);
-            if (Array.isArray(state.dailyCompletedMissionIds)) {
+            if (!isJourney && Array.isArray(state.dailyCompletedMissionIds)) {
                 state.dailyCompletedMissionIds = state.dailyCompletedMissionIds.filter(function (id) { return id !== mission.id; });
             }
             state.missionsCompleted = Math.max(0, state.missionsCompleted - 1);
@@ -529,7 +537,7 @@
         html += '<div class="missions-list' + (activeMissionsHidden ? " is-hidden" : "") + '">';
 
         var count = 0;
-        ["main", "daily", "weekly", "habits"].forEach(function (key) {
+        ["main", "daily", "weekly", "habits", "journey"].forEach(function (key) {
             var freq = FREQ_MAP[key];
             Arquimago.MISSIONS[key].forEach(function (m) {
                 m = Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(m) : m;
@@ -562,7 +570,7 @@
     function completedMissionsHtml(state) {
         var html = '<div class="missions-list">';
         var count = 0;
-        ["main", "daily", "weekly", "habits"].forEach(function (key) {
+        ["main", "daily", "weekly", "habits", "journey"].forEach(function (key) {
             var freq = FREQ_MAP[key];
             Arquimago.MISSIONS[key].forEach(function (m) {
                 m = Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(m) : m;
@@ -579,7 +587,7 @@
 
     function completedMissionEntries(state) {
         var entries = [];
-        ["main", "daily", "weekly", "habits"].forEach(function (key) {
+        ["main", "daily", "weekly", "habits", "journey"].forEach(function (key) {
             Arquimago.MISSIONS[key].forEach(function (mission) {
                 mission = Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mission) : mission;
                 if (Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, mission.id)) return;
@@ -721,14 +729,22 @@
         daily_sem_distracoes: { title: "VENÇA AS DISTRAÇÕES", desc: "Ficar 20 minutos sem distrações digitais.", progress: "1 MISSÃO", icon: "📵", kind: "default" },
         daily_autocuidado: { title: "CUIDE DE SI", desc: "Dedicar um momento ao autocuidado.", progress: "1 MISSÃO", icon: "🚿", kind: "default" },
         daily_aprenda_algo: { title: "APRENDA ALGO NOVO", desc: "Dedicar 15 minutos ao aprendizado.", progress: "1 MISSÃO", icon: "🧠", kind: "study" },
-        daily_encerre_dia: { title: "ENCERRE SEU DIA", desc: "Revisar o dia e preparar o próximo.", progress: "1 MISSÃO", icon: "🌙", kind: "default" }
+        daily_encerre_dia: { title: "ENCERRE SEU DIA", desc: "Revisar o dia e preparar o próximo.", progress: "1 MISSÃO", icon: "🌙", kind: "default" },
+        journey_patrimonio: { title: "CONQUISTAR PATRIMÔNIO", desc: "Construir patrimônio financeiro ao longo da vida.", progress: "1 OBJETIVO", icon: "💰", kind: "default" },
+        journey_independencia_financeira: { title: "CONQUISTAR INDEPENDÊNCIA FINANCEIRA", desc: "Alcançar uma condição financeira sustentável.", progress: "1 OBJETIVO", icon: "🧭", kind: "default" },
+        journey_habilidade: { title: "DOMINAR UMA HABILIDADE", desc: "Desenvolver uma competência em alto nível.", progress: "1 OBJETIVO", icon: "🧠", kind: "default" },
+        journey_mundo: { title: "CONHECER O MUNDO", desc: "Conhecer diferentes culturas e lugares.", progress: "1 OBJETIVO", icon: "🌎", kind: "default" },
+        journey_saude: { title: "TRANSFORMAR A SAÚDE", desc: "Construir um estilo de vida saudável e sustentável.", progress: "1 OBJETIVO", icon: "💪", kind: "default" },
+        journey_formacao: { title: "CONQUISTAR UMA FORMAÇÃO", desc: "Concluir uma formação ou especialização.", progress: "1 OBJETIVO", icon: "🎓", kind: "default" },
+        journey_negocio: { title: "CONSTRUIR UM NEGÓCIO", desc: "Criar e desenvolver um empreendimento.", progress: "1 OBJETIVO", icon: "💼", kind: "default" },
+        journey_familia: { title: "CONSTRUIR UMA FAMÍLIA", desc: "Dedicar-se à construção de vínculos e uma vida familiar.", progress: "1 OBJETIVO", icon: "🏡", kind: "default" }
     };
 
     function referenceMissionEntries(state) {
         var all = Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state, true) : [];
         var nativeEntries = Object.keys(REFERENCE_MISSION_META).map(function (id) {
             return all.find(function (entry) {
-                return entry.mission.id === id && !(Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, id));
+                return entry.mission.id === id && entry.type !== "journey" && !(Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, id));
             });
         }).filter(Boolean);
         var customEntries = all.filter(function (entry) {
@@ -755,10 +771,11 @@
         };
         var done = isDone(state, mission, entry.type);
         var progress = done ? "1" : "0";
+        var rewardLabel = mission.frequency === "journey" && Number(mission.xp) >= 100 ? "100+ XP" : escapeHtml(mission.xp) + " XP";
         return '<div class="mission-item mission-ref-card mission-ref-card--' + meta.kind + (done ? " completed" : "") + '" data-id="' + escapeHtml(mission.id) + '" data-type="' + escapeHtml(entry.type) + '">' +
             '<div class="mission-ref-card__icon mission-ref-card__icon--' + meta.kind + '" aria-hidden="true">' + meta.icon + '</div>' +
             '<div class="mission-ref-card__copy"><h3>' + escapeHtml(meta.title) + '</h3><p>' + escapeHtml(meta.desc) + '</p>' +
-            '<div class="mission-ref-card__rewards"><strong>+ ' + escapeHtml(mission.xp) + ' XP</strong><span>+ 10</span><img src="assets/ui/home-reference/xp-icon.png" alt="" aria-hidden="true"></div></div>' +
+            '<div class="mission-ref-card__rewards"><strong>+ ' + rewardLabel + '</strong><span>+ 10</span><img src="assets/ui/home-reference/xp-icon.png" alt="" aria-hidden="true"></div></div>' +
             '<div class="mission-ref-card__progress"><strong>' + progress + ' / ' + escapeHtml(meta.progress) + '</strong><span><i style="width:' + (done ? "100" : "0") + '%"></i></span></div>' +
             '<label class="mission-check mission-ref-card__check" title="Marcar missão"><input type="checkbox"' + (done ? " checked" : "") + '><span class="mission-check__box"></span></label>' +
             '</div>';
@@ -799,20 +816,19 @@
         return '<section class="missions-reference-panel" data-ref-panel="daily"><section class="missions-reference-journey"><div class="missions-reference-journey__counter"><strong>' + completed + ' / ' + entries.length + '</strong><span>MISSÕES<br>HOJE</span></div><div class="missions-reference-journey__copy"><h2>JORNADA DE HOJE</h2><p>Complete suas missões diárias e<br>avance na sua jornada.</p>' + customButton + '</div><img class="missions-reference-journey__art" src="assets/ui/home-reference/journey-art.png" alt="" aria-hidden="true"></section><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhuma missão disponível no momento.</p>') + '</div>' + customForm + missionsReferenceRefreshHtml() + '</section>';
     }
 
-    function missionReferenceWeeklyHtml(state) {
-        var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) { return entry.type === "weekly" || entry.type === "custom_weekly"; });
+    function missionReferenceJourneyHtml(state) {
+        var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) {
+            return entry.type === "journey" && !(Arquimago.isMissionSuppressed && Arquimago.isMissionSuppressed(state, entry.mission.id));
+        });
         entries = completedLastMissionEntries(state, entries);
-        return '<section class="missions-reference-panel" data-ref-panel="weekly" hidden><div class="missions-reference-section-title"><span>JORNADA SEMANAL</span><p>Missões que mantêm seu progresso em movimento.</p></div><div class="missions-reference-list">' + (entries.length ? entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("") : '<p class="missions-reference-empty">Nenhuma missão semanal disponível.</p>') + '</div></section>';
-    }
-
-    function missionReferenceAchievementsHtml(state) {
-        var entries = completedMissionEntries(state);
-        return '<section class="missions-reference-panel" data-ref-panel="achievements" hidden><div class="missions-reference-section-title"><span>CONQUISTAS</span><p>Seu histórico de missões concluídas.</p></div><div class="missions-reference-list">' + (entries.length ? entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("") : '<p class="missions-reference-empty">Complete uma missão para registrar sua primeira conquista.</p>') + '</div></section>';
+        var completed = entries.filter(function (entry) { return isDone(state, entry.mission, entry.type); }).length;
+        var cards = entries.map(function (entry) { return referenceMissionCardHtml(state, entry); }).join("");
+        return '<section class="missions-reference-panel" data-ref-panel="journey" hidden><div class="missions-reference-section-title"><span>JORNADA DE VIDA · ' + completed + ' / ' + entries.length + ' CONCLUÍDOS</span><p>Conquiste objetivos importantes e receba 100+ XP por marco.</p></div><div class="missions-reference-list">' + (cards || '<p class="missions-reference-empty">Nenhum objetivo de Jornada disponível.</p>') + '</div></section>';
     }
 
     function missionsReferenceExtrasHtml(state) {
         var entries = (Arquimago.getAllMissionEntries ? Arquimago.getAllMissionEntries(state) : []).filter(function (entry) {
-            return !REFERENCE_MISSION_META[entry.mission.id] && entry.mission.id.indexOf("custom_") !== 0;
+            return !REFERENCE_MISSION_META[entry.mission.id] && entry.mission.id.indexOf("custom_") !== 0 && entry.type !== "weekly" && entry.type !== "custom_weekly";
         });
         if (!entries.length) return "";
         entries = completedLastMissionEntries(state, entries);
@@ -820,7 +836,8 @@
     }
 
     function missionsReferenceHtml(state, canClear) {
-        return '<div class="missions-page missions-page--reference">' + missionsReferenceXpHtml(state) + missionsReferenceFinanceHtml(state) + '<div class="missions-reference-heading"><div><img src="assets/ui/emblems/emblem_archmage.png" alt="" aria-hidden="true"><h1>MISSÕES</h1></div>' + missionsToolbarHtml(canClear) + '</div><div class="missions-reference-tabs" role="tablist"><button type="button" class="is-active" data-mission-ref-tab="daily" role="tab" aria-selected="true">DIÁRIAS</button><button type="button" data-mission-ref-tab="weekly" role="tab" aria-selected="false">SEMANAIS</button><button type="button" data-mission-ref-tab="achievements" role="tab" aria-selected="false">CONQUISTAS</button></div>' + missionReferenceDailyHtml(state) + missionReferenceWeeklyHtml(state) + missionReferenceAchievementsHtml(state) + missionsReferenceExtrasHtml(state) + '<div class="missions-reference-secondary">' + missionManagementHtml(state) + hiddenMissionsHtml(state) + '</div></div>';
+        if (missionReferenceTab !== "daily" && missionReferenceTab !== "journey") missionReferenceTab = "daily";
+        return '<div class="missions-page missions-page--reference">' + missionsReferenceXpHtml(state) + missionsReferenceFinanceHtml(state) + '<div class="missions-reference-heading"><div><img src="assets/ui/emblems/emblem_archmage.png" alt="" aria-hidden="true"><h1>MISSÕES</h1></div>' + missionsToolbarHtml(canClear) + '</div><div class="missions-reference-tabs" role="tablist"><button type="button" class="is-active" data-mission-ref-tab="daily" role="tab" aria-selected="true">DIÁRIAS</button><button type="button" data-mission-ref-tab="journey" role="tab" aria-selected="false">JORNADA</button></div>' + missionReferenceDailyHtml(state) + missionReferenceJourneyHtml(state) + missionsReferenceExtrasHtml(state) + '<div class="missions-reference-secondary">' + missionManagementHtml(state) + hiddenMissionsHtml(state) + '</div></div>';
     }
 
     function startMissionCountdown(container) {
@@ -902,6 +919,7 @@
         state.dailyDone = [];
         state.weeklyDone = [];
         state.habitsDone = [];
+        state.journeyDone = [];
         state.dailyCompletedMissionIds = [];
         state.level = defaults.level;
         state.xp = defaults.xp;

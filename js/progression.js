@@ -26,7 +26,12 @@
         if (type === "daily" || type === "custom_daily") return state.dailyDone;
         if (type === "habits") return state.habitsDone;
         if (type === "weekly" || type === "custom_weekly") return state.weeklyDone;
+        if (type === "journey") return state.journeyDone || [];
         return [];
+    }
+
+    function isJourneyEntry(entry) {
+        return !!(entry && (entry.type === "journey" || entry.mission && entry.mission.frequency === "journey"));
     }
 
     function isDoneInType(state, mission, type) {
@@ -36,7 +41,7 @@
 
     function allNativeMissions(state) {
         var result = [];
-        ["main", "daily", "weekly", "habits"].forEach(function (type) {
+        ["main", "daily", "weekly", "habits", "journey"].forEach(function (type) {
             (Arquimago.MISSIONS[type] || []).forEach(function (mission) {
                 result.push({
                     mission: Arquimago.applyMissionOverrides ? Arquimago.applyMissionOverrides(mission, state) : mission,
@@ -169,7 +174,7 @@
     Arquimago.getDailyMissionEntries = function (state) {
         state = state || Arquimago.state;
         if (!state) return [];
-        return Arquimago.getAllMissionEntries(state);
+        return Arquimago.getAllMissionEntries(state).filter(function (entry) { return !isJourneyEntry(entry); });
     };
 
     Arquimago.getDailyMissionProgress = function (state) {
@@ -244,7 +249,7 @@
     };
 
     Arquimago.getTotalAvailableMissionXP = function (state) {
-        var entries = Arquimago.getAllMissionEntries(state);
+        var entries = Arquimago.getAllMissionEntries(state).filter(function (entry) { return !isJourneyEntry(entry); });
         var total = 0;
         entries.forEach(function (entry) {
             total += Number(entry.mission.xp) || 0;
@@ -253,7 +258,7 @@
     };
 
     function isDailyBonusEligible(entry) {
-        return entry && entry.type !== "weekly" && entry.type !== "custom_weekly" && entry.mission.frequency !== "weekly";
+        return entry && !isJourneyEntry(entry) && entry.type !== "weekly" && entry.type !== "custom_weekly" && entry.mission.frequency !== "weekly";
     }
 
     Arquimago.getDailyBonusMission = function (state) {
@@ -296,7 +301,7 @@
     };
 
     Arquimago.getDailyMissionXpPotential = function (state) {
-        var entries = Arquimago.getAllMissionEntries(state);
+        var entries = Arquimago.getAllMissionEntries(state).filter(function (entry) { return !isJourneyEntry(entry); });
         var total = entries.reduce(function (sum, entry) {
             var xp = Math.max(0, Number(entry.mission && entry.mission.xp) || 0);
             var isWeekly = entry.type === "weekly" || entry.type === "custom_weekly" || entry.mission.frequency === "weekly";
@@ -308,7 +313,7 @@
     };
 
     Arquimago.getAverageMissionXp = function (state) {
-        var entries = Arquimago.getAllMissionEntries(state);
+        var entries = Arquimago.getAllMissionEntries(state).filter(function (entry) { return !isJourneyEntry(entry); });
         var weightedXP = 0;
         var totalWeight = 0;
         entries.forEach(function (entry) {
@@ -620,6 +625,9 @@
     };
 
     Arquimago.damageWeeklyBoss = function (state, mission) {
+        if (mission && mission.frequency === "journey") {
+            return { damage: 0, boss: state.weeklyBoss || null, defeated: false, weakness: false };
+        }
         var boss = Arquimago.ensureWeeklyBoss(state, weekKey());
         if (!boss || boss.defeated || !mission) return { damage: 0, boss: boss, defeated: false, weakness: false };
 
@@ -692,6 +700,7 @@
         state.dailyDone = Array.isArray(state.dailyDone) ? state.dailyDone : [];
         state.weeklyDone = Array.isArray(state.weeklyDone) ? state.weeklyDone : [];
         state.habitsDone = Array.isArray(state.habitsDone) ? state.habitsDone : [];
+        state.journeyDone = Array.isArray(state.journeyDone) ? state.journeyDone : [];
         state.dailyCompletedMissionIds = Array.isArray(state.dailyCompletedMissionIds) ? state.dailyCompletedMissionIds : [];
         state.dailyHistory = Array.isArray(state.dailyHistory) ? state.dailyHistory : [];
         state.monthlyHistory = Array.isArray(state.monthlyHistory) ? state.monthlyHistory : [];

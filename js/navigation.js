@@ -131,10 +131,10 @@
 
         function handleReferenceAction(action) {
             if (action === "achievements") {
-                selectScreen("missions");
+                selectScreen("profile");
                 global.setTimeout(function () {
-                    var tab = document.querySelector('[data-mission-ref-tab="achievements"]');
-                    if (tab) tab.click();
+                    var section = document.querySelector(".profile-reference-achievements");
+                    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
                 }, 0);
                 return;
             }

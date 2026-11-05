@@ -729,7 +729,7 @@
         var numericMax = ["playTimeSeconds", "dailyAvailableXP", "monthlyAvailableXP", "monthlyGoalXP", "daysUsingApp"];
         var progressionNumbers = ["level", "xp", "totalXP", "missionsCompleted", "dailyXP", "monthlyXP"];
         var booleanUnion = ["introSeen", "soundEnabled"];
-        var replaceableArrays = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone"];
+        var replaceableArrays = ["completedIds", "dailyCompletedMissionIds", "dailyDone", "weeklyDone", "habitsDone", "journeyDone"];
         var arrayFields = ["deletedMissionIds", "unlockedSpells", "achievements", "bossDamageEvents", "bossTrophies"];
 
         Object.keys(defaults).forEach(function (key) {
@@ -817,7 +817,7 @@
             Number(state.chapter) > 1 || Number(state.missionsCompleted) > 0 ||
             Number(state.dailyXP) > 0 || Number(state.monthlyXP) > 0 ||
             (state.completedIds || []).length || (state.dailyCompletedMissionIds || []).length || (state.dailyDone || []).length ||
-            (state.weeklyDone || []).length || (state.habitsDone || []).length ||
+            (state.weeklyDone || []).length || (state.habitsDone || []).length || (state.journeyDone || []).length ||
             (state.customMissions || []).length || (state.hiddenMissionIds || []).length ||
             (state.deletedMissionIds || []).length || Object.keys(state.missionOverrides || {}).length ||
             (state.dailyHistory || []).length || (state.monthlyHistory || []).length ||
